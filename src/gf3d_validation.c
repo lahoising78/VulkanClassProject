@@ -21,20 +21,58 @@ static vValidation gf3d_validation = {0};
 
 void gf3d_validation_query_layer_properties()
 {
-    int i;
-    vkEnumerateInstanceLayerProperties(&gf3d_validation.layerCount, NULL);
-    slog("discovered %i validation layers",gf3d_validation.layerCount);
+    int i, j;
+    Uint32 found = 0;
+    int displacement = 0;
+    vValidation temp = {0};
+    char* ignoreLayers[] = {"VK_LAYER_LUNARG_vktrace", "VK_LAYER_LUNARG_api_dump", "VK_LAYER_LUNARG_demo_layer"};
+    const unsigned int ignoreLayersCount = sizeof(ignoreLayers) / sizeof(char*);
+
+    vkEnumerateInstanceLayerProperties(&temp.layerCount, NULL);
+    slog("discovered %i validation layers",temp.layerCount);
     
-    if (!gf3d_validation.layerCount)return;
+    if (!temp.layerCount)return;
     
-    gf3d_validation.availableLayers = (VkLayerProperties *)gfc_allocate_array(sizeof(VkLayerProperties),gf3d_validation.layerCount);
-    vkEnumerateInstanceLayerProperties(&gf3d_validation.layerCount, gf3d_validation.availableLayers);
+    temp.availableLayers = (VkLayerProperties *)gfc_allocate_array(sizeof(VkLayerProperties),temp.layerCount);
+    vkEnumerateInstanceLayerProperties(&temp.layerCount, temp.availableLayers);
     
-    gf3d_validation.layerNames = (const char* * )gfc_allocate_array(sizeof(const char *),gf3d_validation.layerCount);
-    for (i = 0; i < gf3d_validation.layerCount;i++)
+    temp.layerNames = (const char* * )gfc_allocate_array(sizeof(const char *),temp.layerCount);
+    for (i = 0; i < temp.layerCount;i++)
     {
-        gf3d_validation.layerNames[i] = (const char *)gf3d_validation.availableLayers[i].layerName;
-        slog("Validation layer available: %s",gf3d_validation.availableLayers[i].layerName);
+
+        temp.layerNames[i] = (const char *)temp.availableLayers[i].layerName;
+        slog("Validation layer available: [%d] - %s", i, temp.availableLayers[i].layerName);
+        
+        for (j = 0; j < ignoreLayersCount; j++)
+        {
+            if ( strcmp(temp.availableLayers[i].layerName, ignoreLayers[j]) == 0 )
+            {
+                found++;
+                slog("Skipped %s", temp.availableLayers[i].layerName);
+                strcpy( temp.availableLayers[i].layerName, "" );
+                break;
+            }
+        }
+
+    }
+
+    slog("---- Adding final list of validation layers ----");
+    gf3d_validation.layerCount = temp.layerCount - found;
+    slog("gf3d: %d, temp: %d", gf3d_validation.layerCount, temp.layerCount);
+    gf3d_validation.availableLayers = (VkLayerProperties *)gfc_allocate_array(sizeof(VkLayerProperties), gf3d_validation.layerCount);
+    gf3d_validation.layerNames = (const char* *)gfc_allocate_array(sizeof(const char *), gf3d_validation.layerCount);
+    for (i = 0; i < temp.layerCount; i++)
+    {
+        if ( strcmp(temp.availableLayers[i].layerName, "") == 0 )
+        {
+            displacement++;
+            continue;
+        }
+
+        gf3d_validation.availableLayers[i - displacement] = temp.availableLayers[i];
+        gf3d_validation.layerNames[i - displacement] = temp.layerNames[i];
+        slog("Validation layer enabled: [%d] - %s", i - displacement, gf3d_validation.availableLayers[i - displacement].layerName);
+        
     }
 }
 

@@ -19,9 +19,9 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-    Model *model;
+    Model *model = NULL;
     Matrix4 modelMat;
-    Model *model2;
+    Model *model2 = NULL;
     Matrix4 modelMat2;
     
     for (a = 1; a < argc;a++)
