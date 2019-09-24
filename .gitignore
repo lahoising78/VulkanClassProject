@@ -53,3 +53,4 @@ dkms.conf
 makefile.dep
 gf3d
 *.log
+.vscode
