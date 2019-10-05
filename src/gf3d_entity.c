@@ -101,7 +101,7 @@ void gf3d_entity_general_update( Entity *self )
     gfc_matrix_make_translation(self->modelMat, buff);
     
     /* set scale of model */
-    gfc_matrix_scale( self->modelMat, self->scale);
+    gf3d_model_scale( self->modelMat, self->scale);
 
     /* set rotation of model */
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));

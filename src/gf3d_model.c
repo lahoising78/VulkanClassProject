@@ -205,4 +205,11 @@ void gf3d_model_create_uniform_buffer(Model *model)
     }
 }
 
+void gf3d_model_scale( Matrix4 modelMat, Vector3D scale )
+{
+    modelMat[0][0] = scale.x;
+    modelMat[1][1] = scale.y;
+    modelMat[2][2] = scale.z;
+}
+
 /*eol@eof*/
