@@ -11,6 +11,9 @@ Entity *app_naruto_new()
     e->think = app_naruto_think;
     e->touch = app_naruto_touch;
     e->update = app_naruto_update;
+    e->model = gf3d_model_load("Naruto");
+    e->modelOffset.z = -6.5f;
+    gfc_matrix_identity(e->modelMat);
 
     vector3d_clear(e->rotation);
     vector3d_clear(e->position);
@@ -78,6 +81,7 @@ void app_naruto_think (struct Entity_S* self)
 void app_naruto_update(struct Entity_S* self)
 {
     gf3d_entity_general_update(self);
+    gfc_matrix_rotate(self->modelMat, self->modelMat, ( self->rotation.y + 90 ) * GFC_DEGTORAD, vector3d(1, 0, 0));
 }
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)

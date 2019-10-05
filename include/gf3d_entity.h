@@ -22,6 +22,7 @@ typedef struct Entity_S
 {
     Model *model;
     Matrix4 modelMat;
+    Vector3D modelOffset; /* offset the model relative to position */
     Vector3D position;
     Vector3D velocity;
     Vector3D acceleration;

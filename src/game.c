@@ -67,16 +67,11 @@ int main(int argc,char *argv[])
     p1->entity = app_naruto_new();
     ent2 = gf3d_entity_new();
 
-    ent2->update = gf3d_entity_general_update;
-    
-    p1->entity->model = gf3d_model_load("dino");
-    gfc_matrix_identity(p1->entity->modelMat);
-
     ent2->model = gf3d_model_load("dino");
     gfc_matrix_identity(ent2->modelMat);
-    ent2->position = vector3d(10, 10, 10);
-
-    // gf3d_camera_set_position(vector3d(1000, 10000, 10000));
+    
+    // ent2->position = vector3d(10, 10, 10);
+    // p1->entity->scale.z = 3;
 
     while(!done)
     {

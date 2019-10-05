@@ -95,7 +95,15 @@ void gf3d_entity_general_update( Entity *self )
 
     // slog("a: %f, v: %f", vector3d_magnitude(self->acceleration), mag);
 
-    gfc_matrix_make_translation(self->modelMat, self->position);
+    /* get the actual position of model */
+    vector3d_add(buff, self->position, self->modelOffset);
+    /* set position of model */
+    gfc_matrix_make_translation(self->modelMat, buff);
+    
+    /* set scale of model */
+    gfc_matrix_scale( self->modelMat, self->scale);
+
+    /* set rotation of model */
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
 }
 
@@ -108,7 +116,13 @@ Entity *gf3d_entity_new()
         if (gf3d_entity_manager.entity_list[i]._inuse) continue;
 
         memset(&gf3d_entity_manager.entity_list[i], 0, sizeof(Entity));
+        ent = &gf3d_entity_manager.entity_list[i];
+
+        /* stuff to do when initiating an entity */
         gf3d_entity_manager.entity_list[i]._inuse = 1;
+        ent->update = gf3d_entity_general_update;
+        ent->scale = vector3d(1,1,1);
+        
         return &gf3d_entity_manager.entity_list[i];
     }
     slog("request for entity failed: all full up");
