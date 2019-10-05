@@ -663,6 +663,11 @@ void gf3d_vgraphics_rotate_camera(float degrees)
 
 }
 
+void gf3d_vgraphics_set_camera_view( Matrix4 camera )
+{
+    gfc_matrix_copy(gf3d_vgraphics.ubo.view, camera);
+}
+
 Pipeline *gf3d_vgraphics_get_graphics_pipeline()
 {
     return gf3d_vgraphics.pipe;

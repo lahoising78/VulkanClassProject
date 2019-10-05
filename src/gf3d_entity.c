@@ -3,6 +3,9 @@
 
 #include "simple_logger.h"
 #include "gf3d_entity.h"
+#include "gf3d_timer.h"
+
+Timer timer;
 
 typedef struct
 {
@@ -29,7 +32,71 @@ void gf3d_entity_manager_init( Uint32 entity_max )
         slog("failed to allocate entity list");
         return;
     }
+    gf3d_entity_manager.entity_max = entity_max;
     atexit(gf3d_entity_manager_close);
+}
+
+void gf3d_entity_manager_update(  )
+{
+    Entity *e = NULL;
+    int i;
+
+    for (i = 0; i < gf3d_entity_manager.entity_max; i++)
+    {
+        e = &gf3d_entity_manager.entity_list[i];
+        if (!e) 
+        {
+            continue;
+        }
+        if (!e->_inuse) 
+        {
+            continue;
+        }
+        
+        e->update(e);
+    }
+
+    gf3d_timer_start(&timer);
+}
+
+void gf3d_entity_general_update( Entity *self )
+{
+    Vector3D buff = vector3d(0,0,0);
+    float deltaTime;
+    float acc, vel;
+
+    deltaTime = gf3d_timer_get_ticks(&timer);
+
+    /* vf = vi + a*t */
+    vector3d_scale(buff, self->acceleration, deltaTime);
+    vector3d_add(self->velocity, self->velocity, buff);
+
+    /* df = di + v*t */
+    vector3d_scale(buff, self->velocity, deltaTime);
+    vector3d_add(self->position, self->position, buff);
+
+    vel = vector3d_magnitude(self->velocity);
+    acc = vector3d_magnitude(self->acceleration);
+    
+    if ( acc < 0.05f)
+    {
+        vector3d_clear(self->acceleration);
+        vector3d_clear(self->velocity);
+    }
+    /* If you are still moving, apply damp */
+    else if ( vel )
+    {
+        vector3d_set_magnitude(&self->acceleration, acc - DAMP_ACCELERATION);
+    }
+    else 
+    {
+        vector3d_clear(self->acceleration);
+    }
+
+    // slog("a: %f, v: %f", vector3d_magnitude(self->acceleration), mag);
+
+    gfc_matrix_make_translation(self->modelMat, self->position);
+    gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
 }
 
 Entity *gf3d_entity_new()

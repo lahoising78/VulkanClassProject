@@ -1,4 +1,5 @@
-#include <SDL.h>            
+#include <SDL.h>   
+#include "SDL.h"         
 
 #include "simple_logger.h"
 #include "gfc_vector.h"
@@ -10,6 +11,12 @@
 #include "gf3d_model.h"
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
+#include "gf3d_entity.h"
+
+#include "app_player.h"
+#include "app_naruto.h"
+
+#include "gf3d_timer.h"
 
 int main(int argc,char *argv[])
 {
@@ -19,10 +26,16 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-    Model *model = NULL;
-    Matrix4 modelMat;
-    Model *model2 = NULL;
-    Matrix4 modelMat2;
+    Player* p1;
+    Entity* ent2;
+    Timer timer = gf3d_timer_new();
+
+    const Uint32 entity_max = 16;
+    const Uint32 player_max = 2;
+    // Model *model = NULL;
+    // Matrix4 modelMat;
+    // Model *model2 = NULL;
+    // Matrix4 modelMat2;
     
     for (a = 1; a < argc;a++)
     {
@@ -45,31 +58,43 @@ int main(int argc,char *argv[])
     
     // main game loop
     slog("gf3d main loop begin");
-    model = gf3d_model_load("dino");
-    gfc_matrix_identity(modelMat);
-    model2 = gf3d_model_load("dino");
-    gfc_matrix_identity(modelMat2);
-    gfc_matrix_make_translation(
-            modelMat2,
-            vector3d(10,0,0)
-        );
+    gf3d_entity_manager_init( entity_max );
+    app_player_manager_init( player_max );
+
+    p1 = app_player_new();
+    p1->input_handler = app_naruto_input_handler;
+
+    p1->entity = app_naruto_new();
+    ent2 = gf3d_entity_new();
+
+    ent2->update = gf3d_entity_general_update;
+    
+    p1->entity->model = gf3d_model_load("dino");
+    gfc_matrix_identity(p1->entity->modelMat);
+
+    ent2->model = gf3d_model_load("dino");
+    gfc_matrix_identity(ent2->modelMat);
+    ent2->position = vector3d(10, 10, 10);
+
+    // gf3d_camera_set_position(vector3d(1000, 10000, 10000));
+
     while(!done)
     {
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
         
-        // gf3d_vgraphics_rotate_camera(0.001);
+        app_player_manager_update(keys); /* Give input to all players */
+        gf3d_entity_manager_update(); /* Update all entities */
+        gf3d_timer_start(&timer);
+
         gfc_matrix_rotate(
-            modelMat,
-            modelMat,
-            0.002,
-            vector3d(1,0,0));
-        gfc_matrix_rotate(
-            modelMat2,
-            modelMat2,
+            ent2->modelMat,
+            ent2->modelMat,
             0.002,
             vector3d(0,0,1));
+
+        gf3d_camera_look_at_center( p1->entity->position, ent2->position );
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -77,8 +102,8 @@ int main(int argc,char *argv[])
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
-                gf3d_model_draw(model,bufferFrame,commandBuffer,modelMat);
-                gf3d_model_draw(model2,bufferFrame,commandBuffer,modelMat2);
+                gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat);
+                gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat);
                 
             gf3d_command_rendering_end(commandBuffer);
             

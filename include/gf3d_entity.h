@@ -3,6 +3,14 @@
 
 #include "gf3d_model.h"
 
+/* Used for update and stuff */
+#define MAX_ACCELERATION 100.0f
+#define START_ACCELERATION 50.0f
+#define DAMP_ACCELERATION 50.0f
+#define MAX_SPEED 100.0f
+#define START_SPEED 50.0f
+#define DAMP_SPEED 0.05f
+
 typedef enum
 {
     ES_Idle = 0,
@@ -13,6 +21,7 @@ typedef enum
 typedef struct Entity_S
 {
     Model *model;
+    Matrix4 modelMat;
     Vector3D position;
     Vector3D velocity;
     Vector3D acceleration;
@@ -37,6 +46,17 @@ typedef struct Entity_S
  * @param entity_max maximum number of simultaneous entities you wish to support
  */
 void gf3d_entity_manager_init(Uint32 entity_max);
+
+/* 
+ * @brief calls update on all entities
+ */
+void gf3d_entity_manager_update(  );
+
+/* 
+ * @brief an update function to be called by all entities at the end of their individual updates
+ * @param self the entity to update
+ */
+void gf3d_entity_general_update( Entity *self );
 
 /**
  * @brief get an empty entity from the system

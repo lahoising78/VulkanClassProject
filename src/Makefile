@@ -10,7 +10,7 @@
 #
 
 # Linux
-PROJECT = gf3d
+PROJECT = application
 CC      = gcc
 #CC      = clang
 
