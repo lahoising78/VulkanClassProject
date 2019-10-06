@@ -94,18 +94,12 @@ ObjData *gf3d_obj_load_from_file(char *filename)
     gf3d_obj_get_counts_from_file(obj, file);
     
     obj->vertices = (Vector3D *)gfc_allocate_array(sizeof(Vector3D),obj->vertex_count);
-    slog("wut");
     obj->normals = (Vector3D *)gfc_allocate_array(sizeof(Vector3D),obj->normal_count);
-    slog("wut");
     obj->texels = (Vector2D *)gfc_allocate_array(sizeof(Vector2D),obj->texel_count);
-    slog("wut");
     
     obj->faceVerts = (Face *)gfc_allocate_array(sizeof(Face),obj->face_count);
-    slog("wut");
     obj->faceNormals = (Face *)gfc_allocate_array(sizeof(Face),obj->face_count);
-    slog("wut");
     obj->faceTexels = (Face *)gfc_allocate_array(sizeof(Face),obj->face_count);
-    slog("wut");
     
     gf3d_obj_load_get_data_from_file(obj, file);
     fclose(file);

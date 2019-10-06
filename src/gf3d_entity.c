@@ -44,11 +44,7 @@ void gf3d_entity_manager_update(  )
     for (i = 0; i < gf3d_entity_manager.entity_max; i++)
     {
         e = &gf3d_entity_manager.entity_list[i];
-        if (!e) 
-        {
-            continue;
-        }
-        if (!e->_inuse) 
+        if (!e->_inuse || !e->update) 
         {
             continue;
         }
@@ -120,7 +116,6 @@ Entity *gf3d_entity_new()
 
         /* stuff to do when initiating an entity */
         gf3d_entity_manager.entity_list[i]._inuse = 1;
-        ent->update = gf3d_entity_general_update;
         ent->scale = vector3d(1,1,1);
         
         return &gf3d_entity_manager.entity_list[i];

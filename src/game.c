@@ -17,18 +17,21 @@
 #include "app_naruto.h"
 
 #include "gf3d_timer.h"
+#include "gf3d_shape.h"
 
 int main(int argc,char *argv[])
 {
     int done = 0;
     int a;
     Uint8 validate = 1;
+    Uint8 drawShapes = 0;
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
     Player* p1;
     Entity* ent2;
     Timer timer = gf3d_timer_new();
+    Shape s;
 
     const Uint32 entity_max = 16;
     const Uint32 player_max = 2;
@@ -42,6 +45,10 @@ int main(int argc,char *argv[])
         if (strcmp(argv[a],"-disable_validate") == 0)
         {
             validate = 0;
+        }
+        else if (strcmp(argv[a], "-s") == 0)
+        {
+            drawShapes = 1;
         }
     }
     
@@ -70,6 +77,8 @@ int main(int argc,char *argv[])
     ent2->model = gf3d_model_load("dino");
     gfc_matrix_identity(ent2->modelMat);
     
+    s = gf3d_shape( vector3d(-10, -10, -10), vector3d(0.5f, 0.5f, 0.5f), gf3d_model_load("cube") );
+
     // ent2->position = vector3d(10, 10, 10);
     // p1->entity->scale.z = 3;
 
@@ -81,6 +90,12 @@ int main(int argc,char *argv[])
         
         app_player_manager_update(keys); /* Give input to all players */
         gf3d_entity_manager_update(); /* Update all entities */
+
+        if (drawShapes)
+        {
+            gf3d_shape_update_mat(&s);
+        }
+
         gf3d_timer_start(&timer);
 
         gfc_matrix_rotate(
@@ -99,12 +114,17 @@ int main(int argc,char *argv[])
 
                 gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat);
                 gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat);
+                if ( drawShapes ) 
+                {
+                    gf3d_model_draw(s.model, bufferFrame, commandBuffer, s.matrix);
+                }
                 
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
+        if (keys[SDL_SCANCODE_BACKSLASH]) drawShapes = !drawShapes; /* toggle drawing shapes */
     }    
     
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
