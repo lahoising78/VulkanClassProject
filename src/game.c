@@ -30,7 +30,7 @@ int main(int argc,char *argv[])
     VkCommandBuffer commandBuffer;
     Player* p1;
     Entity* ent2;
-    Timer timer = gf3d_timer_new();
+    Timer timer = gf3d_timer_new(), drawShapesDelay = gf3d_timer_new();
     Shape s;
 
     const Uint32 entity_max = 16;
@@ -76,11 +76,26 @@ int main(int argc,char *argv[])
 
     ent2->model = gf3d_model_load("dino");
     gfc_matrix_identity(ent2->modelMat);
+    ent2->update = gf3d_entity_general_update;
+    ent2->touch = gf3d_entity_general_touch;
     
     s = gf3d_shape( vector3d(-10, -10, -10), vector3d(0.5f, 0.5f, 0.5f), gf3d_model_load("cube") );
 
     // ent2->position = vector3d(10, 10, 10);
     // p1->entity->scale.z = 3;
+    gf3d_entity_add_hurtboxes(p1->entity, 1);
+    gf3d_collision_armor_add_shape( 
+        p1->entity->hurtboxes,
+        gf3d_shape( p1->entity->position, vector3d(1, 1, 2), gf3d_model_load("cube") ),
+        vector3d(0, 0, 0)
+    );
+    
+    gf3d_entity_add_hurtboxes(ent2, 1);
+    gf3d_collision_armor_add_shape(
+        ent2->hurtboxes, 
+        gf3d_shape( ent2->position, vector3d(3, 3, 2), gf3d_model_load("cube") ),
+        vector3d(0, 0, -2)
+    );
 
     while(!done)
     {
@@ -98,12 +113,6 @@ int main(int argc,char *argv[])
 
         gf3d_timer_start(&timer);
 
-        gfc_matrix_rotate(
-            ent2->modelMat,
-            ent2->modelMat,
-            0.002,
-            vector3d(0,0,1));
-
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
 
         // configure render command for graphics command pool
@@ -117,6 +126,7 @@ int main(int argc,char *argv[])
                 if ( drawShapes ) 
                 {
                     gf3d_model_draw(s.model, bufferFrame, commandBuffer, s.matrix);
+                    gf3d_entity_manager_draw_hurtboxes(bufferFrame, commandBuffer);
                 }
                 
             gf3d_command_rendering_end(commandBuffer);
@@ -124,7 +134,11 @@ int main(int argc,char *argv[])
         gf3d_vgraphics_render_end(bufferFrame);
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
-        if (keys[SDL_SCANCODE_BACKSLASH]) drawShapes = !drawShapes; /* toggle drawing shapes */
+        if (keys[SDL_SCANCODE_BACKSLASH] && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.1 || !drawShapesDelay.started || drawShapesDelay.paused)  )
+        {
+            gf3d_timer_start(&drawShapesDelay);
+            drawShapes = !drawShapes; /* toggle drawing shapes */
+        }
     }    
     
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    

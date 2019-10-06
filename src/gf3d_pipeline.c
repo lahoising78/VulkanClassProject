@@ -197,6 +197,7 @@ Pipeline *gf3d_pipeline_basic_model_create(VkDevice device,char *vertFile,char *
 
     pipe->device = device;
     pipe->descriptorSetCount = descriptorCount;
+    // slog("==================== 1 %d ==================", descriptorCount);
     
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencil.depthTestEnable = VK_TRUE;
@@ -475,7 +476,7 @@ void gf3d_pipeline_create_descriptor_sets(Pipeline *pipe)
             return;
         }
     }
-    pipe->descriptorSetCount = gf3d_pipeline.chainLength;
+    // pipe->descriptorSetCount = gf3d_pipeline.chainLength;
 }
 
 void gf3d_pipeline_create_basic_model_descriptor_set_layout(Pipeline *pipe)
@@ -526,7 +527,7 @@ VkDescriptorSet * gf3d_pipeline_get_descriptor_set(Pipeline *pipe, Uint32 frame)
     }
     if (pipe->descriptorCursor[frame] > pipe->descriptorSetCount)
     {
-        slog("cannot allocate any more descriptor sets this frame!");
+        slog("cannot allocate any more descriptor sets this frame! %d %d", pipe->descriptorCursor[frame], pipe->descriptorSetCount);
         return NULL;
     }
     return &pipe->descriptorSets[frame][pipe->descriptorCursor[frame]++];

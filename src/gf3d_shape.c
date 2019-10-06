@@ -1,4 +1,5 @@
 #include "gf3d_shape.h"
+#include "simple_logger.h"
 
 Shape gf3d_shape( Vector3D position, Vector3D extents, Model *model )
 {
@@ -22,44 +23,18 @@ Shape gf3d_shape_new()
 
 int gf3d_shape_intersect(Shape a, Shape b)
 {
-    return 0;
-}
+    Vector3D aMax, aMin;
+    Vector3D bMax, bMin;
 
-void gf3d_shape_get_mesh(Shape *shape)
-{
-    Vertex vertices[8];
-    Face faces[6];
-    int i;
-
-    vertices[0].vertex = vector3d( 1.0f,  1.0f,  1.0f);
-    vertices[0].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[1].vertex = vector3d( 1.0f,  1.0f, -1.0f);
-    vertices[1].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[2].vertex = vector3d(-1.0f,  1.0f,  1.0f);
-    vertices[2].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[3].vertex = vector3d(-1.0f,  1.0f, -1.0f);
-    vertices[3].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[4].vertex = vector3d( 1.0f,  1.0f,  1.0f);
-    vertices[4].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[5].vertex = vector3d( 1.0f,  1.0f,  1.0f);
-    vertices[5].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[6].vertex = vector3d( 1.0f,  1.0f,  1.0f);
-    vertices[6].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    vertices[7].vertex = vector3d( 1.0f,  1.0f,  1.0f);
-    vertices[7].normal = vector3d( 0.0f, -1.0f,  0.0f);
-
-    for (i = 0; i < 8; i++)
-    {
-        vertices[i].texel = vector2d(0, 0);
-    }
+    aMax = vector3d( a.position.x + a.extents.x, a.position.y + a.extents.y, a.position.z + a.extents.z );
+    aMin = vector3d( a.position.x - a.extents.x, a.position.y - a.extents.y, a.position.z - a.extents.z );
     
+    bMax = vector3d( b.position.x + b.extents.x, b.position.y + b.extents.y, b.position.z + b.extents.z );
+    bMin = vector3d( b.position.x - b.extents.x, b.position.y - b.extents.y, b.position.z - b.extents.z );
+
+    return  ( aMin.x <= bMax.x && aMax.x >= bMin.x ) && 
+            ( aMin.y <= bMax.y && aMax.y >= bMin.y ) && 
+            ( aMin.z <= bMax.z && aMax.z >= bMin.z );
 }
 
 void gf3d_shape_update_mat( Shape *shape )

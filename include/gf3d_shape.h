@@ -38,12 +38,6 @@ Shape gf3d_shape_new();
 int gf3d_shape_intersect(Shape a, Shape b);
 
 /* 
- * @brief create mesh for shape
- * @param shape pointer to the shape to get shape from
- */
-void gf3d_shape_get_mesh(Shape *shape);
-
-/* 
  * @brief update the matrix of the shape
  * @param shape shape to update matrix of
  */

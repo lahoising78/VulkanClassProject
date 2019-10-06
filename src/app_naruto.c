@@ -86,5 +86,5 @@ void app_naruto_update(struct Entity_S* self)
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 {
-
+    gf3d_entity_general_touch(self, other);
 }
