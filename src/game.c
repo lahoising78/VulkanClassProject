@@ -28,13 +28,14 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
-    Player* p1;
-    Entity* ent2;
     Timer timer = gf3d_timer_new(), drawShapesDelay = gf3d_timer_new();
-    Shape s;
 
     const Uint32 entity_max = 16;
     const Uint32 player_max = 2;
+    
+    Player* p1;
+    Entity* ent2;
+    Entity* stage;
     // Model *model = NULL;
     // Matrix4 modelMat;
     // Model *model2 = NULL;
@@ -68,18 +69,29 @@ int main(int argc,char *argv[])
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
 
+    stage = gf3d_entity_new();
+    stage->position = vector3d(0, 0, -10);
+    stage->scale = vector3d(100, 100, 1);
+    stage->model = gf3d_model_load("cube");
+    gfc_matrix_identity(stage->modelMat);
+    gfc_matrix_make_translation(stage->modelMat, stage->position);
+    gf3d_model_scale(stage->modelMat, stage->scale);
+    gf3d_entity_add_hurtboxes(stage, 1);
+    gf3d_collision_armor_add_shape(
+        stage->hurtboxes,
+        gf3d_shape( stage->position, stage->scale, NULL /* stage->model */ ),
+        vector3d(0, 0, 0)
+    );
+
     p1 = app_player_new();
     p1->input_handler = app_naruto_input_handler;
-
     p1->entity = app_naruto_new();
-    ent2 = gf3d_entity_new();
 
+    ent2 = gf3d_entity_new();
     ent2->model = gf3d_model_load("dino");
     gfc_matrix_identity(ent2->modelMat);
     ent2->update = gf3d_entity_general_update;
     ent2->touch = gf3d_entity_general_touch;
-    
-    s = gf3d_shape( vector3d(-10, -10, -10), vector3d(0.5f, 0.5f, 0.5f), gf3d_model_load("cube") );
 
     // ent2->position = vector3d(10, 10, 10);
     // p1->entity->scale.z = 3;
@@ -93,7 +105,7 @@ int main(int argc,char *argv[])
     gf3d_entity_add_hurtboxes(ent2, 1);
     gf3d_collision_armor_add_shape(
         ent2->hurtboxes, 
-        gf3d_shape( ent2->position, vector3d(3, 3, 2), gf3d_model_load("cube") ),
+        gf3d_shape( ent2->position, vector3d(2, 2, 2), gf3d_model_load("cube") ),
         vector3d(0, 0, -2)
     );
 
@@ -106,11 +118,6 @@ int main(int argc,char *argv[])
         app_player_manager_update(keys); /* Give input to all players */
         gf3d_entity_manager_update(); /* Update all entities */
 
-        if (drawShapes)
-        {
-            gf3d_shape_update_mat(&s);
-        }
-
         gf3d_timer_start(&timer);
 
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
@@ -121,11 +128,11 @@ int main(int argc,char *argv[])
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
+                gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat);
                 gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat);
                 gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat);
                 if ( drawShapes ) 
                 {
-                    gf3d_model_draw(s.model, bufferFrame, commandBuffer, s.matrix);
                     gf3d_entity_manager_draw_hurtboxes(bufferFrame, commandBuffer);
                 }
                 

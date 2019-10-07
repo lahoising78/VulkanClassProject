@@ -97,13 +97,17 @@ void gf3d_collision_armor_update_mat( CollisionArmor *armor )
 
 void gf3d_collision_armor_draw( CollisionArmor *armor, Uint32 bufferFrame, VkCommandBuffer commandBuffer )
 {
+    Shape *shape;
     int i;
 
     if ( !armor || !armor->shapes) return;
 
     for (i = 0; i < armor->shapeCount; i++)
     {
-        gf3d_shape_update_mat( &armor->shapes[i] );
+        // gf3d_shape_update_mat( &armor->shapes[i] );
+        shape = &armor->shapes[i];
+        gfc_matrix_make_translation(shape->matrix, shape->position);
+        gf3d_model_scale(shape->matrix, shape->extents);
         gf3d_model_draw(armor->shapes[i].model, bufferFrame, commandBuffer, armor->shapes[i].matrix);
     }
 }
