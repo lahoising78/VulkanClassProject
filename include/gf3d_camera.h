@@ -3,6 +3,14 @@
 
 #include "gfc_matrix.h"
 
+/* 
+ * @brief get the forward vector of the camera
+ * @param forward dest of forward vector
+ * @param right dest of right vector
+ * @param up dest of up vector
+ */
+void gf3d_camera_get_angles(Vector3D *forward, Vector3D *right, Vector3D *up);
+
 /**
  * @brief get the current camera view
  * @param view output, the matrix provided will be populated with the current camera information

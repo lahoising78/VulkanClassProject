@@ -9,7 +9,7 @@
 */
 Entity *app_naruto_new();
 
-void app_naruto_input_handler( struct Player_s *self, const Uint8* keys );
+void app_naruto_input_handler( struct Player_s *self, SDL_Event* events );
 
 void app_naruto_think (struct Entity_S* self);
 void app_naruto_update(struct Entity_S* self);

@@ -1,5 +1,6 @@
 #include "simple_logger.h"
 #include "app_naruto.h"
+#include "gf3d_camera.h"
 
 Entity *app_naruto_new()
 {
@@ -15,61 +16,113 @@ Entity *app_naruto_new()
     e->modelOffset.z = -6.5f;
     gfc_matrix_identity(e->modelMat);
 
-    vector3d_clear(e->rotation);
-    vector3d_clear(e->position);
-    vector3d_clear(e->velocity);
-    vector3d_clear(e->acceleration);
-
     return e;
 }
 
-void app_naruto_input_handler( struct Player_s *self, const Uint8* keys )
+void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
 {
     Entity *e = self->entity;
-    Vector3D forward;
+    Vector3D camera_f, camera_r;
+    Uint8 onFloor = 0;
+    int i;
 
-    if (keys[SDL_SCANCODE_W])
+    const int usedScancodes[] = {
+        SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, SDL_SCANCODE_SPACE
+    };
+
+    if (self->entity->modelBox)
     {
-        vector3d_angle_vectors(e->rotation, &forward, NULL, NULL);
-        vector3d_set_magnitude(&forward, START_SPEED);
-        vector3d_add(e->velocity, e->velocity, forward);
-        if ( vector3d_magnitude(e->velocity) > MAX_SPEED )
-        {
-            vector3d_set_magnitude( &e->acceleration, MAX_SPEED );
-        }
+        onFloor = on_floor( distance_to_floor( e->modelBox->shapes[0].position.z - e->modelBox->shapes[0].extents.z ) );
     }
-    else if (keys[SDL_SCANCODE_S])
+    
+    /* Get camera angles */
+    gf3d_camera_get_angles(&camera_f, &camera_r, NULL);
+    vector3d_normalize(&camera_f);
+    vector3d_normalize(&camera_r);
+
+    /* Forward and Backwards */
+    if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
     {
-        vector3d_angle_vectors(e->rotation, &forward, NULL, NULL);
-        vector3d_set_magnitude(&forward, START_SPEED);
-        vector3d_sub(e->velocity, e->velocity, forward);
-        if (vector3d_magnitude(e->velocity) > MAX_SPEED)
-        {
-            vector3d_set_magnitude(&e->velocity, MAX_SPEED);
-        }
+        e->rotation.x = 90.0f;
+        vector3d_set_magnitude(&camera_f, MAX_SPEED);
+        vector3d_add(e->velocity, e->velocity, camera_f);
+    }
+    else if (events[SDL_SCANCODE_S].type == SDL_KEYDOWN)
+    {
+        e->rotation.x = 270.0f;
+        vector3d_set_magnitude(&camera_f, MAX_SPEED);
+        vector3d_sub(e->velocity, e->velocity, camera_f);
+    }
+    else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+    }
+    else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
     }
 
-    if (keys[SDL_SCANCODE_D])
+    /* Right and Left */
+    if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
     {
-        if (e->rotation.x < 0)
+        if (e->velocity.y > 0)
         {
-            e->rotation.x = 360.0f;
+            e->rotation.x = 45.0f;
+        }
+        else if (e->velocity.y < 0)
+        {
+            e->rotation.x = -45.0f;
         }
         else
         {
-            e->rotation.x--;
+            e->rotation.x = 0.0f;
         }
+        
+        vector3d_set_magnitude(&camera_r, MAX_SPEED);
+        vector3d_sub(e->velocity, e->velocity, camera_r);
     }
-    else if (keys[SDL_SCANCODE_A])
+    else if (events[SDL_SCANCODE_A].type == SDL_KEYDOWN)
     {
-        if (e->rotation.x > 360)
+        if (e->velocity.y > 0)
         {
-            e->rotation.x = 0;
+            e->rotation.x = 135.0f;
+        }
+        else if (e->velocity.y < 0)
+        {
+            e->rotation.x = 225.0f;
         }
         else
         {
-            e->rotation.x++;
+            e->rotation.x = 180.0f;
         }
+        
+        vector3d_set_magnitude(&camera_r, MAX_SPEED);
+        vector3d_add(e->velocity, e->velocity, camera_r);
+    }
+    else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+    }
+    else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+    }
+
+    /* Jumping */
+    if (events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN)
+    {
+        if (onFloor)
+        {
+            e->state = ES_Jumping;
+            e->acceleration.z = GRAVITY * 5.0f;
+            // slog("adding acceleration %.3f", e->acceleration.z);
+        }
+    }
+
+    for(i = 0; i < sizeof(usedScancodes) / sizeof(int); i++)
+    {
+        if ( events[ usedScancodes[i] ].type == SDL_KEYUP )
+            events[ usedScancodes[i] ].type = -SDL_KEYUP;
     }
 }
 
@@ -86,5 +139,5 @@ void app_naruto_update(struct Entity_S* self)
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 {
-    gf3d_entity_general_touch(self, other);
+    
 }

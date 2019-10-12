@@ -14,6 +14,9 @@ typedef struct
 } EntityManager;
 
 static EntityManager gf3d_entity_manager = {0}; /* this is only available on this file */
+static float deltaTime = 0.0f;
+
+void gf3d_entity_simple_collision( Entity *self, Entity *other );
 
 void gf3d_entity_manager_close()
 {
@@ -47,6 +50,8 @@ void gf3d_entity_manager_update(  )
     Entity *e = NULL, *o = NULL;
     int i, j;
 
+    deltaTime = gf3d_timer_get_ticks(&timer);
+
     for (i = 0; i < gf3d_entity_manager.entity_max; i++)
     {
         e = &gf3d_entity_manager.entity_list[i];
@@ -67,30 +72,40 @@ void gf3d_entity_manager_update(  )
     for(i = 0; i < gf3d_entity_manager.entity_max; i++)
     {
         e = &gf3d_entity_manager.entity_list[i];
-        if ( !e->_inuse || !e->touch || !e->hurtboxes ) continue;
+        if ( !e->_inuse ) continue;
+
         for(j = i+1; j < gf3d_entity_manager.entity_max; j++)
         {
             o = &gf3d_entity_manager.entity_list[j];
-            if ( !o->_inuse || !o->hurtboxes || o == e ) continue;
+            if ( !o->_inuse || o == e ) continue;
             
-            if (!gf3d_collision_check(e->hurtboxes, o->hurtboxes) )
+            if ( e->hurtboxes && o->hurtboxes )
             {
-                continue;
+                if ( e->touch && gf3d_collision_check(e->hurtboxes, o->hurtboxes) )
+                {
+                    e->touch(e, o);
+                    continue;
+                }
             }
 
-            e->touch(e, o);
+            if ( e->modelBox && o->modelBox && gf3d_collision_check( e->modelBox, o->modelBox ))
+            {
+                gf3d_entity_simple_collision(e, o);
+            }
+
         }
     }
     gf3d_timer_start(&timer);
 }
 
-void gf3d_entity_manager_draw_hurtboxes( Uint32 bufferFrame, VkCommandBuffer commandBuffer )
+void gf3d_entity_manager_draw_collision_boxes( Uint32 bufferFrame, VkCommandBuffer commandBuffer )
 {
     Entity *ent;
     int i;
     for(i = 0; i < gf3d_entity_manager.entity_max; i++)
     {
         ent = &gf3d_entity_manager.entity_list[i];
+        gf3d_collision_armor_draw(ent->modelBox, bufferFrame, commandBuffer);
         gf3d_collision_armor_draw(ent->hurtboxes, bufferFrame, commandBuffer);
     }
 }
@@ -98,40 +113,73 @@ void gf3d_entity_manager_draw_hurtboxes( Uint32 bufferFrame, VkCommandBuffer com
 void gf3d_entity_general_update( Entity *self )
 {
     Vector3D buff = vector3d(0,0,0);
-    float deltaTime;
+    // float deltaTime;
     float acc, vel;
+    float distanceToFloor = 0.0f;
+    Uint8 onFloor = 0;
 
-    deltaTime = gf3d_timer_get_ticks(&timer);
+    if (self->modelBox)
+    {
+        distanceToFloor = distance_to_floor( self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z );
+        onFloor = on_floor(distanceToFloor);
+        if(onFloor)
+        {
+            if (self->acceleration.z < 0.0f && !(self->state & ES_Jumping))
+            {
+                slog("vel1 %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);            
+                self->velocity.z = 0.0f;
+                self->acceleration.z = 0.0f;
+            }
+        }
+        else
+        {
+            slog("vel2 %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);            
+            self->acceleration.z = -GRAVITY;
+            self->state &= !ES_Jumping;
+        }
+            
+    }
+
+    if ( abs(self->velocity.x) > MAX_SPEED )
+    {
+        if (self->velocity.x > 0) self->velocity.x = MAX_SPEED;
+        else self->velocity.x = -MAX_SPEED;
+    }
+    if ( abs(self->velocity.y) > MAX_SPEED )
+    {
+        if (self->velocity.y > 0) self->velocity.y = MAX_SPEED;
+        else self->velocity.y = -MAX_SPEED;
+    }
+    if ( abs(self->velocity.z) > MAX_SPEED )
+    {
+        if (self->velocity.z > 0) self->velocity.z = MAX_SPEED;
+        else self->velocity.z = -MAX_SPEED;
+    }
+
+    /* df = di + v*t */
+    vector3d_scale(buff, self->velocity, deltaTime);
+    vector3d_add(buff, self->position, buff);
+    if ( within_stage(buff) )
+        vector3d_copy(self->position, buff);
 
     /* vf = vi + a*t */
     vector3d_scale(buff, self->acceleration, deltaTime);
     vector3d_add(self->velocity, self->velocity, buff);
+    // slog("vel before %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);
 
-    /* df = di + v*t */
-    vector3d_scale(buff, self->velocity, deltaTime);
-    vector3d_add(self->position, self->position, buff);
+    /* if the distance from our feet to the stage is larger than a certain value, apply gravity */
+    // distanceToFloor = self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z - (MAX_STAGE_Z + STAGE_SCALE_Z);
 
-    vel = vector3d_magnitude(self->velocity);
-    acc = vector3d_magnitude(self->acceleration);
-    
-    if ( acc < 0.05f)
-    {
-        vector3d_clear(self->acceleration);
-        vector3d_clear(self->velocity);
-    }
-    /* If you are still moving, apply damp */
-    else if ( vel )
-    {
-        vector3d_set_magnitude(&self->acceleration, acc - DAMP_ACCELERATION);
-    }
-    else 
-    {
-        vector3d_clear(self->acceleration);
-    }
+    // slog("acc %.3f, %.3f, %.3f", self->acceleration.x, self->acceleration.y, self->acceleration.z);
+    // slog("vel %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);
 
-    // slog("a: %f, v: %f", vector3d_magnitude(self->acceleration), mag);
+
+    vel = vector3d_magnitude_squared(self->velocity);
+    acc = vector3d_magnitude_squared(self->acceleration);
+
     /* update collision boxes */
     gf3d_collision_armor_update(self->hurtboxes, self->position);
+    gf3d_collision_armor_update(self->modelBox, self->position);
 
     /* get the actual position of model */
     vector3d_add(buff, self->position, self->modelOffset);
@@ -145,10 +193,17 @@ void gf3d_entity_general_update( Entity *self )
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
 }
 
-void gf3d_entity_general_touch( Entity *self, Entity *other )
+// void gf3d_entity_general_touch( Entity *self, Entity *other )
+void gf3d_entity_simple_collision( Entity *self, Entity *other )
 {
     float smag, omag; /* to store velocity magnitude squared of self and other */
     Vector3D dir;
+    Vector3D armorExtent, oArmorExtent;
+    Entity *p, *op;
+    const float offset = 1.0f;
+    // float anglex, angley, anglez, m;
+
+    // slog("got to simple collision");
     if ( vector3d_equal( self->position, other->position) )
     {
         other->position.x += 1;
@@ -159,22 +214,27 @@ void gf3d_entity_general_touch( Entity *self, Entity *other )
     if ( omag > smag)
     {
         vector3d_copy(dir, other->velocity);
+        p = other;
+        op = self;
     }
     else if ( omag < smag )
     {
         vector3d_copy(dir, self->velocity);
+        p = self;
+        op = other;
     }
     else
     {
         vector3d_sub(dir, other->position, self->position);
+        p = other;
+        op = self;
     }
     vector3d_normalize(&dir);
 
-    while( gf3d_collision_check(self->hurtboxes, other->hurtboxes) )
-    {
-        vector3d_add(other->position, other->position, dir);
-        gf3d_collision_armor_update(other->hurtboxes, other->position);
-    }
+    // vector3d_copy(other->velocity, dir);
+    // slog( "angle = %.3f", acosf( dir.x ) * GFC_RADTODEG );
+    vector3d_add(other->position, other->position, dir);
+    
 }
 
 Entity *gf3d_entity_new()
@@ -192,6 +252,7 @@ Entity *gf3d_entity_new()
         gf3d_entity_manager.entity_list[i]._inuse = 1;
         ent->scale = vector3d(1,1,1);
         ent->hurtboxes = NULL;
+        ent->mass = -1.0f;
         
         return &gf3d_entity_manager.entity_list[i];
     }
@@ -215,17 +276,18 @@ void gf3d_entity_free(Entity *self)
     }
 
     if(self->hurtboxes) gf3d_collision_armor_free(self->hurtboxes);
+    if(self->modelBox) gf3d_collision_armor_free(self->modelBox);
 }
 
-void gf3d_entity_add_hurtboxes( Entity *ent, Uint32 count)
+/* v oid gf3d_entity_add_hurtboxes( CollisionArmor *collisionArmor, Uint32 count)
 {
-    if (!count || !ent) return;
+    if (!count || !collisionArmor) return;
 
-    ent->hurtboxes = gf3d_collision_armor_new( count );
-    if (!ent->hurtboxes)
+    collisionArmor = gf3d_collision_armor_new( count );
+    if (!collisionArmor)
     {
         slog("didn't add them right");
         return;
     }
     slog("added the armor");
-}
+} */

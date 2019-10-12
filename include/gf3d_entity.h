@@ -3,20 +3,14 @@
 
 #include "gf3d_model.h"
 #include "gf3d_collision.h"
-
-/* Used for update and stuff */
-#define MAX_ACCELERATION 100.0f
-#define START_ACCELERATION 50.0f
-#define DAMP_ACCELERATION 50.0f
-#define MAX_SPEED 100.0f
-#define START_SPEED 50.0f
-#define DAMP_SPEED 0.05f
+#include "gf3d_game_defines.h"
 
 typedef enum
 {
     ES_Idle = 0,
     ES_Dying = 1,
-    ES_Dead = 2
+    ES_Dead = 2,
+    ES_Jumping = 4
 } EntityState;
 
 typedef struct Entity_S
@@ -26,6 +20,8 @@ typedef struct Entity_S
     Vector3D modelOffset; /* offset the model relative to position */
 
     CollisionArmor *hurtboxes; /* A pointer to one collision armor, which contains several collision boxes */
+    CollisionArmor *modelBox;
+    float mass;
 
     Vector3D position;
     Vector3D velocity;
@@ -60,7 +56,7 @@ void gf3d_entity_manager_init(Uint32 entity_max);
  */
 void gf3d_entity_manager_update(  );
 
-void gf3d_entity_manager_draw_hurtboxes(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+void gf3d_entity_manager_draw_collision_boxes(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
 /* 
  * @brief an update function to be called by all entities at the end of their individual updates
@@ -68,7 +64,7 @@ void gf3d_entity_manager_draw_hurtboxes(Uint32 bufferFrame, VkCommandBuffer comm
  */
 void gf3d_entity_general_update( Entity *self );
 
-void gf3d_entity_general_touch( Entity *self, Entity *other );
+// void gf3d_entity_simple_collision( Entity *self, Entity *other );
 
 /**
  * @brief get an empty entity from the system
@@ -83,10 +79,10 @@ Entity *gf3d_entity_new();
 void    gf3d_entity_free(Entity *self);
 
 /* 
- * @brief allocate space for hurt boxes 
- * @param ent the entity to add hurtboxes to
- * @param count the number of hurtboxes to allocate
+ * @brief allocate space for collision boxes 
+ * @param collisionArmor collision armor to save space for
+ * @param count the number of collision boxes to allocate
  */
-void gf3d_entity_add_hurtboxes( Entity *ent, Uint32 count);
+// void gf3d_entity_alloc_collision_boxes( CollisionArmor *collisionArmor, Uint32 count);
 
 #endif

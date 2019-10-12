@@ -14,6 +14,11 @@ CollisionArmor *gf3d_collision_armor_new( Uint32 count )
     }
 
     armor = (CollisionArmor*)malloc(sizeof(CollisionArmor));
+    if (!armor)
+    {
+        slog("Not enough space to allocate collision armor");
+    }
+
     armor->shapes = (Shape*)gfc_allocate_array( sizeof(Shape), count );
     if (!armor->shapes) 
     {
@@ -98,6 +103,7 @@ void gf3d_collision_armor_update_mat( CollisionArmor *armor )
 void gf3d_collision_armor_draw( CollisionArmor *armor, Uint32 bufferFrame, VkCommandBuffer commandBuffer )
 {
     Shape *shape;
+    Vector3D offset;
     int i;
 
     if ( !armor || !armor->shapes) return;
@@ -106,9 +112,10 @@ void gf3d_collision_armor_draw( CollisionArmor *armor, Uint32 bufferFrame, VkCom
     {
         // gf3d_shape_update_mat( &armor->shapes[i] );
         shape = &armor->shapes[i];
-        gfc_matrix_make_translation(shape->matrix, shape->position);
+        vector3d_add(offset, shape->position, armor->offsets[i]);
+        gfc_matrix_make_translation(shape->matrix, offset);
         gf3d_model_scale(shape->matrix, shape->extents);
-        gf3d_model_draw(armor->shapes[i].model, bufferFrame, commandBuffer, armor->shapes[i].matrix);
+        gf3d_model_draw(shape->model, bufferFrame, commandBuffer, shape->matrix, 0);
     }
 }
 

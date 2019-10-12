@@ -4,6 +4,20 @@
 #include <string.h>
 
 Matrix4 gf3d_camera = {0};
+Vector3D gf3d_camera_forward = {0};
+Vector3D gf3d_camera_right = {0};
+
+void gf3d_camera_get_angles(Vector3D *forward, Vector3D *right, Vector3D *up)
+{
+    if (forward)
+        *forward = vector3d(0, 1, 0);
+
+    if (right)
+        *right = vector3d(-1, 0, 0);
+
+    if (up)
+        *up = vector3d(0, 0, 1);
+}
 
 void gf3d_camera_get_view(Matrix4 *view)
 {
@@ -36,34 +50,27 @@ void gf3d_camera_look_at_center(
     Vector3D second
 )
 {
-    Vector3D middle, camera_position, normal;
-    const float normalScale = 1.0f;
-    int mag_sqrd;
+    Vector3D middle, camera_position;
+    float offsetY = 0.0f;
+
+    vector3d_sub(middle, first, second);
 
     /* find center between positions */
-    vector3d_sub(middle, first, second);
-    vector3d_cross_product(&normal, middle, vector3d(0, 0, 1));
-    vector3d_scale(middle, middle, 0.5);
+    vector3d_scale(middle, middle, 0.5f);
     vector3d_add(middle, middle, second);
 
     /* find proper camera position */
-    vector3d_scale(camera_position, normal, normalScale);
-    vector3d_add(camera_position, camera_position, middle);
+    offsetY = -abs(first.x - second.x);
+    if (offsetY > -20.0f)
+    {
+        offsetY = -20.0f;
+    }
+    offsetY += (first.y < second.y)? first.y : second.y;
+    
+    camera_position.y = offsetY;
+    camera_position.x = middle.x;
+    camera_position.z = middle.z + 5.0f;
 
-    /* Making sure that we don't get too close to the entities */
-    mag_sqrd = vector3d_magnitude_squared(normal);
-    if (mag_sqrd == 0) 
-    {
-        return;
-    }
-    
-    if ( mag_sqrd < 400.0f )
-    {
-        vector3d_normalize(&normal);
-        vector3d_scale(normal, normal, normalScale * 20);
-        vector3d_add(camera_position, middle, normal);
-    }
-    
     gf3d_camera_look_at(camera_position, middle, vector3d(0, 0, 1));
     gf3d_vgraphics_set_camera_view( gf3d_camera );
 }

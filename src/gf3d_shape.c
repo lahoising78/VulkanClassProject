@@ -7,7 +7,14 @@ Shape gf3d_shape( Vector3D position, Vector3D extents, Model *model )
 
     s.position = position;
     s.extents = extents;
-    s.model = model;
+    if (model == NULL)
+    {
+        s.model = gf3d_model_load("cube");
+    }
+    else
+    {
+        s.model = model;
+    }
 
     return s;
 }

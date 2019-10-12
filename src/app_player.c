@@ -34,7 +34,7 @@ void app_player_manager_init( Uint32 player_max )
     atexit(app_player_manager_close);
 }
 
-void app_player_manager_update( const Uint8 *keys )
+void app_player_manager_update( SDL_Event *events )
 {
     int i;
     Player *p = NULL;
@@ -44,7 +44,7 @@ void app_player_manager_update( const Uint8 *keys )
         p = &app_player_manager.player_list[i];
         if (p->_inuse)
         {
-            p->input_handler(p, keys );
+            p->input_handler(p, events );
         }
     }
 }
