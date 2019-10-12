@@ -27,7 +27,6 @@ int main(int argc,char *argv[])
     int a;
     Uint8 validate = 1;
     Uint8 drawShapes = 0;
-    const Uint8 * keys;
     SDL_Event events[ SDL_NUM_SCANCODES ];
     SDL_Event e;
     Uint32 bufferFrame = 0;
@@ -87,12 +86,6 @@ int main(int argc,char *argv[])
     gfc_matrix_identity(stage->modelMat);
     gfc_matrix_make_translation(stage->modelMat, stage->position);
     gf3d_model_scale(stage->modelMat, stage->scale);
-    // stage->modelBox = gf3d_collision_armor_new(1);
-    // gf3d_collision_armor_add_shape( 
-    //     stage->modelBox,
-    //     gf3d_shape( stage->position, stage->scale, NULL ), 
-    //     vector3d(0, 0, 0)
-    // );
 
     /* Setup first player */
     p1 = app_player_new();
@@ -105,11 +98,6 @@ int main(int argc,char *argv[])
         gf3d_shape( p1->entity->position, vector3d(1, 1, 5), gf3d_model_load("cube") ),
         vector3d(0, 0, -0.7)
     );
-    /* gf3d_collision_armor_add_shape(
-        p1->entity->modelBox,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 2), NULL ),
-        vector3d(0, 0, -3)
-    ); */
 
     /* Setup second player */
     ent2 = gf3d_entity_new();
@@ -124,14 +112,9 @@ int main(int argc,char *argv[])
         vector3d(-1, 0, -1)
     );
 
-    // ent2->position = vector3d(10, 10, 10);
-    // p1->entity->scale.z = 3;
-
     gf3d_timer_start(&timer);
     while(!done)
     {
-        // SDL_PumpEvents();   // update SDL's internal event structures
-        // keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
 
         while( SDL_PollEvent(&e) )

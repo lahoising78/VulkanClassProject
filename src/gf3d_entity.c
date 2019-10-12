@@ -113,33 +113,30 @@ void gf3d_entity_manager_draw_collision_boxes( Uint32 bufferFrame, VkCommandBuff
 void gf3d_entity_general_update( Entity *self )
 {
     Vector3D buff = vector3d(0,0,0);
-    // float deltaTime;
-    float acc, vel;
     float distanceToFloor = 0.0f;
     Uint8 onFloor = 0;
 
-    if (self->modelBox)
+    /* handle gravity and stuff */
+    if(self->modelBox)
     {
         distanceToFloor = distance_to_floor( self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z );
         onFloor = on_floor(distanceToFloor);
-        if(onFloor)
+        if (onFloor && !(self->state & ES_Jumping))
         {
-            if (self->acceleration.z < 0.0f && !(self->state & ES_Jumping))
+            self->acceleration.z = 0;
+            self->velocity.z = 0;
+        }
+        else if (distanceToFloor > 0.7)
+        {
+            if (self->velocity.z < 0.05)
             {
-                slog("vel1 %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);            
-                self->velocity.z = 0.0f;
-                self->acceleration.z = 0.0f;
+                self->state &= !ES_Jumping;
             }
-        }
-        else
-        {
-            slog("vel2 %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);            
             self->acceleration.z = -GRAVITY;
-            self->state &= !ES_Jumping;
-        }
-            
-    }
+        }   
+    } 
 
+    /* Cap speed */
     if ( abs(self->velocity.x) > MAX_SPEED )
     {
         if (self->velocity.x > 0) self->velocity.x = MAX_SPEED;
@@ -150,11 +147,10 @@ void gf3d_entity_general_update( Entity *self )
         if (self->velocity.y > 0) self->velocity.y = MAX_SPEED;
         else self->velocity.y = -MAX_SPEED;
     }
-    if ( abs(self->velocity.z) > MAX_SPEED )
-    {
-        if (self->velocity.z > 0) self->velocity.z = MAX_SPEED;
-        else self->velocity.z = -MAX_SPEED;
-    }
+
+    /* vf = vi + a*t */
+    vector3d_scale(buff, self->acceleration, deltaTime);
+    vector3d_add(self->velocity, self->velocity, buff);
 
     /* df = di + v*t */
     vector3d_scale(buff, self->velocity, deltaTime);
@@ -162,34 +158,14 @@ void gf3d_entity_general_update( Entity *self )
     if ( within_stage(buff) )
         vector3d_copy(self->position, buff);
 
-    /* vf = vi + a*t */
-    vector3d_scale(buff, self->acceleration, deltaTime);
-    vector3d_add(self->velocity, self->velocity, buff);
-    // slog("vel before %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);
-
-    /* if the distance from our feet to the stage is larger than a certain value, apply gravity */
-    // distanceToFloor = self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z - (MAX_STAGE_Z + STAGE_SCALE_Z);
-
-    // slog("acc %.3f, %.3f, %.3f", self->acceleration.x, self->acceleration.y, self->acceleration.z);
-    // slog("vel %.3f, %.3f, %.3f", self->velocity.x, self->velocity.y, self->velocity.z);
-
-
-    vel = vector3d_magnitude_squared(self->velocity);
-    acc = vector3d_magnitude_squared(self->acceleration);
-
     /* update collision boxes */
     gf3d_collision_armor_update(self->hurtboxes, self->position);
     gf3d_collision_armor_update(self->modelBox, self->position);
-
-    /* get the actual position of model */
-    vector3d_add(buff, self->position, self->modelOffset);
-    /* set position of model */
-    gfc_matrix_make_translation(self->modelMat, buff);
     
-    /* set scale of model */
+    /* keep matrix and model updated with transform, scale and rotation */
+    vector3d_add(buff, self->position, self->modelOffset);
+    gfc_matrix_make_translation(self->modelMat, buff);
     gf3d_model_scale( self->modelMat, self->scale);
-
-    /* set rotation of model */
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
 }
 
