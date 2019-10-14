@@ -76,7 +76,7 @@ Model * gf3d_model_new()
     return NULL;
 }
 
-Model * gf3d_model_load_animated(char * filename,Uint32 startFrame, Uint32 endFrame)
+Model * gf3d_model_load_animated(char * filename, char *textureFile, Uint32 startFrame, Uint32 endFrame)
 {
     TextLine assetname;
     Model *model;
@@ -84,6 +84,7 @@ Model * gf3d_model_load_animated(char * filename,Uint32 startFrame, Uint32 endFr
     int i,count;
     if (!model)return NULL;
     count = endFrame - startFrame;
+    slog("loading animation %d", count);
     if (count <= 0)
     {
         gf3d_model_free(model);
@@ -94,16 +95,20 @@ Model * gf3d_model_load_animated(char * filename,Uint32 startFrame, Uint32 endFr
     model->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*),count);
     if (!model->mesh)
     {
+        slog("not enough space for mesh");
         gf3d_model_free(model);
         return NULL;
     }
     for (i = 0; i < count; i++)
     {
         snprintf(assetname,GFCLINELEN,"models/%s_%06i.obj",filename,startFrame + i);
+        slog("anim file: %s", assetname);
         model->mesh[i] = gf3d_mesh_load(assetname);
     }
 
-    snprintf(assetname,GFCLINELEN,"images/%s.png",filename);
+    if(!textureFile) textureFile = filename;
+    slog("texture file: %s", textureFile);
+    snprintf(assetname,GFCLINELEN,"images/%s.png",textureFile);
     model->texture = gf3d_texture_load(assetname);
     
     return model;
@@ -178,6 +183,7 @@ void gf3d_model_draw(Model *model,Uint32 bufferFrame,VkCommandBuffer commandBuff
         return;
     }
     gf3d_model_update_basic_model_descriptor_set(model,*descriptorSet,bufferFrame,modelMat);
+    // slog("render frame %d", f);
     gf3d_mesh_render(model->mesh[f],commandBuffer,descriptorSet);
 }
 

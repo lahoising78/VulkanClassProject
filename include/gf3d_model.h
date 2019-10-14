@@ -59,7 +59,7 @@ Model * gf3d_model_load(char * filename);
  * @param endFrame the ending frame number of the animated obj
  * @return NULL on error (See logs) or a valid pointer to a Model
  */
-Model * gf3d_model_load_animated(char * filename,Uint32 startFrame, Uint32 endFrame);
+Model * gf3d_model_load_animated(char * filename, char *textureFile, Uint32 startFrame, Uint32 endFrame);
 
 Model * gf3d_model_new();
 /**

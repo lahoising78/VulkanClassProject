@@ -43,6 +43,8 @@ int main(int argc,char *argv[])
 
     Square sq;
     Vector2D uvs[4];
+
+    float frame = 0.0f;
     
     for (a = 1; a < argc;a++)
     {
@@ -134,6 +136,8 @@ int main(int argc,char *argv[])
             fps = 0;
             gf3d_timer_start(&timer);
         }
+        frame += gf3d_timer_get_ticks(&timer);
+        if (frame > 15) frame = 0.0f;
 
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
 
@@ -144,7 +148,7 @@ int main(int argc,char *argv[])
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
                 gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat, 0);
-                gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, 0);
+                gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, frame);
                 gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat, 0);
                 if ( drawShapes ) 
                 {
@@ -157,7 +161,7 @@ int main(int argc,char *argv[])
         gf3d_vgraphics_render_end(bufferFrame);
 
         if (events[SDL_SCANCODE_ESCAPE].type == SDL_KEYDOWN)done = 1; // exit condition
-        if (events[SDL_SCANCODE_BACKSLASH].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.1 || !drawShapesDelay.started || drawShapesDelay.paused)  )
+        if (events[SDL_SCANCODE_BACKSLASH].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused)  )
         {
             gf3d_timer_start(&drawShapesDelay);
             drawShapes = !drawShapes; /* toggle drawing shapes */

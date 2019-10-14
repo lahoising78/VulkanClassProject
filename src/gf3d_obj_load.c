@@ -88,6 +88,11 @@ ObjData *gf3d_obj_load_from_file(char *filename)
         slog("failed to open obj file %s",filename);
         return NULL;
     }
+    else
+    {
+      slog("opened file %s", filename);
+    }
+    
     obj = (ObjData*)gfc_allocate_array(sizeof(ObjData),1);
     if (!obj)return NULL;
     

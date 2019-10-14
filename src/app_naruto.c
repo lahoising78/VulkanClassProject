@@ -12,9 +12,10 @@ Entity *app_naruto_new()
     e->think = app_naruto_think;
     e->touch = app_naruto_touch;
     e->update = app_naruto_update;
-    e->model = gf3d_model_load("naruto");
+    // e->model = gf3d_model_load("naruto");
+    e->model = gf3d_model_load_animated("animations/naruto_running/naruto_running", "naruto", 1, 16);
     e->modelOffset.z = -6.5f;
-    e->scale = vector3d(0.05, 0.05, 0.05);
+    e->scale = vector3d(5, 5, 5);
     gfc_matrix_identity(e->modelMat);
 
     return e;
@@ -143,7 +144,7 @@ void app_naruto_think (struct Entity_S* self)
 void app_naruto_update(struct Entity_S* self)
 {
     gf3d_entity_general_update(self);
-    // gfc_matrix_rotate(self->modelMat, self->modelMat, ( self->rotation.y + 90 ) * GFC_DEGTORAD, vector3d(1, 0, 0));
+    gfc_matrix_rotate(self->modelMat, self->modelMat, ( self->rotation.y + 90 ) * GFC_DEGTORAD, vector3d(1, 0, 0));
 }
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
