@@ -161,6 +161,38 @@ void gf3d_entity_general_update( Entity *self )
     /* update collision boxes */
     gf3d_collision_armor_update(self->hurtboxes, self->position);
     gf3d_collision_armor_update(self->modelBox, self->position);
+
+    if(self->animationManager)
+    {
+        if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump up" ) == 0 )
+        {
+            if( !(self->state & ES_Jumping) )
+            {
+                if( onFloor )
+                {
+                    gf3d_animation_play(self->animationManager, "jump down", 1);
+                }
+            }
+
+            if ( gf3d_animation_is_playing(self->animationManager, "jump up") )
+            {
+                if( gf3d_animation_get_frame_count(self->animationManager, "jump up") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
+                {
+                    gf3d_animation_pause(self->animationManager, "jump up");
+                }
+            }
+        }
+        else if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump down" ) == 0 )
+        {
+            if ( gf3d_animation_is_playing(self->animationManager, "jump down") )
+            {
+                if( gf3d_animation_get_frame_count(self->animationManager, "jump down") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
+                {
+                    gf3d_animation_play(self->animationManager, "idle", 1);
+                }
+            }
+        }
+    }
     
     /* keep matrix and model updated with transform, scale and rotation */
     vector3d_add(buff, self->position, self->modelOffset);
@@ -253,6 +285,7 @@ void gf3d_entity_free(Entity *self)
 
     if(self->hurtboxes) gf3d_collision_armor_free(self->hurtboxes);
     if(self->modelBox) gf3d_collision_armor_free(self->modelBox);
+    // if(self->animationManager) gf3d_animation_manager_free(self->animationManager);
 }
 
 /* v oid gf3d_entity_add_hurtboxes( CollisionArmor *collisionArmor, Uint32 count)

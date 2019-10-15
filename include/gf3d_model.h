@@ -50,7 +50,7 @@ typedef struct
 
 void gf3d_model_manager_init(Uint32 max_models,Uint32 chain_length,VkDevice device);
 
-Model * gf3d_model_load(char * filename);
+Model * gf3d_model_load(char * filename, char *texture);
 
 /**
  * @brief load an animated OBJ file

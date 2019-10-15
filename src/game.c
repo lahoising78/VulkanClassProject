@@ -79,12 +79,13 @@ int main(int argc,char *argv[])
     slog("gf3d main loop begin");
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
+    gf3d_animation_manager_all_init(2);
 
     /* Set up the stage */
     stage = gf3d_entity_new();
     stage->position = vector3d(0, 0, MAX_STAGE_Z);
     stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
-    stage->model = gf3d_model_load("stage");
+    stage->model = gf3d_model_load("stage", NULL);
     gfc_matrix_identity(stage->modelMat);
     gfc_matrix_make_translation(stage->modelMat, stage->position);
     gf3d_model_scale(stage->modelMat, stage->scale);
@@ -97,20 +98,20 @@ int main(int argc,char *argv[])
     p1->entity->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape( 
         p1->entity->modelBox,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 5), gf3d_model_load("cube") ),
+        gf3d_shape( p1->entity->position, vector3d(1, 1, 5), gf3d_model_load("cube", NULL) ),
         vector3d(0, 0, -0.7)
     );
 
     /* Setup second player */
     ent2 = gf3d_entity_new();
-    ent2->model = gf3d_model_load("dino");
+    ent2->model = gf3d_model_load("dino", NULL);
     gfc_matrix_identity(ent2->modelMat);
     ent2->update = gf3d_entity_general_update;
     ent2->position = vector3d(-10, -10, 0);
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
-        gf3d_shape( ent2->position, vector3d(2, 2, 2), gf3d_model_load("cube") ),
+        gf3d_shape( ent2->position, vector3d(2, 2, 2), gf3d_model_load("cube", NULL) ),
         vector3d(-1, 0, -1)
     );
 
@@ -148,7 +149,8 @@ int main(int argc,char *argv[])
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
                 gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat, 0);
-                gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, frame);
+                // gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, frame);
+                gf3d_animation_draw(p1->entity->animationManager, bufferFrame, commandBuffer, p1->entity->modelMat);
                 gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat, 0);
                 if ( drawShapes ) 
                 {

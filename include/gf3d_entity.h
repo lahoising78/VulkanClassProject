@@ -4,6 +4,7 @@
 #include "gf3d_model.h"
 #include "gf3d_collision.h"
 #include "gf3d_game_defines.h"
+#include "gf3d_animation.h"
 
 typedef enum
 {
@@ -18,6 +19,7 @@ typedef struct Entity_S
     Model *model;
     Matrix4 modelMat;
     Vector3D modelOffset; /* offset the model relative to position */
+    AnimationManager *animationManager;
 
     CollisionArmor *hurtboxes; /* A pointer to one collision armor, which contains several collision boxes */
     CollisionArmor *modelBox;

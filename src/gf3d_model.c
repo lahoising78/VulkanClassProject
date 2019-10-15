@@ -114,7 +114,7 @@ Model * gf3d_model_load_animated(char * filename, char *textureFile, Uint32 star
     return model;
 }
 
-Model * gf3d_model_load(char * filename)
+Model * gf3d_model_load(char * filename, char *texture)
 {
     TextLine assetname;
     Model *model;
@@ -124,7 +124,8 @@ Model * gf3d_model_load(char * filename)
     model->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*),1);
     model->mesh[0] = gf3d_mesh_load(assetname);
 
-    snprintf(assetname,GFCLINELEN,"images/%s.png",filename);
+    if(!texture) texture = filename;
+    snprintf(assetname,GFCLINELEN,"images/%s.png",texture);
     model->texture = gf3d_texture_load(assetname);
     
     return model;
