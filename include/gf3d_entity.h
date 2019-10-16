@@ -11,7 +11,8 @@ typedef enum
     ES_Idle = 1,
     ES_Dying = 2,
     ES_Dead = 4,
-    ES_Jumping = 8
+    ES_Jumping = 8,
+    ES_Attacking = 16
 } EntityState;
 
 typedef struct Entity_S
@@ -43,6 +44,8 @@ typedef struct Entity_S
     float experience;
     float level;
     float otherStuff;
+
+    int locked;
     
     void *data;
 } Entity;

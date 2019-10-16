@@ -130,7 +130,7 @@ void gf3d_entity_general_update( Entity *self )
         {
             if (self->velocity.z < 0.05)
             {
-                self->state &= !ES_Jumping;
+                self->state &= ~ES_Jumping;
             }
             self->acceleration.z = -GRAVITY;
         }   
@@ -162,43 +162,84 @@ void gf3d_entity_general_update( Entity *self )
     gf3d_collision_armor_update(self->hurtboxes, self->position);
     gf3d_collision_armor_update(self->modelBox, self->position);
 
-    if(self->animationManager)
-    {
-        if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump up" ) == 0 )
-        {
-            if( !(self->state & ES_Jumping) )
-            {
-                if( onFloor )
-                {
-                    gf3d_animation_play(self->animationManager, "jump down", 1);
-                }
-            }
-
-            if ( gf3d_animation_is_playing(self->animationManager, "jump up") )
-            {
-                if( gf3d_animation_get_frame_count(self->animationManager, "jump up") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
-                {
-                    gf3d_animation_pause(self->animationManager, "jump up");
-                }
-            }
-        }
-        else if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump down" ) == 0 )
-        {
-            if ( gf3d_animation_is_playing(self->animationManager, "jump down") )
-            {
-                if( gf3d_animation_get_frame_count(self->animationManager, "jump down") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
-                {
-                    gf3d_animation_play(self->animationManager, "idle", 1);
-                }
-            }
-        }
-    }
+    gf3d_entity_check_animation(self, onFloor);
     
     /* keep matrix and model updated with transform, scale and rotation */
     vector3d_add(buff, self->position, self->modelOffset);
     gfc_matrix_make_translation(self->modelMat, buff);
     gf3d_model_scale( self->modelMat, self->scale);
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
+}
+
+void gf3d_entity_check_animation( Entity *self, Uint8 onFloor )
+{
+    float fcount = 0.0f, currf = 0.0f;
+
+    if(!self->animationManager)
+    {
+        return;
+    }
+    
+    if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump up" ) == 0 )
+    {
+        if( !(self->state & ES_Jumping) )
+        {
+            if( onFloor )
+            {
+                gf3d_animation_play(self->animationManager, "jump down", 1);
+            }
+        }
+
+        if ( gf3d_animation_is_playing(self->animationManager, "jump up") )
+        {
+            if( gf3d_animation_get_frame_count(self->animationManager, "jump up") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
+            {
+                gf3d_animation_pause(self->animationManager, "jump up");
+            }
+        }
+    }
+    else if ( gfc_line_cmp( self->animationManager->animationNames[ self->animationManager->currentAnimation ], "jump down" ) == 0 )
+    {
+        if ( gf3d_animation_is_playing(self->animationManager, "jump down") )
+        {
+            if( gf3d_animation_get_frame_count(self->animationManager, "jump down") - gf3d_animation_get_current_frame(self->animationManager) <= 0.5f )
+            {
+                gf3d_animation_play(self->animationManager, "idle", 1);
+            }
+        }
+    }
+    else if ( gf3d_animation_is_playing(self->animationManager, "punch") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "punch");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(fcount - currf <= 0.5f)
+        {
+            if(self->locked == 2)
+            {
+                gf3d_animation_play(self->animationManager, "kick", 1);
+            }
+            else
+            {
+                self->state &= ~ES_Attacking;
+                self->state |= ES_Idle;
+                gf3d_animation_play(self->animationManager, "idle", 1);
+                self->locked = 0;
+            }
+            
+        }
+    }
+    else if ( gf3d_animation_is_playing(self->animationManager, "kick") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "kick");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if (fcount - currf <= 0.5f)
+        {
+            self->state &= ~ES_Attacking;
+            self->state |= ES_Idle;
+            gf3d_animation_play(self->animationManager, "idle", 1);
+            self->locked = 0;
+        }
+    }
 }
 
 // void gf3d_entity_general_touch( Entity *self, Entity *other )
@@ -261,6 +302,7 @@ Entity *gf3d_entity_new()
         ent->scale = vector3d(1,1,1);
         ent->hurtboxes = NULL;
         ent->mass = -1.0f;
+        ent->state = ES_Idle;
         
         return &gf3d_entity_manager.entity_list[i];
     }
