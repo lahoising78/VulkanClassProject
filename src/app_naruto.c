@@ -2,7 +2,9 @@
 #include "app_naruto.h"
 #include "gf3d_camera.h"
 
-void app_naruto_punch(Entity *e);
+void app_naruto_charge(struct Entity_S *e);
+void app_naruto_throw_knife(struct Entity_S *e);
+void app_naruto_punch(struct Entity_S *e);
 
 Entity *app_naruto_new()
 {
@@ -23,6 +25,8 @@ Entity *app_naruto_new()
     gf3d_animation_load(e->animationManager, "jump down", "naruto_jump_down", 1, 12);
     gf3d_animation_load(e->animationManager, "punch", "naruto_punch", 1, 27);
     gf3d_animation_load(e->animationManager, "kick", "naruto_kick", 1, 49);
+    gf3d_animation_load(e->animationManager, "throw", "naruto_throw", 1, 51);
+    gf3d_animation_load(e->animationManager, "charge", "naruto_charge", 1, 18);
     gf3d_animation_play(e->animationManager, "idle", 1);
     e->modelOffset.z = -6.5f;
     e->scale = vector3d(5, 5, 5);
@@ -42,7 +46,9 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     int i;
 
     const int usedScancodes[] = {
-        SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, SDL_SCANCODE_SPACE
+        SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, 
+        SDL_SCANCODE_SPACE,
+        SDL_SCANCODE_J, SDL_SCANCODE_K
     };
 
     if (self->entity->modelBox)
@@ -71,6 +77,25 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     {
         app_naruto_punch(e);
     }
+    /* Throw Knife */
+    else if (events[SDL_SCANCODE_K].type == SDL_KEYDOWN)
+    {
+        app_naruto_throw_knife(e);
+    }
+    /* Charge Chakra */
+    else if (events[SDL_SCANCODE_L].type == SDL_KEYDOWN)
+    {
+        app_naruto_charge(e);
+    }
+    else if (events[SDL_SCANCODE_L].type == SDL_KEYUP)
+    {
+        if(gf3d_animation_is_playing(e->animationManager, "charge"))
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+            e->locked = 0;
+        }
+    }
+    
 
     if (e->locked) return;
     /* Forward and Backwards */
@@ -190,11 +215,47 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     }
 }
 
+void app_naruto_charge(struct Entity_S *e)
+{
+    if(!e) return;
+    if(e->state & ES_Idle)
+    {
+        if(!gf3d_animation_is_playing(e->animationManager, "charge"))
+        {
+            gf3d_animation_play(e->animationManager, "charge", 1);
+            e->velocity.x = e->velocity.y = 0.0f;
+            e->locked = 1;
+        }
+    }
+}
+
+void app_naruto_throw_knife(struct Entity_S* e)
+{
+    float fcount = 0.0f;
+    float currf = 0.0f;
+    if(!e) return;
+
+    if (e->state & ES_Idle)
+    {
+        if ( !gf3d_animation_is_playing(e->animationManager, "throw") )
+        {
+            gf3d_animation_play(e->animationManager, "throw", 1);
+            e->state &= ~ES_Idle;
+            e->state |= ES_Attacking;
+            e->velocity.x = e->velocity.y = 0.0f;
+            e->locked = 1;
+        }
+    }
+}
+
 void app_naruto_punch(struct Entity_S* e)
 {
     // int punchCount = e->locked;
     float fcount = 0.0f;
     float currf  = 0.0f;
+
+    if(!e) return;
+
     if(e->state & ES_Jumping)
     {
 
@@ -221,6 +282,15 @@ void app_naruto_punch(struct Entity_S* e)
             if ( fcount - currf <= 8.0f )
             {
                 e->locked = 2;
+            }
+        }
+        else if ( gf3d_animation_is_playing(e->animationManager, "kick") )
+        {
+            fcount = gf3d_animation_get_frame_count(e->animationManager, "kick");
+            currf = gf3d_animation_get_current_frame(e->animationManager);
+            if( fcount - currf <= 8.0f )
+            {
+                e->locked = 3;
             }
         }
     }

@@ -45,7 +45,7 @@ typedef struct Entity_S
     float level;
     float otherStuff;
 
-    int locked;
+    int locked; /* to flag if an entity is in the middle of an animation that shouldn't be interrupted */
     
     void *data;
 } Entity;

@@ -234,6 +234,36 @@ void gf3d_entity_check_animation( Entity *self, Uint8 onFloor )
         currf = gf3d_animation_get_current_frame(self->animationManager);
         if (fcount - currf <= 0.5f)
         {
+            if(self->locked == 3)
+            {
+                gf3d_animation_play(self->animationManager, "idle", 1);
+            }
+            else
+            {
+                self->state &= ~ES_Attacking;
+                self->state |= ES_Idle;
+                gf3d_animation_play(self->animationManager, "idle", 1);
+                self->locked = 0;
+            }
+        }
+    }
+    else if ( self->locked == 3 && gf3d_animation_is_playing(self->animationManager, "idle") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "idle");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(fcount - currf <= 0.5f)
+        {
+            self->state &= ~ES_Attacking;
+            self->state |= ES_Idle;
+            self->locked = 0;
+        }
+    }
+    else if ( gf3d_animation_is_playing(self->animationManager, "throw") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "throw");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(fcount - currf <= 0.5f)
+        {
             self->state &= ~ES_Attacking;
             self->state |= ES_Idle;
             gf3d_animation_play(self->animationManager, "idle", 1);
