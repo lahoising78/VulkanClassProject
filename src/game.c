@@ -110,7 +110,7 @@ int main(int argc,char *argv[])
 
     /* Setup second player */
     ent2 = gf3d_entity_new();
-    ent2->model = gf3d_model_load_animated("animations/sasuke_pink/sasuke_pink", "pink", 1, 20);
+    ent2->model = gf3d_model_load_animated("animations/sasuke_running/sasuke_running", "sasuke", 1, 20);
     // ent2->model = gf3d_model_load_animated("animations/sasuke_running/sasuke_running", "", 1, 20);
     // ent2->model = gf3d_model_load("sasuke", NULL);
     gfc_matrix_identity(ent2->modelMat);
