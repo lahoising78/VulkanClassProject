@@ -298,7 +298,7 @@ void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkComman
     if(anim->playing)
     {
         // slog("adding time %.2f, %.2f", anim->currentFrame, anim->speed);
-        anim->currentFrame += /* gf3d_timer_get_ticks(&timer) */ frame * 100 * anim->speed;
+        anim->currentFrame += /* gf3d_timer_get_ticks(&timer) */ frame * 75 * anim->speed;
         if(anim->currentFrame > anim->frameCount) anim->currentFrame = 0.0f;
     }
     // slog("anim speed: %.2f", anim->speed);

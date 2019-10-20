@@ -270,6 +270,6 @@ void gf3d_entity_free(Entity *self)
     self->hurtboxes = NULL;
     if(self->modelBox) gf3d_collision_armor_free(self->modelBox);
     self->modelBox = NULL;
-    if(self->animationManager) gf3d_animation_manager_free(self->animationManager);
-    self->animationManager = NULL;
+    // if(self->animationManager) gf3d_animation_manager_free(self->animationManager);
+    // self->animationManager = NULL;
 }
