@@ -62,15 +62,10 @@ void gf3d_animation_manager_free(AnimationManager *manager)
             manager->animationNames[i] = NULL;
         } 
     }
-    slog("free model");
-    if(manager->model) gf3d_model_free(manager->model);
-    // slog("free anim name arr");
-    // if(manager->animationNames) free(manager->animationNames);
+    slog("free anim name arr");
+    if(manager->animationNames) free(manager->animationNames);
+    manager->animationNames = NULL;
     memset(manager, 0, sizeof(AnimationManager));
-
-    // manager->_inuse = 0;
-    // free(manager->model);
-    // if(manager) free(manager);
 }
 
 AnimationManager *gf3d_animation_manager_init(Uint32 count, Model *model)

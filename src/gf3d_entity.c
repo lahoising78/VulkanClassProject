@@ -223,8 +223,6 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
     }
     vector3d_normalize(&dir);
 
-    // vector3d_copy(other->velocity, dir);
-    // slog( "angle = %.3f", acosf( dir.x ) * GFC_RADTODEG );
     vector3d_add(other->position, other->position, dir);
     
 }
@@ -274,18 +272,4 @@ void gf3d_entity_free(Entity *self)
     self->modelBox = NULL;
     if(self->animationManager) gf3d_animation_manager_free(self->animationManager);
     self->animationManager = NULL;
-    // if(self->animationManager) gf3d_animation_manager_free(self->animationManager);
 }
-
-/* v oid gf3d_entity_add_hurtboxes( CollisionArmor *collisionArmor, Uint32 count)
-{
-    if (!count || !collisionArmor) return;
-
-    collisionArmor = gf3d_collision_armor_new( count );
-    if (!collisionArmor)
-    {
-        slog("didn't add them right");
-        return;
-    }
-    slog("added the armor");
-} */
