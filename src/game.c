@@ -15,6 +15,7 @@
 
 #include "app_player.h"
 #include "app_naruto.h"
+#include "app_gaara.h"
 
 #include "gf3d_timer.h"
 #include "gf3d_shape.h"
@@ -109,21 +110,13 @@ int main(int argc,char *argv[])
     );
 
     /* Setup second player */
-    ent2 = gf3d_entity_new();
-    ent2->model = gf3d_model_new();
-    ent2->model->texture = gf3d_texture_load("images/gaara.png");
-    ent2->animationManager = gf3d_animation_manager_init(4, ent2->model);
-    gf3d_animation_load(ent2->animationManager, "running", "gaara_running", 1, 20);
-    gf3d_animation_play(ent2->animationManager, "running", 1);
-    gfc_matrix_identity(ent2->modelMat);
-    ent2->update = gf3d_entity_general_update;
+    ent2 = app_gaara_new();
     ent2->position = vector3d(-10, -10, 0);
-    ent2->scale = vector3d(3, 3, 3);
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
-        gf3d_shape( ent2->position, vector3d(2, 2, 2), gf3d_model_load("cube", NULL) ),
-        vector3d(-1, 0, -1)
+        gf3d_shape( ent2->position, vector3d(1, 1, 5), gf3d_model_load("cube", NULL) ),
+        vector3d(0, 0, -0.7)
     );
 
     gf3d_timer_start(&timer);
@@ -182,6 +175,23 @@ int main(int argc,char *argv[])
         {
             gf3d_timer_start(&drawShapesDelay);
             drawShapes = !drawShapes; /* toggle drawing shapes */
+        }
+        if(events[SDL_SCANCODE_TAB].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused) )
+        {
+            slog("switch character");
+            gf3d_timer_start(&drawShapesDelay);
+            if(p1->input_handler == app_naruto_input_handler)
+            {
+                p1->input_handler = app_gaara_input_handler;
+            }
+            else if (p1->input_handler == app_gaara_input_handler)
+            {
+                p1->input_handler = app_naruto_input_handler;
+            }
+            ent2->data = p1->entity;
+            p1->entity = ent2;
+            ent2 = (Entity*)ent2->data;
+            p1->entity->data = NULL;
         }
 
         frame = gf3d_timer_get_ticks(&frameTimer);
