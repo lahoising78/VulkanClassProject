@@ -18,8 +18,8 @@ Entity *app_naruto_new()
     e->think = app_naruto_think;
     e->touch = app_naruto_touch;
     e->update = app_naruto_update;
-    e->model = gf3d_model_load("naruto", NULL);
-    gf3d_mesh_free(e->model->mesh[0]);
+    e->model = gf3d_model_new();
+    e->model->texture = gf3d_texture_load("images/naruto.png");
     e->animationManager = gf3d_animation_manager_init(10, e->model);
     gf3d_animation_load(e->animationManager, "idle", "naruto_idle", 1, 67);
     gf3d_animation_load(e->animationManager, "running", "naruto_running", 1, 20);
@@ -283,8 +283,8 @@ void app_naruto_punch_create_shadow_clones(struct Entity_S *self)
         vector3d_copy(e->modelOffset, self->modelOffset);
         vector3d_copy(e->scale, self->scale);
 
-        e->model = gf3d_model_load("naruto", NULL);
-        gf3d_mesh_free(e->model->mesh[0]);
+        e->model = gf3d_model_new();
+        e->model->texture = gf3d_texture_load("images/naruto.png");
         e->animationManager = gf3d_animation_manager_init(1, e->model);
         if(i == 1) gf3d_animation_load(e->animationManager, "punch", "naruto_punch_mirror", 1, 27);
         else gf3d_animation_load(e->animationManager, "punch", "naruto_punch", 1, 27);
@@ -471,6 +471,7 @@ void app_naruto_clone_update(struct Entity_S *e)
 
     if(gf3d_animation_get_frame_count(e->animationManager, "punch") - gf3d_animation_get_current_frame(e->animationManager) < 0.5f)
     {
+        gf3d_animation_manager_free(e->animationManager);
         gf3d_entity_free(e);
     }
 }

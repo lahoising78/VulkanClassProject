@@ -115,13 +115,10 @@ int main(int argc,char *argv[])
     ent2->animationManager = gf3d_animation_manager_init(4, ent2->model);
     gf3d_animation_load(ent2->animationManager, "running", "gaara_running", 1, 20);
     gf3d_animation_play(ent2->animationManager, "running", 1);
-    // ent2->model = gf3d_model_load_animated("animations/gaara_running/gaara_running", "gaara", 1, 20);
-    // ent2->model = gf3d_model_load_animated("animations/sasuke_running/sasuke_running", "", 1, 20);
-    // ent2->model = gf3d_model_load("sasuke", NULL);
     gfc_matrix_identity(ent2->modelMat);
     ent2->update = gf3d_entity_general_update;
     ent2->position = vector3d(-10, -10, 0);
-    ent2->scale = vector3d(4, 4, 4);
+    ent2->scale = vector3d(3, 3, 3);
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
