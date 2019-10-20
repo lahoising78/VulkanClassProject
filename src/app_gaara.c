@@ -28,6 +28,7 @@ Entity *app_gaara_new()
     gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.3f);
     gf3d_animation_load(ent->animationManager, "swipe left", "gaara_swipe_left", 1, 68);
     gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.3f);
+    gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
     gf3d_animation_play(ent->animationManager, "idle", 1);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(2, 2, 2);
@@ -214,6 +215,15 @@ void app_gaara_punch(Entity *self)
                 self->locked = 2;
             }
         }
+        else if ( gf3d_animation_is_playing(self->animationManager, "swipe left") )
+        {
+            fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe left");
+            currf = gf3d_animation_get_current_frame(self->animationManager);
+            if( fcount - currf <= 8.0f )
+            {
+                self->locked = 3;
+            }
+        }
     }
     
 }
@@ -255,7 +265,7 @@ void app_gaara_think(Entity *self)
         {
             if( self->locked == 3 )
             {
-
+                gf3d_animation_play(self->animationManager, "swipe forward", 1);
             }
             else
             {
@@ -265,7 +275,18 @@ void app_gaara_think(Entity *self)
                 self->locked = 0;
             }
         }
-        
+    }
+    else if( gf3d_animation_is_playing(self->animationManager, "swipe forward") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe forward");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            self->state &= ~ES_Attacking;
+            self->state |= ES_Idle;
+            self->locked = 0;
+            gf3d_animation_play(self->animationManager, "idle", 1);
+        }
     }
 }
 
