@@ -45,6 +45,7 @@ int main(int argc,char *argv[])
     Vector2D uvs[4];
 
     float frame = 0.0f;
+    Timer frameTimer = gf3d_timer_new();
     
     for (a = 1; a < argc;a++)
     {
@@ -79,7 +80,7 @@ int main(int argc,char *argv[])
     slog("gf3d main loop begin");
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
-    gf3d_animation_manager_all_init(2);
+    gf3d_animation_manager_all_init(8);
 
     /* Set up the stage */
     stage = gf3d_entity_new();
@@ -95,19 +96,26 @@ int main(int argc,char *argv[])
     p1->input_handler = app_naruto_input_handler;
     p1->entity = app_naruto_new();
     p1->entity->position = vector3d(10, 10, 0);
-    p1->entity->modelBox = gf3d_collision_armor_new(1);
+    p1->entity->modelBox = gf3d_collision_armor_new(2);
     gf3d_collision_armor_add_shape( 
         p1->entity->modelBox,
         gf3d_shape( p1->entity->position, vector3d(1, 1, 5), gf3d_model_load("cube", NULL) ),
         vector3d(0, 0, -0.7)
     );
+    gf3d_collision_armor_add_shape(
+        p1->entity->modelBox,
+        gf3d_shape( p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL) ),
+        vector3d(5, 5, 1)  
+    );
 
     /* Setup second player */
     ent2 = gf3d_entity_new();
-    ent2->model = gf3d_model_load("dino", NULL);
+    ent2->model = gf3d_model_load_animated("animations/sasuke_running/sasuke_running", "sasuke", 1, 20);
+    // ent2->model = gf3d_model_load("sasuke", NULL);
     gfc_matrix_identity(ent2->modelMat);
     ent2->update = gf3d_entity_general_update;
     ent2->position = vector3d(-10, -10, 0);
+    ent2->scale = vector3d(3, 3, 3);
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
@@ -116,9 +124,12 @@ int main(int argc,char *argv[])
     );
 
     gf3d_timer_start(&timer);
+    // gf3d_timer_start(&frameTimer);
+    gf3d_animation_manager_timer_start();
     while(!done)
     {
         //update game things here
+        gf3d_timer_start(&frameTimer);
 
         while( SDL_PollEvent(&e) )
         {
@@ -137,8 +148,7 @@ int main(int argc,char *argv[])
             fps = 0;
             gf3d_timer_start(&timer);
         }
-        frame += gf3d_timer_get_ticks(&timer);
-        if (frame > 15) frame = 0.0f;
+        
 
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
 
@@ -148,10 +158,11 @@ int main(int argc,char *argv[])
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
-                gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat, 0);
+                // gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat, 0);
                 // gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, frame);
-                gf3d_animation_draw(p1->entity->animationManager, bufferFrame, commandBuffer, p1->entity->modelMat);
-                gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat, 0);
+                // gf3d_animation_draw(p1->entity->animationManager, bufferFrame, commandBuffer, p1->entity->modelMat);
+                // gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat, 0);
+                gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
@@ -161,6 +172,7 @@ int main(int argc,char *argv[])
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
+        gf3d_animation_manager_timer_start();
 
         if (events[SDL_SCANCODE_ESCAPE].type == SDL_KEYDOWN)done = 1; // exit condition
         if (events[SDL_SCANCODE_BACKSLASH].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused)  )
@@ -168,6 +180,8 @@ int main(int argc,char *argv[])
             gf3d_timer_start(&drawShapesDelay);
             drawShapes = !drawShapes; /* toggle drawing shapes */
         }
+
+        frame = gf3d_timer_get_ticks(&frameTimer);
     }    
     
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    

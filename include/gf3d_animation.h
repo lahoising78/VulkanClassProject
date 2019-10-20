@@ -23,6 +23,8 @@ typedef struct AnimationManager_S
     Uint8 _inuse;
 } AnimationManager;
 
+void gf3d_animation_manager_timer_start();
+
 /* 
  * @brief allocate space for the managers
  * @param manager_max max number of managers you will allocate for
@@ -73,6 +75,13 @@ void gf3d_animation_play(AnimationManager *manager, char *animationName, Uint32 
 void gf3d_animation_pause(AnimationManager *manager, char *animationName);
 
 /* 
+ * @brief get a pointer to the specified animation
+ * @param manager : the animation manager that contains the animation
+ * @param animationName : the name of the animation
+ */
+Animation *gf3d_animation_get(AnimationManager *manager, char *animationName);
+
+/* 
  * @brief returns the current animation
  * @param manager the animation manager to get animation from
  * @return a pointer to current animation
@@ -105,7 +114,8 @@ float gf3d_animation_get_frame_count(AnimationManager *manager, char *animationN
  * @param bufferFrame : buffer frame
  * @param commandBuffer : command buffer
  * @param modelMat : the matrix of the model
+ * @param ticks : time since last frame
  */
-void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat);
+void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat, float frame);
 
 #endif
