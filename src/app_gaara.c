@@ -25,6 +25,9 @@ Entity *app_gaara_new()
     gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
     gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
     gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
+    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.3f);
+    gf3d_animation_load(ent->animationManager, "swipe left", "gaara_swipe_left", 1, 68);
+    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.3f);
     gf3d_animation_play(ent->animationManager, "idle", 1);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(2, 2, 2);
@@ -85,7 +88,8 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
             gf3d_animation_play(e->animationManager, "running", 1);
         }
     }
-    else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
+    else if (events[SDL_SCANCODE_W].type == SDL_KEYUP || 
+             events[SDL_SCANCODE_S].type == SDL_KEYUP)
     {
         vector3d_clear(e->velocity);
 
@@ -94,15 +98,15 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
             gf3d_animation_play(e->animationManager, "idle", 1);
         }
     }
-    else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
+    // else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
+    // {
+    //     vector3d_clear(e->velocity);
 
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "idle", 1);
-        }
-    }
+    //     if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+    //     {
+    //         gf3d_animation_play(e->animationManager, "idle", 1);
+    //     }
+    // }
 
     /* Right and Left */
     if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
@@ -151,7 +155,8 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
             gf3d_animation_play(e->animationManager, "running", 1);
         }
     }
-    else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
+    else if (events[SDL_SCANCODE_D].type == SDL_KEYUP || 
+             events[SDL_SCANCODE_A].type == SDL_KEYUP)
     {
         vector3d_clear(e->velocity);
         if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
@@ -159,14 +164,14 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
             gf3d_animation_play(e->animationManager, "idle", 1);
         }
     }
-    else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "idle", 1);
-        }
-    }
+    // else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
+    // {
+    //     vector3d_clear(e->velocity);
+    //     if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+    //     {
+    //         gf3d_animation_play(e->animationManager, "idle", 1);
+    //     }
+    // }
 
     /* 
     since we set the events in an array, even if we stop using
@@ -182,6 +187,9 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
 
 void app_gaara_punch(Entity *self)
 {
+    float fcount = 0.0f;
+    float currf = 0.0f;
+
     if(!self) return;
 
     if(self->state & ES_Idle)
@@ -195,6 +203,19 @@ void app_gaara_punch(Entity *self)
             self->locked = 1;
         }
     }
+    else if (self->state & ES_Attacking)
+    {
+        if( gf3d_animation_is_playing(self->animationManager, "swipe right") )
+        {
+            fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe right");
+            currf = gf3d_animation_get_current_frame(self->animationManager);
+            if ( fcount - currf <= 8.0f )
+            {
+                self->locked = 2;
+            }
+        }
+    }
+    
 }
 
 void app_gaara_think(Entity *self)
@@ -215,7 +236,7 @@ void app_gaara_think(Entity *self)
         {
             if(self->locked == 2)
             {
-
+                gf3d_animation_play(self->animationManager, "swipe left", 1);
             } 
             else 
             {
@@ -225,6 +246,26 @@ void app_gaara_think(Entity *self)
                 self->locked = 0;
             }
         }
+    }
+    else if ( gf3d_animation_is_playing(self->animationManager, "swipe left") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe left");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            if( self->locked == 3 )
+            {
+
+            }
+            else
+            {
+                self->state &= ~ES_Attacking;
+                self->state |= ES_Idle;
+                gf3d_animation_play(self->animationManager, "idle", 1);
+                self->locked = 0;
+            }
+        }
+        
     }
 }
 

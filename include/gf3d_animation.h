@@ -75,6 +75,14 @@ void gf3d_animation_play(AnimationManager *manager, char *animationName, Uint32 
 void gf3d_animation_pause(AnimationManager *manager, char *animationName);
 
 /* 
+ * @brief set the speed of an animation
+ * @param manager : the animation manager that contains the animation
+ * @param animationName : name of the animation
+ * @param speed : the speed to set to
+ */
+void gf3d_animation_set_speed(AnimationManager *manager, char *animationName, float speed);
+
+/* 
  * @brief get a pointer to the specified animation
  * @param manager : the animation manager that contains the animation
  * @param animationName : the name of the animation
