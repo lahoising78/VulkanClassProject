@@ -1,5 +1,9 @@
-#include "simple_logger.h"
 #include "app_gaara.h"
+
+#include "simple_logger.h"
+#include "gf3d_camera.h"
+
+void app_gaara_punch(Entity *self);
 
 Entity *app_gaara_new()
 {
@@ -19,7 +23,9 @@ Entity *app_gaara_new()
     ent->model->texture = gf3d_texture_load("images/gaara.png");
     ent->animationManager = gf3d_animation_manager_init(8, ent->model);
     gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
-    gf3d_animation_play(ent->animationManager, "running", 1);
+    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
+    gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
+    gf3d_animation_play(ent->animationManager, "idle", 1);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(2, 2, 2);
     gfc_matrix_identity(ent->modelMat);
@@ -27,24 +33,210 @@ Entity *app_gaara_new()
     return ent;
 }
 
-void app_gaara_input_handler(Player *self, SDL_Event *event)
+void app_gaara_input_handler(Player *self, SDL_Event *events)
 {
+    Entity *e = self->entity;
+    Vector3D camera_f, camera_r;
+    Uint8 onFloor = 0;
+    float distanceToFloor = 0.0f;
+    int i;
 
+    const int usedScancodes[] = {
+        SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, 
+        SDL_SCANCODE_SPACE,
+        SDL_SCANCODE_J, SDL_SCANCODE_K
+    };
+
+    if (self->entity->modelBox)
+    {
+        distanceToFloor = distance_to_floor( e->modelBox->shapes[0].position.z - e->modelBox->shapes[0].extents.z );
+        onFloor = on_floor( distanceToFloor );
+    }
+
+    if(events[SDL_SCANCODE_J].type == SDL_KEYDOWN)
+    {
+        app_gaara_punch(e);
+    }
+    
+    /* Get camera angles */
+    gf3d_camera_get_angles(&camera_f, &camera_r, NULL);
+    vector3d_normalize(&camera_f);
+    vector3d_normalize(&camera_r);
+
+    if (e->locked) return;
+    /* Forward and Backwards */
+    if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
+    {
+        e->rotation.x = 90.0f;
+        vector3d_set_magnitude(&camera_f, MAX_SPEED);
+        vector3d_add(e->velocity, e->velocity, camera_f);
+        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "running", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_S].type == SDL_KEYDOWN)
+    {
+        e->rotation.x = 270.0f;
+        vector3d_set_magnitude(&camera_f, MAX_SPEED);
+        vector3d_sub(e->velocity, e->velocity, camera_f);
+        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "running", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+
+        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+
+        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+        }
+    }
+
+    /* Right and Left */
+    if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
+    {
+        /* To rotate according to direction */
+        if (e->velocity.y > 0)
+        {
+            e->rotation.x = 45.0f;
+        }
+        else if (e->velocity.y < 0)
+        {
+            e->rotation.x = -45.0f;
+        }
+        else
+        {
+            e->rotation.x = 0.0f;
+        }
+        
+        vector3d_set_magnitude(&camera_r, MAX_SPEED);
+        vector3d_sub(e->velocity, e->velocity, camera_r);
+        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "running", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_A].type == SDL_KEYDOWN)
+    {
+        /* To rotate according to direction */
+        if (e->velocity.y > 0)
+        {
+            e->rotation.x = 135.0f;
+        }
+        else if (e->velocity.y < 0)
+        {
+            e->rotation.x = 225.0f;
+        }
+        else
+        {
+            e->rotation.x = 180.0f;
+        }
+        
+        vector3d_set_magnitude(&camera_r, MAX_SPEED);
+        vector3d_add(e->velocity, e->velocity, camera_r);
+        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "running", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+        }
+    }
+    else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
+    {
+        vector3d_clear(e->velocity);
+        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+        }
+    }
+
+    /* 
+    since we set the events in an array, even if we stop using
+    a key, we get the key as input after we stop pressing it.
+    To ignore these, we set the type to something else
+    */
+    for(i = 0; i < sizeof(usedScancodes) / sizeof(int); i++)
+    {
+        if ( events[ usedScancodes[i] ].type == SDL_KEYUP )
+            events[ usedScancodes[i] ].type = -SDL_KEYUP;
+    }
+}
+
+void app_gaara_punch(Entity *self)
+{
+    if(!self) return;
+
+    if(self->state & ES_Idle)
+    {
+        if( !gf3d_animation_is_playing(self->animationManager, "swipe right") )
+        {
+            gf3d_animation_play(self->animationManager, "swipe right", 1);
+            self->state &= ~ES_Idle;
+            self->state |= ES_Attacking;
+            self->velocity.x = self->velocity.y = 0.0f;
+            self->locked = 1;
+        }
+    }
 }
 
 void app_gaara_think(Entity *self)
 {
+    float fcount = 0.0f; /* frame count */
+    float currf = 0.0f; /* current frame */
 
+    if(!self->animationManager || !self->modelBox)
+    {
+        return;
+    }
+
+    if( gf3d_animation_is_playing(self->animationManager, "swipe right") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe right");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            if(self->locked == 2)
+            {
+
+            } 
+            else 
+            {
+                self->state &= ~ES_Attacking;
+                self->state |= ES_Idle;
+                gf3d_animation_play(self->animationManager, "idle", 1);
+                self->locked = 0;
+            }
+        }
+    }
 }
 
 void app_gaara_update(Entity *self)
 {
+    if(!self) return;
     if(self->think) self->think(self);
     gf3d_entity_general_update(self);
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.y + 90) * GFC_DEGTORAD, vector3d(1, 0, 0));
 }
 
-void app_gaara_touch(Entity *self)
+void app_gaara_touch(Entity *self, Entity *other)
 {
 
 }

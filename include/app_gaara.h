@@ -13,6 +13,6 @@ void app_gaara_input_handler(Player *self, SDL_Event *events);
 
 void app_gaara_think(Entity *self);
 void app_gaara_update(Entity *self);
-void app_gaara_touch(Entity *self);
+void app_gaara_touch(Entity *self, Entity *other);
 
 #endif
