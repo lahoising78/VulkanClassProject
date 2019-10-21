@@ -97,6 +97,13 @@ Animation *gf3d_animation_get(AnimationManager *manager, char *animationName);
 Animation *gf3d_animation_get_current_animation(AnimationManager *manager);
 
 /* 
+ * @brief get the name of the current animation
+ * @param manager : the manager to get animation name from
+ * @return a c string with the name of the current animation
+ */
+char *gf3d_animation_get_current_animation_name(AnimationManager *manager);
+
+/* 
  * @brief tells you if specified animation is currently playing
  * @param manager : manager of the animation you are looking into
  * @param animationName : animation to check if playing
