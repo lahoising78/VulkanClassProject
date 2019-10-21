@@ -24,7 +24,9 @@ void gf3d_animation_manager_all_close()
         }
         
     }
-    if(gf3d_animation_manager_all.managers) free(gf3d_animation_manager_all.managers);
+    slog("free managers arr");
+    if(gf3d_animation_manager_all.managers != NULL) free(gf3d_animation_manager_all.managers);
+    memset(&gf3d_animation_manager_all, 0, sizeof(AnimationAll));
 }
 
 void gf3d_animation_manager_all_init(Uint32 manager_max)
@@ -37,6 +39,7 @@ void gf3d_animation_manager_all_init(Uint32 manager_max)
         return;
     }
     gf3d_animation_manager_all.manager_count = manager_max;
+    timer = gf3d_timer_new();
     atexit(gf3d_animation_manager_all_close);
 }
 
@@ -50,13 +53,19 @@ void gf3d_animation_manager_free(AnimationManager *manager)
     {
         if(i == manager->currentAnimation) continue;
         
+        slog("free animation");
         if(manager->animations[i]) gf3d_animation_free(manager->animations[i]);
-        // if(manager->animationNames[i]) free(manager->animationNames[i]);
+        slog("free anim name %d", i);
+        if(manager->animationNames[i])
+        {
+            free(manager->animationNames[i]);
+            manager->animationNames[i] = NULL;
+        } 
     }
-    // gf3d_model_free(manager->model);
+    slog("free anim name arr");
     if(manager->animationNames) free(manager->animationNames);
-    // free(manager->model);
-    // if(manager) free(manager);
+    manager->animationNames = NULL;
+    memset(manager, 0, sizeof(AnimationManager));
 }
 
 AnimationManager *gf3d_animation_manager_init(Uint32 count, Model *model)
@@ -88,12 +97,12 @@ AnimationManager *gf3d_animation_manager_init(Uint32 count, Model *model)
             memset(manager->animations[j], 0, sizeof(Animation));
         }
         manager->animationNames = (char**)gfc_allocate_array(sizeof(char*), count);
+        manager->_inuse = 1;
         return manager;
     }
     // slog("animation manager init");
     // manager = (AnimationManager*)malloc(sizeof(AnimationManager));
     return NULL;
-    gf3d_timer_start(&timer);
 }
 
 void gf3d_animation_free(Animation *animation)
@@ -105,9 +114,11 @@ void gf3d_animation_free(Animation *animation)
     {
         if(animation->mesh[i]) gf3d_mesh_free(animation->mesh[i]);
     }
+    memset(animation, 0, sizeof(Animation));
+    // animation->mesh = NULL;
     // slog("free animation2");
     // if(animation->mesh) free(animation->mesh);
-    animation->_inuse = 0;
+    // animation->_inuse = 0;
 }
 
 Animation *gf3d_animation_load(AnimationManager *manager, char *animationName, char *filename, Uint32 startFrame, Uint32 endFrame)
@@ -148,7 +159,8 @@ Animation *gf3d_animation_load(AnimationManager *manager, char *animationName, c
     }
 
     memset(anim, 0, sizeof(Animation));
-    manager->animationNames[i] = animationName;
+    manager->animationNames[i] = (char*)malloc(sizeof(char) * (strlen(animationName)+1));
+    if(manager->animationNames[i] != NULL) strcpy( manager->animationNames[i], animationName);
     count = endFrame - startFrame;
 
     anim->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*), count);
@@ -164,7 +176,6 @@ Animation *gf3d_animation_load(AnimationManager *manager, char *animationName, c
     anim->currentFrame = 0;
     anim->playing = 0;
     anim->speed = 1.0f;
-
 
     return anim;
 }
@@ -212,10 +223,36 @@ void gf3d_animation_pause(AnimationManager *manager, char *animationName)
     }
 }
 
+void gf3d_animation_set_speed(AnimationManager *manager, char *animationName, float speed)
+{
+    if(!manager) return;
+    gf3d_animation_get(manager, animationName)->speed = speed;
+}
+
+Animation *gf3d_animation_get(AnimationManager *manager, char *animationName)
+{
+    int i;
+    if (!manager) return NULL;
+    for (i = 0; i < manager->animationCount; i++)
+    {
+        if( gfc_line_cmp(animationName, manager->animationNames[i]) == 0 )
+        {
+            return manager->animations[i];
+        }
+    }
+    return NULL;
+}
+
 Animation *gf3d_animation_get_current_animation(AnimationManager *manager)
 {
     if(!manager) return NULL;
     return manager->animations[ manager->currentAnimation ];
+}
+
+char *gf3d_animation_get_current_animation_name(AnimationManager *manager)
+{
+    if(!manager || !manager->animationCount) return NULL;
+    return manager->animationNames[ manager->currentAnimation ];
 }
 
 Uint8 gf3d_animation_is_playing(AnimationManager *manager, char *animationName)
@@ -256,7 +293,7 @@ float gf3d_animation_get_frame_count(AnimationManager *manager, char* animationN
     return 0.0f;
 }
 
-void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat)
+void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat, float frame)
 {
     Animation *anim = NULL;
 
@@ -272,12 +309,14 @@ void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkComman
 
     if(anim->playing)
     {
-        // slog("adding time %.2f, %.2f", anim->currentFrame, anim->speed);
-        anim->currentFrame += gf3d_timer_get_ticks(&timer) * anim->speed * 100;
+        anim->currentFrame += /* gf3d_timer_get_ticks(&timer) */ frame * 100 * anim->speed;
         if(anim->currentFrame > anim->frameCount) anim->currentFrame = 0.0f;
     }
 
-    // slog("animation draw");
     gf3d_model_draw(manager->model, bufferFrame, commandBuffer, modelMat, anim->currentFrame);
+}
+
+void gf3d_animation_manager_timer_start()
+{
     gf3d_timer_start(&timer);
 }

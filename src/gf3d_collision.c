@@ -72,17 +72,24 @@ int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D off
     return 0;
 }
 
-void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition )
+void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition, Vector3D parentRotation )
 {
     Shape *s;
+    Vector3D forward, right, offset;
     int i;
 
     if (!armor || !armor->shapes) return;
 
+    vector3d_angle_vectors(parentRotation, &forward, &right, NULL);
+
     for (i = 0; i < armor->shapeCount; i++)
     {
         s = &armor->shapes[i];
-        vector3d_add( s->position , parentPosition, armor->offsets[i] );
+        vector3d_scale(forward, forward, -armor->offsets[i].y);
+        vector3d_scale(right, right, -armor->offsets[i].x);
+        vector3d_add( s->position , parentPosition, forward );
+        vector3d_add(s->position, s->position, right);
+        s->position.z += armor->offsets[i].z;
     }
 }
 

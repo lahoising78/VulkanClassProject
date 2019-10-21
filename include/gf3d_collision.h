@@ -19,7 +19,7 @@ void gf3d_collision_armor_free( CollisionArmor *armor );
 
 int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D offset );
 
-void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition );
+void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition, Vector3D parentRotation );
 
 void gf3d_collision_armor_update_mat( CollisionArmor *armor );
 

@@ -23,6 +23,8 @@ typedef struct AnimationManager_S
     Uint8 _inuse;
 } AnimationManager;
 
+void gf3d_animation_manager_timer_start();
+
 /* 
  * @brief allocate space for the managers
  * @param manager_max max number of managers you will allocate for
@@ -73,11 +75,33 @@ void gf3d_animation_play(AnimationManager *manager, char *animationName, Uint32 
 void gf3d_animation_pause(AnimationManager *manager, char *animationName);
 
 /* 
+ * @brief set the speed of an animation
+ * @param manager : the animation manager that contains the animation
+ * @param animationName : name of the animation
+ * @param speed : the speed to set to
+ */
+void gf3d_animation_set_speed(AnimationManager *manager, char *animationName, float speed);
+
+/* 
+ * @brief get a pointer to the specified animation
+ * @param manager : the animation manager that contains the animation
+ * @param animationName : the name of the animation
+ */
+Animation *gf3d_animation_get(AnimationManager *manager, char *animationName);
+
+/* 
  * @brief returns the current animation
  * @param manager the animation manager to get animation from
  * @return a pointer to current animation
  */
 Animation *gf3d_animation_get_current_animation(AnimationManager *manager);
+
+/* 
+ * @brief get the name of the current animation
+ * @param manager : the manager to get animation name from
+ * @return a c string with the name of the current animation
+ */
+char *gf3d_animation_get_current_animation_name(AnimationManager *manager);
 
 /* 
  * @brief tells you if specified animation is currently playing
@@ -105,7 +129,8 @@ float gf3d_animation_get_frame_count(AnimationManager *manager, char *animationN
  * @param bufferFrame : buffer frame
  * @param commandBuffer : command buffer
  * @param modelMat : the matrix of the model
+ * @param ticks : time since last frame
  */
-void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat);
+void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkCommandBuffer commandBuffer, Matrix4 modelMat, float frame);
 
 #endif

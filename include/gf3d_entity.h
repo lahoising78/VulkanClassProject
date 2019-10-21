@@ -41,9 +41,6 @@ typedef struct Entity_S
     float health;
     float healthmax;
     float armor;
-    float experience;
-    float level;
-    float otherStuff;
 
     int locked; /* to flag if an entity is in the middle of an animation that shouldn't be interrupted */
     
@@ -60,6 +57,13 @@ void gf3d_entity_manager_init(Uint32 entity_max);
  * @brief calls update on all entities
  */
 void gf3d_entity_manager_update(  );
+
+/* 
+ * @brief draw all entities
+ * @param bufferFrame : the buffer frame
+ * @param commandBuffer : the command buffer
+ */
+void gf3d_entity_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer, float frame);
 
 void gf3d_entity_manager_draw_collision_boxes(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
