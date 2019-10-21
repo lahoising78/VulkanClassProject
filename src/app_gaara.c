@@ -4,6 +4,7 @@
 #include "gf3d_camera.h"
 
 void app_gaara_punch(Entity *self);
+void app_gaara_throw_sand(Entity *self);
 
 Entity *app_gaara_new()
 {
@@ -23,15 +24,17 @@ Entity *app_gaara_new()
     ent->model->texture = gf3d_texture_load("images/gaara.png");
     ent->animationManager = gf3d_animation_manager_init(8, ent->model);
     gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
-    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
     gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.3f);
+    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.5f);
     gf3d_animation_load(ent->animationManager, "swipe left", "gaara_swipe_left", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.3f);
+    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.5f);
     gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
+    gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.5f);
+    gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
+    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
     gf3d_animation_play(ent->animationManager, "idle", 1);
     ent->modelOffset.z = -6.5f;
-    ent->scale = vector3d(2, 2, 2);
+    ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
 
     return ent;
@@ -60,6 +63,10 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     if(events[SDL_SCANCODE_J].type == SDL_KEYDOWN)
     {
         app_gaara_punch(e);
+    }
+    else if (events[SDL_SCANCODE_K].type == SDL_KEYDOWN)
+    {
+        app_gaara_throw_sand(e);
     }
     
     /* Get camera angles */
@@ -228,6 +235,25 @@ void app_gaara_punch(Entity *self)
     
 }
 
+void app_gaara_throw_sand(Entity *self)
+{
+    float fcount = 0.0f;
+    float currf = 0.0f;
+    if(!self) return;
+
+    if(self->state & ES_Idle)
+    {
+        if(!gf3d_animation_is_playing(self->animationManager, "throw sand"))
+        {
+            gf3d_animation_play(self->animationManager, "throw sand", 1);
+            self->state &= ~ES_Idle;
+            self->state |= ES_Attacking;
+            self->velocity.x = self->velocity.y = 0.0f;
+            self->locked = 1;
+        }
+    }
+}
+
 void app_gaara_think(Entity *self)
 {
     float fcount = 0.0f; /* frame count */
@@ -286,6 +312,18 @@ void app_gaara_think(Entity *self)
             self->state |= ES_Idle;
             self->locked = 0;
             gf3d_animation_play(self->animationManager, "idle", 1);
+        }
+    }
+    else if ( gf3d_animation_is_playing(self->animationManager, "throw sand") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "throw sand");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(fcount - currf <= 0.5f)
+        {
+            self->state &= ~ES_Attacking;
+            self->state |= ES_Idle;
+            gf3d_animation_play(self->animationManager, "idle", 1);
+            self->locked = 0;
         }
     }
 }
