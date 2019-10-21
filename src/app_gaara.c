@@ -23,6 +23,8 @@ Entity *app_gaara_new()
     ent->model = gf3d_model_new();
     ent->model->texture = gf3d_texture_load("images/gaara.png");
     ent->animationManager = gf3d_animation_manager_init(8, ent->model);
+    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
+    gf3d_animation_play(ent->animationManager, "idle", 1);
     gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
     gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
     gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.5f);
@@ -31,8 +33,7 @@ Entity *app_gaara_new()
     gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
     gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.5f);
     gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
-    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
-    gf3d_animation_play(ent->animationManager, "idle", 1);
+    gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
@@ -60,7 +61,16 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         onFloor = on_floor( distanceToFloor );
     }
 
-    if(events[SDL_SCANCODE_J].type == SDL_KEYDOWN)
+    if(events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN && !e->locked)
+    {
+        if(distanceToFloor < 0.7f)
+        {
+            e->state |= ES_Jumping;
+            e->acceleration.z = GRAVITY * 40.0f;
+            gf3d_animation_play(e->animationManager, "jump", 1);
+        }
+    }
+    else if(events[SDL_SCANCODE_J].type == SDL_KEYDOWN)
     {
         app_gaara_punch(e);
     }
@@ -258,13 +268,42 @@ void app_gaara_think(Entity *self)
 {
     float fcount = 0.0f; /* frame count */
     float currf = 0.0f; /* current frame */
+    float distanceToFloor = 0.0f;
+    Uint8 onFloor = 0;
 
     if(!self->animationManager || !self->modelBox)
     {
         return;
     }
 
-    if( gf3d_animation_is_playing(self->animationManager, "swipe right") )
+    distanceToFloor = distance_to_floor( self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z );
+    onFloor = on_floor( distanceToFloor );
+
+    if ( gfc_line_cmp("jump", gf3d_animation_get_current_animation_name(self->animationManager)) == 0 )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "jump");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(gf3d_animation_is_playing(self->animationManager, "jump"))
+        {
+            if( fcount - currf <= 0.5f )
+            {
+                gf3d_animation_play(self->animationManager, "idle", 1);
+            }
+            else if ( fcount - currf <= 32.5f )
+            {
+                gf3d_animation_pause(self->animationManager, "jump");
+            }
+        }
+        else
+        {
+            if(onFloor)
+            {
+                gf3d_animation_play(self->animationManager, "jump", gf3d_animation_get_current_frame(self->animationManager));
+            }
+        }
+        
+    }
+    else if( gf3d_animation_is_playing(self->animationManager, "swipe right") )
     {
         fcount = gf3d_animation_get_frame_count(self->animationManager, "swipe right");
         currf = gf3d_animation_get_current_frame(self->animationManager);

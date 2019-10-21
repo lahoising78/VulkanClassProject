@@ -347,7 +347,7 @@ void app_naruto_think (struct Entity_S* self)
 {
     float fcount = 0.0f, currf = 0.0f;
     float distanceToFloor = 0.0f;
-    Uint32 onFloor = 0.0f;
+    Uint32 onFloor = 0;
 
     if(!self->animationManager || !self->modelBox)
     {

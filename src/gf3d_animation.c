@@ -249,6 +249,12 @@ Animation *gf3d_animation_get_current_animation(AnimationManager *manager)
     return manager->animations[ manager->currentAnimation ];
 }
 
+char *gf3d_animation_get_current_animation_name(AnimationManager *manager)
+{
+    if(!manager || !manager->animationCount) return NULL;
+    return manager->animationNames[ manager->currentAnimation ];
+}
+
 Uint8 gf3d_animation_is_playing(AnimationManager *manager, char *animationName)
 {
     if (!manager) 
