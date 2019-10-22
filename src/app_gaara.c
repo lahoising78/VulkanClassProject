@@ -5,6 +5,7 @@
 
 void app_gaara_punch(Entity *self);
 void app_gaara_throw_sand(Entity *self);
+void app_gaara_charge(Entity *self);
 
 Entity *app_gaara_new()
 {
@@ -34,6 +35,7 @@ Entity *app_gaara_new()
     gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.5f);
     gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
     gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
+    gf3d_animation_load(ent->animationManager, "charge", "gaara_charge", 1, 36);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
@@ -77,6 +79,18 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     else if (events[SDL_SCANCODE_K].type == SDL_KEYDOWN)
     {
         app_gaara_throw_sand(e);
+    }
+    else if (events[SDL_SCANCODE_L].type == SDL_KEYDOWN)
+    {
+        app_gaara_charge(e);
+    }
+    else if (events[SDL_SCANCODE_L].type == SDL_KEYUP)
+    {
+        if(gf3d_animation_is_playing(e->animationManager, "charge"))
+        {
+            gf3d_animation_play(e->animationManager, "idle", 1);
+            e->locked = 0;
+        }
     }
     
     /* Get camera angles */
@@ -264,6 +278,20 @@ void app_gaara_throw_sand(Entity *self)
     }
 }
 
+void app_gaara_charge(Entity *self)
+{
+    if(!self) return;
+    if(self->state & ES_Idle)
+    {
+        if(!gf3d_animation_is_playing(self->animationManager, "charge"))
+        {
+            gf3d_animation_play(self->animationManager, "charge", 1);
+            self->velocity.x = self->velocity.y = 0.0f;
+            self->locked = 1;
+        }
+    }
+}
+
 void app_gaara_think(Entity *self)
 {
     float fcount = 0.0f; /* frame count */
@@ -283,13 +311,14 @@ void app_gaara_think(Entity *self)
     {
         fcount = gf3d_animation_get_frame_count(self->animationManager, "jump");
         currf = gf3d_animation_get_current_frame(self->animationManager);
+
         if(gf3d_animation_is_playing(self->animationManager, "jump"))
         {
             if( fcount - currf <= 0.5f )
             {
                 gf3d_animation_play(self->animationManager, "idle", 1);
             }
-            else if ( fcount - currf <= 32.5f )
+            else if ( fcount - currf <= fcount/2 && (distanceToFloor >= 0.7f) )
             {
                 gf3d_animation_pause(self->animationManager, "jump");
             }

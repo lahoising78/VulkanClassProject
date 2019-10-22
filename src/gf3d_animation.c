@@ -162,12 +162,13 @@ Animation *gf3d_animation_load(AnimationManager *manager, char *animationName, c
     manager->animationNames[i] = (char*)malloc(sizeof(char) * (strlen(animationName)+1));
     if(manager->animationNames[i] != NULL) strcpy( manager->animationNames[i], animationName);
     count = endFrame - startFrame;
+    count /= 3;
 
     anim->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*), count);
 
     for(i = 0; i < count; i++)
     {
-        snprintf(assetname,GFCLINELEN,"models/animations/%s/%s_%06i.obj",filename,filename,startFrame + i);
+        snprintf(assetname,GFCLINELEN,"models/animations/%s/%s_%06i.obj",filename,filename,startFrame + i*3);
         anim->mesh[i] = gf3d_mesh_load(assetname);
     }
 
@@ -309,7 +310,7 @@ void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkComman
 
     if(anim->playing)
     {
-        anim->currentFrame += /* gf3d_timer_get_ticks(&timer) */ frame * 100 * anim->speed;
+        anim->currentFrame += /* gf3d_timer_get_ticks(&timer) */ frame * 100 / 3 * anim->speed;
         if(anim->currentFrame > anim->frameCount) anim->currentFrame = 0.0f;
     }
 
