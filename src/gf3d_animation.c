@@ -110,7 +110,7 @@ void gf3d_animation_free(Animation *animation)
     int i;
     slog("free animation");
     if(!animation) return;
-    for(i = 0; i < animation->frameCount; i++)
+    for(i = 0; i < animation->frameCount/3; i++)
     {
         if(animation->mesh[i]) gf3d_mesh_free(animation->mesh[i]);
     }
@@ -163,12 +163,12 @@ Animation *gf3d_animation_load(AnimationManager *manager, char *animationName, c
     if(manager->animationNames[i] != NULL) strcpy( manager->animationNames[i], animationName);
     count = endFrame - startFrame;
 
-    anim->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*), count);
+    anim->mesh = (Mesh**)gfc_allocate_array(sizeof(Mesh*), count / 3);
 
-    for(i = 0; i < count; i++)
+    for(i = 0; i < count; i+=3)
     {
         snprintf(assetname,GFCLINELEN,"models/animations/%s/%s_%06i.obj",filename,filename,startFrame + i);
-        anim->mesh[i] = gf3d_mesh_load(assetname);
+        anim->mesh[i/3] = gf3d_mesh_load(assetname);
     }
 
     anim->frameCount = count;
@@ -313,7 +313,7 @@ void gf3d_animation_draw(AnimationManager *manager, Uint32 bufferFrame, VkComman
         if(anim->currentFrame > anim->frameCount) anim->currentFrame = 0.0f;
     }
 
-    gf3d_model_draw(manager->model, bufferFrame, commandBuffer, modelMat, anim->currentFrame);
+    gf3d_model_draw(manager->model, bufferFrame, commandBuffer, modelMat, anim->currentFrame / 3);
 }
 
 void gf3d_animation_manager_timer_start()
