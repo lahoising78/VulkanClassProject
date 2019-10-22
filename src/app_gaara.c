@@ -33,7 +33,7 @@ Entity *app_gaara_new()
     gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
     gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.5f);
     gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
-    gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
+    gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 28);
     ent->modelOffset.z = -6.5f;
     ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
@@ -283,23 +283,23 @@ void app_gaara_think(Entity *self)
     {
         fcount = gf3d_animation_get_frame_count(self->animationManager, "jump");
         currf = gf3d_animation_get_current_frame(self->animationManager);
+        if(onFloor && !(self->state & ES_Jumping) )
+        {
+            gf3d_animation_play(self->animationManager, "jump", gf3d_animation_get_current_frame(self->animationManager));
+        }
         if(gf3d_animation_is_playing(self->animationManager, "jump"))
         {
             if( fcount - currf <= 0.5f )
             {
                 gf3d_animation_play(self->animationManager, "idle", 1);
             }
-            else if ( fcount - currf <= 32.5f )
+            else if ( fcount - currf <= fcount/2 )
             {
                 gf3d_animation_pause(self->animationManager, "jump");
             }
         }
         else
         {
-            if(onFloor)
-            {
-                gf3d_animation_play(self->animationManager, "jump", gf3d_animation_get_current_frame(self->animationManager));
-            }
         }
         
     }
