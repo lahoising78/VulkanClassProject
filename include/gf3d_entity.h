@@ -43,9 +43,11 @@ typedef struct Entity_S
     float healthmax;
     float armor;
 
-    int locked; /* to flag if an entity is in the middle of an animation that shouldn't be interrupted */
+    Uint32 locked; /* to flag if an entity is in the middle of an animation that shouldn't be interrupted */
     
     void *data;
+
+    struct Entity_S *enemy;
 } Entity;
 
 /**

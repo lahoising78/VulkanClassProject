@@ -162,6 +162,12 @@ int main(int argc,char *argv[])
         "legs"
     );
 
+    // just in case we need it later
+    gf3d_model_load("dino", "dino");
+
+    ent2->enemy = p1->entity;
+    p1->entity->enemy = ent2;
+
     gf3d_timer_start(&timer);
     // gf3d_timer_start(&frameTimer);
     gf3d_animation_manager_timer_start();
@@ -174,7 +180,7 @@ int main(int argc,char *argv[])
         {
             if ( e.key.keysym.scancode < SDL_NUM_SCANCODES )
                 events[ e.key.keysym.scancode ] = e;
-            
+            // slog("key: %d", e.key.keysym.scancode);
         }
         
         app_player_manager_update(events); /* Give input to all players */

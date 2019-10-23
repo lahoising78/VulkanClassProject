@@ -273,6 +273,7 @@ void app_naruto_throw_knife(struct Entity_S* e)
             e->state |= ES_Attacking;
             e->velocity.x = e->velocity.y = 0.0f;
             e->locked = 1;
+            gf3d_combat_projectile_new(e, e->enemy)->model = gf3d_model_load("dino", "dino");
         }
     }
 }
@@ -512,6 +513,7 @@ void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 
 void app_naruto_clone_update(struct Entity_S *e)
 {
+    Entity *owner;
     float fcount, currf;
 
     app_naruto_update(e);
@@ -523,6 +525,13 @@ void app_naruto_clone_update(struct Entity_S *e)
     {
         gf3d_animation_manager_free(e->animationManager);
         gf3d_collision_armor_remove_shape(e->hitboxes, "punch");
+        
+        /* release entity from lock */
+        owner = (Entity*)e->data;
+        owner->state &= ~ES_Attacking;
+        owner->state |= ES_Idle;
+        owner->locked = 0;
+        
         gf3d_entity_free(e);
     }
     else if ( currf * 3 <= ATK_FRAME_NARUTO_PUNCH )
