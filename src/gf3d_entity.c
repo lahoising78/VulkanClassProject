@@ -173,18 +173,6 @@ void gf3d_entity_general_update( Entity *self )
     {
         self->velocity.x = self->velocity.y = 0.0f;
     }
-    
-    /* Cap speed */
-    if ( abs(self->velocity.x) > MAX_SPEED )
-    {
-        if (self->velocity.x > 0) self->velocity.x = MAX_SPEED;
-        else self->velocity.x = -MAX_SPEED;
-    }
-    if ( abs(self->velocity.y) > MAX_SPEED )
-    {
-        if (self->velocity.y > 0) self->velocity.y = MAX_SPEED;
-        else self->velocity.y = -MAX_SPEED;
-    }
 
     /* vf = vi + a*t */
     vector3d_scale(buff, self->acceleration, deltaTime);
@@ -214,7 +202,7 @@ void gf3d_entity_general_update( Entity *self )
 void gf3d_entity_simple_collision( Entity *self, Entity *other )
 {
     float smag, omag; /* to store velocity magnitude squared of self and other */
-    Vector3D dir, buff;
+    Vector3D dir;
     Entity *p, *op;
 
     // slog("got to simple collision");

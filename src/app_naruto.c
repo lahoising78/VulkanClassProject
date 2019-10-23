@@ -7,6 +7,7 @@ void app_naruto_charge(struct Entity_S *e);
 void app_naruto_throw_knife(struct Entity_S *e);
 void app_naruto_punch(struct Entity_S *e);
 void app_naruto_clone_update( struct Entity_S *e );
+void app_naruto_clone_touch(struct Entity_S *self, struct Entity_S *other);
 void app_naruto_add_hitbox(struct Entity_S *ent, char *name); /* predefined hitboxes for attacks */
 
 Entity *app_naruto_new()
@@ -108,6 +109,12 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         e->rotation.x = 90.0f;
         vector3d_set_magnitude(&camera_f, MAX_SPEED);
         vector3d_add(e->velocity, e->velocity, camera_f);
+        /* Cap speed */
+        if ( abs(e->velocity.y) > MAX_SPEED )
+        {
+            e->velocity.y = MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -118,6 +125,12 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         e->rotation.x = 270.0f;
         vector3d_set_magnitude(&camera_f, MAX_SPEED);
         vector3d_sub(e->velocity, e->velocity, camera_f);
+        /* Cap speed */
+        if ( abs(e->velocity.y) > MAX_SPEED )
+        {
+            e->velocity.y = -MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -161,6 +174,12 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         
         vector3d_set_magnitude(&camera_r, MAX_SPEED);
         vector3d_sub(e->velocity, e->velocity, camera_r);
+        /* Cap speed */
+        if ( abs(e->velocity.x) > MAX_SPEED )
+        {
+            e->velocity.x = MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -184,6 +203,12 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         
         vector3d_set_magnitude(&camera_r, MAX_SPEED);
         vector3d_add(e->velocity, e->velocity, camera_r);
+        /* Cap speed */
+        if ( abs(e->velocity.x) > MAX_SPEED )
+        {
+            e->velocity.x = -MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -295,7 +320,10 @@ void app_naruto_punch_create_shadow_clones(struct Entity_S *self)
 
         e->think = app_naruto_think;
         e->update = app_naruto_clone_update;
-        e->touch = app_naruto_touch;
+        e->touch = app_naruto_clone_touch;
+
+        /* data for shadow clones will be the entity that created them */
+        e->data = self; 
     }
 }
 
@@ -479,12 +507,7 @@ void app_naruto_update(struct Entity_S* self)
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 {
-    Vector3D forward;
-    Vector3D buff;
-
-    vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
-    vector3d_scale(forward, forward, 3);
-    vector3d_add(other->velocity, other->velocity, forward);
+    gf3d_combat_meele_attack(self, other, DMG_NARUTO_PUNCH, KICK_NARUTO_PUNCH);
 }
 
 void app_naruto_clone_update(struct Entity_S *e)
@@ -509,6 +532,12 @@ void app_naruto_clone_update(struct Entity_S *e)
             app_naruto_add_hitbox(e, "punch");
         }
     }
+}
+
+void app_naruto_clone_touch(struct Entity_S *self, struct Entity_S *other)
+{
+    if(self && other && (Entity*)self->data != other)
+        gf3d_combat_meele_attack(self, other, DMG_NARUTO_PUNCH, KICK_NARUTO_CLONE_PUNCH);
 }
 
 void app_naruto_add_hitbox(struct Entity_S *ent, char *name)

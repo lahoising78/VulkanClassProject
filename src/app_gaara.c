@@ -105,6 +105,11 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         e->rotation.x = 90.0f;
         vector3d_set_magnitude(&camera_f, MAX_SPEED);
         vector3d_add(e->velocity, e->velocity, camera_f);
+        if ( e->velocity.y > MAX_SPEED )
+        {
+            e->velocity.y = MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -115,6 +120,11 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         e->rotation.x = 270.0f;
         vector3d_set_magnitude(&camera_f, MAX_SPEED);
         vector3d_sub(e->velocity, e->velocity, camera_f);
+        if ( e->velocity.y < -MAX_SPEED )
+        {
+            e->velocity.y = -MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -159,6 +169,12 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         
         vector3d_set_magnitude(&camera_r, MAX_SPEED);
         vector3d_sub(e->velocity, e->velocity, camera_r);
+        /* Cap speed */
+        if ( e->velocity.x > MAX_SPEED )
+        {
+            e->velocity.x = MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);
@@ -182,6 +198,12 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         
         vector3d_set_magnitude(&camera_r, MAX_SPEED);
         vector3d_add(e->velocity, e->velocity, camera_r);
+        /* Cap speed */
+        if ( e->velocity.x < -MAX_SPEED )
+        {
+            e->velocity.x = -MAX_SPEED;
+        }
+
         if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
         {
             gf3d_animation_play(e->animationManager, "running", 1);

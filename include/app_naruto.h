@@ -3,6 +3,7 @@
 
 #include "gf3d_entity.h"
 #include "app_player.h"
+#include "gf3d_combat.h"
 
 /* Animation defines */
 #define ANIM_NARUTO_IDLE_START      1
@@ -25,6 +26,13 @@
 /* attack frames */
 #define ATK_FRAME_NARUTO_PUNCH      17.5f
 #define ATK_FRAME_NARUTO_KICK       30.0f
+
+/* Attack damage */
+#define DMG_NARUTO_PUNCH 5
+
+/* Attack kick */
+#define KICK_NARUTO_PUNCH 3.0f
+#define KICK_NARUTO_CLONE_PUNCH 30.0f
 
 /* 
 @brief get an entity with naruto's moves, model, functions
