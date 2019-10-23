@@ -65,8 +65,28 @@ Entity *gf3d_combat_projectile_new(Entity *owner, Entity *target)
 
 void gf3d_projectile_update(Entity *self)
 {
+    Entity **data = NULL;
+    Entity *target = NULL;
+
+    Vector3D dir;
     if(!self) return;
-    // slog("Projectile update");
+
+    data = (Entity**)self->data;
+    if(!data) 
+    {
+        return;
+    }
+
+    target = data[ PROJECTILE_TARGET ];
+    if(!target) 
+    {
+        return;
+    }
+    
+    vector3d_sub(dir, target->position, self->position);
+    vector3d_set_magnitude(&dir, PROJECTILE_MAX_SPEED);
+    vector3d_copy(self->velocity, dir);
+
     gf3d_entity_general_update(self);
 }
 
@@ -82,4 +102,9 @@ void gf3d_projectile_touch(Entity *self, Entity *other)
     if(owner && owner == other) return;
 
     slog("Projectile touch");
+
+    gf3d_combat_meele_attack(self, data[PROJECTILE_TARGET], 2, 3);
+    free(self->data);
+    self->data = NULL;
+    gf3d_entity_free(self);
 }

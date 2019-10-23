@@ -17,6 +17,8 @@ Entity *app_naruto_new()
     e = gf3d_entity_new();
     e->health = 100;
     e->healthmax = 100;
+    e->chakra = 100;
+    e->chakraMax = 100;
     e->think = app_naruto_think;
     e->touch = app_naruto_touch;
     e->update = app_naruto_update;
@@ -255,6 +257,7 @@ void app_naruto_charge(struct Entity_S *e)
             e->velocity.x = e->velocity.y = 0.0f;
             e->locked = 1;
         }
+        
     }
 }
 
@@ -262,6 +265,8 @@ void app_naruto_throw_knife(struct Entity_S* e)
 {
     float fcount = 0.0f;
     float currf = 0.0f;
+    Entity *projectile = NULL;
+
     if(!e) return;
 
     if (e->state & ES_Idle)
@@ -273,7 +278,21 @@ void app_naruto_throw_knife(struct Entity_S* e)
             e->state |= ES_Attacking;
             e->velocity.x = e->velocity.y = 0.0f;
             e->locked = 1;
-            gf3d_combat_projectile_new(e, e->enemy)->model = gf3d_model_load("dino", "dino");
+
+            /* throw kunai */
+            projectile = gf3d_combat_projectile_new(e, e->enemy);
+            if(!projectile)
+            {
+                return;
+            }
+            projectile->model = gf3d_model_load("dino", "dino");
+            projectile->hitboxes = gf3d_collision_armor_new(1);
+            gf3d_collision_armor_add_shape(
+                projectile->hitboxes,
+                gf3d_shape(projectile->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
+                vector3d(0, 0, 0),
+                "body"
+            );
         }
     }
 }
