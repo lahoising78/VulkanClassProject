@@ -216,10 +216,7 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
 {
     float smag, omag; /* to store velocity magnitude squared of self and other */
     Vector3D dir, buff;
-    Vector3D armorExtent, oArmorExtent;
     Entity *p, *op;
-    const float offset = 1.0f;
-    // float anglex, angley, anglez, m;
 
     // slog("got to simple collision");
     if ( vector3d_equal( self->position, other->position) )
@@ -227,6 +224,7 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
         other->position.x += 1;
     }
 
+    /* find who needs to push who depending on the speed */
     smag = vector3d_magnitude_squared(self->velocity);
     omag = vector3d_magnitude_squared(other->velocity); 
     if ( omag > smag)
@@ -247,23 +245,12 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
         p = other;
         op = self;
     }
-    vector3d_normalize(&dir);
 
-    vector3d_add(buff, op->position, dir);
-    if(within_stage(buff)) 
-    {
-        vector3d_copy(op->position, buff);
-    }
-    else
-    {
-        vector3d_negate(dir, dir);
-        vector3d_add(buff, p->position, dir);
-        if(within_stage(buff))
-        {
-            vector3d_copy(p->position, buff);
-        }
-    }
-    
+    /* elastic collision */
+    vector3d_normalize(&dir);
+    vector3d_set_magnitude(&dir, MAX_SPEED);
+    vector3d_copy(op->velocity, dir);
+    vector3d_negate(p->velocity, dir);
     
 }
 
