@@ -36,7 +36,7 @@ Entity *app_gaara_new()
     gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
     gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
     gf3d_animation_load(ent->animationManager, "charge", "gaara_charge", 1, 36);
-    ent->modelOffset.z = -6.5f;
+    ent->modelOffset.z = -4.9f;
     ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
 

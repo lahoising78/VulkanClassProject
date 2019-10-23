@@ -23,6 +23,7 @@ typedef struct Entity_S
     AnimationManager *animationManager;
 
     CollisionArmor *hurtboxes; /* A pointer to one collision armor, which contains several collision boxes */
+    CollisionArmor *hitboxes;
     CollisionArmor *modelBox;
     float mass;
 

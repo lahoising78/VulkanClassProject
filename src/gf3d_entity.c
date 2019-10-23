@@ -61,7 +61,9 @@ void gf3d_entity_manager_update(  )
         }
         if (!e->update) 
         {
+            gf3d_collision_armor_update(e->hitboxes, e->position, e->rotation);
             gf3d_collision_armor_update(e->hurtboxes, e->position, e->rotation);
+            gf3d_collision_armor_update(e->modelBox, e->position, e->rotation);
             continue;
         }
         
@@ -79,18 +81,26 @@ void gf3d_entity_manager_update(  )
             o = &gf3d_entity_manager.entity_list[j];
             if ( !o->_inuse || o == e ) continue;
             
-            if ( e->hurtboxes && o->hurtboxes )
+            if ( e->hurtboxes && o->hitboxes )
             {
-                if ( e->touch && gf3d_collision_check(e->hurtboxes, o->hurtboxes) )
+                if ( o->touch && gf3d_collision_check(e->hurtboxes, o->hitboxes) )
+                {
+                    o->touch(o, e);
+                    continue;
+                }
+            }
+            else if ( e->hitboxes && o->hurtboxes )
+            {
+                if ( e->touch && gf3d_collision_check(e->hitboxes, o->hurtboxes) )
                 {
                     e->touch(e, o);
-                    continue;
                 }
             }
 
             if ( e->modelBox && o->modelBox && gf3d_collision_check( e->modelBox, o->modelBox ))
             {
                 gf3d_entity_simple_collision(e, o);
+                slog("collision");
             }
 
         }
@@ -120,6 +130,7 @@ void gf3d_entity_manager_draw_collision_boxes( Uint32 bufferFrame, VkCommandBuff
         ent = &gf3d_entity_manager.entity_list[i];
         gf3d_collision_armor_draw(ent->modelBox, bufferFrame, commandBuffer);
         gf3d_collision_armor_draw(ent->hurtboxes, bufferFrame, commandBuffer);
+        gf3d_collision_armor_draw(ent->hitboxes, bufferFrame, commandBuffer);
     }
 }
 
@@ -127,6 +138,7 @@ void gf3d_entity_general_update( Entity *self )
 {
     Vector3D buff = vector3d(0,0,0);
     Vector3D buff2 = vector3d(0, 0, 0);
+    Vector2D planeVel;
     float distanceToFloor = 0.0f;
     Uint8 onFloor = 0;
 
@@ -150,6 +162,19 @@ void gf3d_entity_general_update( Entity *self )
         }   
     } 
 
+    planeVel = vector2d(self->velocity.x, self->velocity.y);
+    if( vector2d_magnitude_squared(planeVel) >= 2.0f )
+    {
+        vector2d_negate(planeVel, planeVel);
+        vector2d_set_magnitude(&planeVel, DAMP_SPEED);
+        self->velocity.x += planeVel.x;
+        self->velocity.y += planeVel.y;
+    }
+    else
+    {
+        self->velocity.x = self->velocity.y = 0.0f;
+    }
+    
     /* Cap speed */
     if ( abs(self->velocity.x) > MAX_SPEED )
     {
@@ -175,6 +200,7 @@ void gf3d_entity_general_update( Entity *self )
         vector3d_copy(self->position, buff);
 
     /* update collision boxes */
+    gf3d_collision_armor_update(self->hitboxes, self->position, self->rotation);
     gf3d_collision_armor_update(self->hurtboxes, self->position, self->rotation);
     gf3d_collision_armor_update(self->modelBox, self->position, self->rotation);
     
@@ -189,7 +215,7 @@ void gf3d_entity_general_update( Entity *self )
 void gf3d_entity_simple_collision( Entity *self, Entity *other )
 {
     float smag, omag; /* to store velocity magnitude squared of self and other */
-    Vector3D dir;
+    Vector3D dir, buff;
     Vector3D armorExtent, oArmorExtent;
     Entity *p, *op;
     const float offset = 1.0f;
@@ -223,7 +249,21 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
     }
     vector3d_normalize(&dir);
 
-    vector3d_add(other->position, other->position, dir);
+    vector3d_add(buff, op->position, dir);
+    if(within_stage(buff)) 
+    {
+        vector3d_copy(op->position, buff);
+    }
+    else
+    {
+        vector3d_negate(dir, dir);
+        vector3d_add(buff, p->position, dir);
+        if(within_stage(buff))
+        {
+            vector3d_copy(p->position, buff);
+        }
+    }
+    
     
 }
 

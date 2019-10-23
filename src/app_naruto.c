@@ -31,7 +31,7 @@ Entity *app_naruto_new()
     gf3d_animation_load(e->animationManager, "throw", "naruto_throw", 1, 51);
     gf3d_animation_load(e->animationManager, "charge", "naruto_charge", 1, 18);
     gf3d_animation_play(e->animationManager, "idle", 1);
-    e->modelOffset.z = -6.5f;
+    e->modelOffset.z = -4.9f;
     e->scale = vector3d(5, 5, 5);
     // e->scale = vector3d(1, 1, 1);
     // e->scale = vector3d(0.1, 0.1, 0.1);
@@ -459,7 +459,13 @@ void app_naruto_update(struct Entity_S* self)
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 {
-    
+    Vector3D forward;
+    Vector3D buff;
+
+    vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
+    vector3d_scale(forward, forward, 3);
+    // vector3d_add(other->acceleration, other->acceleration, forward);
+    vector3d_add(other->velocity, other->velocity, forward);
 }
 
 void app_naruto_clone_update(struct Entity_S *e)

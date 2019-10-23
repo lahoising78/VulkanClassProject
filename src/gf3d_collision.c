@@ -1,5 +1,6 @@
 #include "gf3d_collision.h"
 #include "simple_logger.h"
+#include "gf3d_game_defines.h"
 
 CollisionArmor *gf3d_collision_armor_new( Uint32 count )
 {
@@ -75,21 +76,33 @@ int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D off
 void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition, Vector3D parentRotation )
 {
     Shape *s;
-    Vector3D forward, right, offset;
+    Vector3D forward, right, up, offset;
     int i;
 
     if (!armor || !armor->shapes) return;
 
-    vector3d_angle_vectors(parentRotation, &forward, &right, NULL);
+    vector3d_angle_vectors(parentRotation, &forward, &right, &up);
+    // vector3d_slog(forward);
+    // vector3d_slog(right);
+    // vector3d_slog(up);
 
     for (i = 0; i < armor->shapeCount; i++)
     {
+        if(!armor->_inuse[i]) continue;
         s = &armor->shapes[i];
-        vector3d_scale(forward, forward, -armor->offsets[i].y);
-        vector3d_scale(right, right, -armor->offsets[i].x);
-        vector3d_add( s->position , parentPosition, forward );
-        vector3d_add(s->position, s->position, right);
-        s->position.z += armor->offsets[i].z;
+        offset = armor->offsets[i];
+        // vector3d_slog(forward);
+        // vector3d_slog(right);
+        vector3d_scale(forward, forward, offset.y);
+        vector3d_scale(right, right, -offset.x);
+        vector3d_scale(up, up, offset.z);
+        vector3d_add( forward , right, forward );
+        vector3d_add( forward, forward, up);
+        vector3d_add( s->position, parentPosition, forward);
+        // vector3d_slog(forward);
+        // vector3d_slog(right);
+        // vector3d_slog(offset);
+        // vector3d_slog(s->position);
     }
 }
 
@@ -117,7 +130,7 @@ void gf3d_collision_armor_draw( CollisionArmor *armor, Uint32 bufferFrame, VkCom
 
     for (i = 0; i < armor->shapeCount; i++)
     {
-        // gf3d_shape_update_mat( &armor->shapes[i] );
+        if(!armor->_inuse[i]) continue;
         shape = &armor->shapes[i];
         vector3d_add(offset, shape->position, armor->offsets[i]);
         gfc_matrix_make_translation(shape->matrix, offset);

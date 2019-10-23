@@ -97,16 +97,28 @@ int main(int argc,char *argv[])
     p1->input_handler = app_naruto_input_handler;
     p1->entity = app_naruto_new();
     p1->entity->position = vector3d(10, 10, 0);
+    p1->entity->rotation = vector3d(0, 0, 0);
+    /* model box */
     p1->entity->modelBox = gf3d_collision_armor_new(2);
     gf3d_collision_armor_add_shape( 
         p1->entity->modelBox,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 5), gf3d_model_load("cube", NULL) ),
-        vector3d(0, 0, -0.7)
+        gf3d_shape( p1->entity->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
+        // vector3d(0, 0, 0)
+        vector3d(0, 0, -0.3)
     );
+    /* hurtboes */
+    p1->entity->hurtboxes = gf3d_collision_armor_new(3);
     gf3d_collision_armor_add_shape(
-        p1->entity->modelBox,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL) ),
-        vector3d(5, 5, 1)  
+        p1->entity->hurtboxes,
+        gf3d_shape(p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, 1.2)
+    );
+    /* hitboxes */
+    p1->entity->hitboxes = gf3d_collision_armor_new(3);
+    gf3d_collision_armor_add_shape(
+        p1->entity->hitboxes,
+        gf3d_shape( p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube") ),
+        vector3d(0, 3, 0)
     );
 
     /* Setup second player */
@@ -115,8 +127,14 @@ int main(int argc,char *argv[])
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
-        gf3d_shape( ent2->position, vector3d(1, 1, 5), gf3d_model_load("cube", NULL) ),
-        vector3d(0, 0, -0.7)
+        gf3d_shape( ent2->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
+        vector3d(0, 0, -0.3)
+    );
+    ent2->hurtboxes = gf3d_collision_armor_new(3);
+    gf3d_collision_armor_add_shape(
+        ent2->hurtboxes,
+        gf3d_shape(ent2->position, vector3d(1, 1, 2), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, -0.3)
     );
 
     gf3d_timer_start(&timer);
@@ -154,10 +172,6 @@ int main(int argc,char *argv[])
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
-                // gf3d_model_draw(stage->model,bufferFrame,commandBuffer,stage->modelMat, 0);
-                // gf3d_model_draw(p1->entity->model,bufferFrame,commandBuffer,p1->entity->modelMat, frame);
-                // gf3d_animation_draw(p1->entity->animationManager, bufferFrame, commandBuffer, p1->entity->modelMat);
-                // gf3d_model_draw(ent2->model,bufferFrame,commandBuffer,ent2->modelMat, 0);
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 if ( drawShapes ) 
                 {
