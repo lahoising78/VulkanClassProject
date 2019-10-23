@@ -26,6 +26,7 @@ CollisionArmor *gf3d_collision_armor_new( Uint32 count )
         slog("Could not allocate %d collision shapes", count);
         return NULL;
     }
+    memset(armor->shapes, 0, sizeof(Shape) * count);
 
     armor->offsets = (Vector3D*)gfc_allocate_array(sizeof(Vector3D), count);
     if (!armor->offsets) 
@@ -33,6 +34,15 @@ CollisionArmor *gf3d_collision_armor_new( Uint32 count )
         slog("Could not allocate %d collision offsets", count);
         return NULL;
     }
+    memset(armor->offsets, 0, sizeof(Vector3D) * count);
+
+    armor->shapeNames = (char**)gfc_allocate_array(sizeof(char*), count);
+    if(!armor->shapeNames)
+    {
+        slog("Could not allocate %d collision names", count);
+        return NULL;
+    }
+    memset(armor->shapeNames, 0, sizeof(char*) * count);
 
     armor->_inuse = (Uint8*)gfc_allocate_array(sizeof(Vector3D), count);
     if (!armor->_inuse) 
@@ -40,6 +50,7 @@ CollisionArmor *gf3d_collision_armor_new( Uint32 count )
         slog("Could not allocate %d collision _inuse", count);
         return NULL;
     }
+    memset(armor->shapes, 0, sizeof(Vector3D) * count);
 
     armor->shapeCount = count;
     return armor;
@@ -47,13 +58,20 @@ CollisionArmor *gf3d_collision_armor_new( Uint32 count )
 
 void gf3d_collision_armor_free( CollisionArmor *armor )
 {
+    int i;
+    slog("free collision armor");
     free(armor->shapes);
     free(armor->offsets);
+    for(i = 0; i < armor->shapeCount; i++)
+    {
+        if(armor->shapeNames[i]) free(armor->shapeNames[i]);
+    }
+    if(armor->shapeNames) free(armor->shapeNames);
     free(armor->_inuse);
     free(armor);
 }
 
-int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D offset )
+int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D offset, char *name )
 {
     int i;
 
@@ -61,6 +79,7 @@ int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D off
     {
         slog("Can't add shapes to nothing -.-");
     }
+    slog("add shape");
 
     for(i = 0; i < armor->shapeCount; i++)
     {
@@ -68,7 +87,33 @@ int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D off
         armor->shapes[i] = s;
         armor->_inuse[i] = 1;
         armor->offsets[i] = offset;
+        armor->shapeNames[i] = (char*)malloc(strlen(name)+1);
+        if(armor->shapeNames[i])
+        {
+            strcpy(armor->shapeNames[i], name);
+        }
         return 1;
+    }
+    return 0;
+}
+
+int gf3d_collision_armor_remove_shape( CollisionArmor *armor, char *name )
+{
+    int i;
+    if(!armor) return 0;
+    slog("remove shape");
+    for(i = 0; i < armor->shapeCount; i++)
+    {
+        if( !armor->shapeNames[i] ) continue;
+        if( gfc_line_cmp(name, armor->shapeNames[i]) == 0 )
+        {
+            free(armor->shapeNames[i]);
+            armor->shapeNames[i] = NULL;
+            armor->_inuse[i] = 0;
+            memset(&armor->shapes[i], 0, sizeof(Shape));
+            memset(&armor->offsets[i], 0, sizeof(Vector3D));
+            return 1;
+        }
     }
     return 0;
 }
@@ -82,27 +127,18 @@ void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition
     if (!armor || !armor->shapes) return;
 
     vector3d_angle_vectors(parentRotation, &forward, &right, &up);
-    // vector3d_slog(forward);
-    // vector3d_slog(right);
-    // vector3d_slog(up);
 
     for (i = 0; i < armor->shapeCount; i++)
     {
         if(!armor->_inuse[i]) continue;
         s = &armor->shapes[i];
         offset = armor->offsets[i];
-        // vector3d_slog(forward);
-        // vector3d_slog(right);
         vector3d_scale(forward, forward, offset.y);
         vector3d_scale(right, right, -offset.x);
         vector3d_scale(up, up, offset.z);
         vector3d_add( forward , right, forward );
         vector3d_add( forward, forward, up);
         vector3d_add( s->position, parentPosition, forward);
-        // vector3d_slog(forward);
-        // vector3d_slog(right);
-        // vector3d_slog(offset);
-        // vector3d_slog(s->position);
     }
 }
 
@@ -137,6 +173,19 @@ void gf3d_collision_armor_draw( CollisionArmor *armor, Uint32 bufferFrame, VkCom
         gf3d_model_scale(shape->matrix, shape->extents);
         gf3d_model_draw(shape->model, bufferFrame, commandBuffer, shape->matrix, 0);
     }
+}
+
+int gf3d_collision_armor_contains(CollisionArmor *armor, char* name)
+{
+    int i;
+    for(i = 0; i < armor->shapeCount; i++)
+    {
+        if( armor->shapeNames[i] && gfc_line_cmp(name, armor->shapeNames[i]) == 0 )
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 int gf3d_collision_check( CollisionArmor *first, CollisionArmor *second )

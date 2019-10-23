@@ -98,43 +98,68 @@ int main(int argc,char *argv[])
     p1->entity = app_naruto_new();
     p1->entity->position = vector3d(10, 10, 0);
     p1->entity->rotation = vector3d(0, 0, 0);
-    /* model box */
+    
     p1->entity->modelBox = gf3d_collision_armor_new(2);
     gf3d_collision_armor_add_shape( 
         p1->entity->modelBox,
         gf3d_shape( p1->entity->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
         // vector3d(0, 0, 0)
-        vector3d(0, 0, -0.3)
+        vector3d(0, 0, -0.3),
+        "entire body"
     );
-    /* hurtboes */
+    
     p1->entity->hurtboxes = gf3d_collision_armor_new(3);
     gf3d_collision_armor_add_shape(
         p1->entity->hurtboxes,
         gf3d_shape(p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, 1.2)
+        vector3d(0, 0, 1.2),
+        "head"
     );
-    /* hitboxes */
-    p1->entity->hitboxes = gf3d_collision_armor_new(3);
     gf3d_collision_armor_add_shape(
-        p1->entity->hitboxes,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube") ),
-        vector3d(0, 3, 0)
+        p1->entity->hurtboxes,
+        gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, 0),
+        "torso"
     );
+    gf3d_collision_armor_add_shape(
+        p1->entity->hurtboxes,
+        gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, -3.0f),
+        "legs"
+    );
+    
+    p1->entity->hitboxes = gf3d_collision_armor_new(3);
 
     /* Setup second player */
     ent2 = app_gaara_new();
     ent2->position = vector3d(-10, -10, 0);
+    
     ent2->modelBox = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         ent2->modelBox, 
         gf3d_shape( ent2->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
-        vector3d(0, 0, -0.3)
+        vector3d(0, 0, -0.3),
+        "entire body"
     );
+
     ent2->hurtboxes = gf3d_collision_armor_new(3);
     gf3d_collision_armor_add_shape(
         ent2->hurtboxes,
-        gf3d_shape(ent2->position, vector3d(1, 1, 2), gf3d_model_load("cube", "cube")),
-        vector3d(0, 0, -0.3)
+        gf3d_shape(ent2->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, 1.2),
+        "head"
+    );
+    gf3d_collision_armor_add_shape(
+        ent2->hurtboxes,
+        gf3d_shape(ent2->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, 0),
+        "torso"
+    );
+    gf3d_collision_armor_add_shape(
+        ent2->hurtboxes,
+        gf3d_shape(ent2->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
+        vector3d(0, 0, -3.0f),
+        "legs"
     );
 
     gf3d_timer_start(&timer);

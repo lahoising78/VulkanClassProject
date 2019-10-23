@@ -326,7 +326,7 @@ void app_naruto_punch(struct Entity_S* e)
         {
             fcount = gf3d_animation_get_frame_count(e->animationManager, "punch");
             currf = gf3d_animation_get_current_frame(e->animationManager);
-            if ( fcount - currf <= 8.0f )
+            if ( (fcount - currf) * 3 <= 8.0f )
             {
                 e->locked = 2;
             }
@@ -348,11 +348,14 @@ void app_naruto_think (struct Entity_S* self)
     float fcount = 0.0f, currf = 0.0f;
     float distanceToFloor = 0.0f;
     Uint32 onFloor = 0;
+    Vector3D forward;
 
     if(!self->animationManager || !self->modelBox)
     {
         return;
     }
+
+    vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
 
     distanceToFloor = distance_to_floor( self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z );
     onFloor = on_floor( distanceToFloor );
@@ -391,6 +394,7 @@ void app_naruto_think (struct Entity_S* self)
         currf = gf3d_animation_get_current_frame(self->animationManager);
         if(fcount - currf <= 0.5f)
         {
+            gf3d_collision_armor_remove_shape(self->hitboxes, "punch");
             if(self->locked == 2)
             {
                 gf3d_animation_play(self->animationManager, "kick", 1);
@@ -403,6 +407,19 @@ void app_naruto_think (struct Entity_S* self)
                 self->locked = 0;
             }
             
+        }
+        else if ( currf * 3 <= 17.5f )
+        {
+            if( !gf3d_collision_armor_contains(self->hitboxes, "punch") )
+            {
+                gf3d_collision_armor_add_shape(
+                    self->hitboxes,
+                    gf3d_shape(self->position, vector3d(abs(forward.x * 2 + forward.y * 1.5), abs(forward.y * 2 + forward.x * 1.5), 1), gf3d_model_load("cube", "cube")),
+                    vector3d(0, 2.5, 0),
+                    "punch"
+                );
+                vector3d_slog(self->hitboxes->shapes[0].extents);
+            }
         }
     }
     else if ( gf3d_animation_is_playing(self->animationManager, "kick") )
@@ -464,7 +481,6 @@ void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 
     vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
     vector3d_scale(forward, forward, 3);
-    // vector3d_add(other->acceleration, other->acceleration, forward);
     vector3d_add(other->velocity, other->velocity, forward);
 }
 

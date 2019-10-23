@@ -10,7 +10,9 @@
 #define DAMP_ACCELERATION 1.0f
 #define MAX_SPEED 70.0f
 #define START_SPEED 10.0f
-#define DAMP_SPEED 1.5f
+#define DAMP_SPEED 2.3f
+
+#define COLLISION_SPEED 70.0f
 
 /* For Stage */
 #define MAX_STAGE_X 100.0f

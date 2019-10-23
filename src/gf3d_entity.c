@@ -100,7 +100,6 @@ void gf3d_entity_manager_update(  )
             if ( e->modelBox && o->modelBox && gf3d_collision_check( e->modelBox, o->modelBox ))
             {
                 gf3d_entity_simple_collision(e, o);
-                slog("collision");
             }
 
         }
@@ -248,7 +247,7 @@ void gf3d_entity_simple_collision( Entity *self, Entity *other )
 
     /* elastic collision */
     vector3d_normalize(&dir);
-    vector3d_set_magnitude(&dir, MAX_SPEED);
+    vector3d_set_magnitude(&dir, COLLISION_SPEED);
     vector3d_copy(op->velocity, dir);
     vector3d_negate(p->velocity, dir);
     
@@ -268,7 +267,6 @@ Entity *gf3d_entity_new()
         /* stuff to do when initiating an entity */
         gf3d_entity_manager.entity_list[i]._inuse = 1;
         ent->scale = vector3d(1,1,1);
-        ent->hurtboxes = NULL;
         ent->mass = -1.0f;
         ent->state = ES_Idle;
         
@@ -280,6 +278,8 @@ Entity *gf3d_entity_new()
 
 void gf3d_entity_free(Entity *self)
 {
+    slog("free entity");
+
     if (!self)
     {
         slog("self pointer is not valid");
@@ -293,6 +293,8 @@ void gf3d_entity_free(Entity *self)
         slog("warning: data not freed at entity free");
     }
 
+    if(self->hitboxes) gf3d_collision_armor_free(self->hitboxes);
+    self->hitboxes = NULL;
     if(self->hurtboxes) gf3d_collision_armor_free(self->hurtboxes);
     self->hurtboxes = NULL;
     if(self->modelBox) gf3d_collision_armor_free(self->modelBox);
