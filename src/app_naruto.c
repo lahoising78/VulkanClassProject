@@ -7,6 +7,7 @@ void app_naruto_charge(struct Entity_S *e);
 void app_naruto_throw_knife(struct Entity_S *e);
 void app_naruto_punch(struct Entity_S *e);
 void app_naruto_clone_update( struct Entity_S *e );
+void app_naruto_add_hitbox(struct Entity_S *ent, char *name); /* predefined hitboxes for attacks */
 
 Entity *app_naruto_new()
 {
@@ -21,16 +22,16 @@ Entity *app_naruto_new()
     e->model = gf3d_model_new();
     e->model->texture = gf3d_texture_load("images/naruto.png");
     e->animationManager = gf3d_animation_manager_init(10, e->model);
-    gf3d_animation_load(e->animationManager, "idle", "naruto_idle", 1, 67);
-    gf3d_animation_load(e->animationManager, "running", "naruto_running", 1, 20);
-    gf3d_animation_load(e->animationManager, "jump up", "naruto_jump_up", 1, 25);
-    gf3d_animation_load(e->animationManager, "jump down", "naruto_jump_down", 1, 12);
-    gf3d_animation_load(e->animationManager, "punch", "naruto_punch", 1, 27);
-    gf3d_animation_load(e->animationManager, "punch mirror", "naruto_punch_mirror", 1, 27);
-    gf3d_animation_load(e->animationManager, "kick", "naruto_kick", 1, 49);
-    gf3d_animation_load(e->animationManager, "throw", "naruto_throw", 1, 51);
-    gf3d_animation_load(e->animationManager, "charge", "naruto_charge", 1, 18);
-    gf3d_animation_play(e->animationManager, "idle", 1);
+    gf3d_animation_load(e->animationManager, "idle",            "naruto_idle",          ANIM_NARUTO_IDLE_START,         ANIM_NARUTO_IDLE_END);
+    gf3d_animation_play(e->animationManager, "idle",                                    ANIM_NARUTO_IDLE_START);
+    gf3d_animation_load(e->animationManager, "running",         "naruto_running",       ANIM_NARUTO_RUN_START,          ANIM_NARUTO_RUN_END);
+    gf3d_animation_load(e->animationManager, "jump up",         "naruto_jump_up",       ANIM_NARUTO_JUMP_UP_START,      ANIM_NARUTO_JUMP_UP_END);
+    gf3d_animation_load(e->animationManager, "jump down",       "naruto_jump_down",     ANIM_NARUTO_JUMP_DOWN_START,    ANIM_NARUTO_JUMP_DOWN_END);
+    gf3d_animation_load(e->animationManager, "punch",           "naruto_punch",         ANIM_NARUTO_PUNCH_START,        ANIM_NARUTO_PUNCH_END);
+    gf3d_animation_load(e->animationManager, "punch mirror",    "naruto_punch_mirror",  ANIM_NARUTO_PUNCH_START,        ANIM_NARUTO_PUNCH_END);
+    gf3d_animation_load(e->animationManager, "kick",            "naruto_kick",          ANIM_NARUTO_KICK_START,         ANIM_NARUTO_KICK_END);
+    gf3d_animation_load(e->animationManager, "throw",           "naruto_throw",         ANIM_NARUTO_THROW_START,        ANIM_NARUTO_THROW_END);
+    gf3d_animation_load(e->animationManager, "charge",          "naruto_charge",        ANIM_NARUTO_CHARGE_START,       ANIM_NARUTO_CHARGE_END);
     e->modelOffset.z = -4.9f;
     e->scale = vector3d(5, 5, 5);
     // e->scale = vector3d(1, 1, 1);
@@ -260,7 +261,7 @@ void app_naruto_punch_create_shadow_clones(struct Entity_S *self)
     int i;
 
     vector3d_angle_vectors(self->rotation, &forward, &right, NULL);
-    vector3d_scale(forward, forward, 10.0f);
+    vector3d_scale(forward, forward, 3.0f);
     vector3d_add(forward, forward, self->position);
 
     firstShadow = gf3d_entity_new();
@@ -283,6 +284,8 @@ void app_naruto_punch_create_shadow_clones(struct Entity_S *self)
         vector3d_copy(e->modelOffset, self->modelOffset);
         vector3d_copy(e->scale, self->scale);
 
+        e->hitboxes = gf3d_collision_armor_new(1);
+
         e->model = gf3d_model_new();
         e->model->texture = gf3d_texture_load("images/naruto.png");
         e->animationManager = gf3d_animation_manager_init(1, e->model);
@@ -292,6 +295,7 @@ void app_naruto_punch_create_shadow_clones(struct Entity_S *self)
 
         e->think = app_naruto_think;
         e->update = app_naruto_clone_update;
+        e->touch = app_naruto_touch;
     }
 }
 
@@ -348,14 +352,11 @@ void app_naruto_think (struct Entity_S* self)
     float fcount = 0.0f, currf = 0.0f;
     float distanceToFloor = 0.0f;
     Uint32 onFloor = 0;
-    Vector3D forward;
 
     if(!self->animationManager || !self->modelBox)
     {
         return;
     }
-
-    vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
 
     distanceToFloor = distance_to_floor( self->modelBox->shapes[0].position.z - self->modelBox->shapes[0].extents.z );
     onFloor = on_floor( distanceToFloor );
@@ -408,17 +409,11 @@ void app_naruto_think (struct Entity_S* self)
             }
             
         }
-        else if ( currf * 3 <= 17.5f )
+        else if ( currf * 3 <= ATK_FRAME_NARUTO_PUNCH )
         {
             if( !gf3d_collision_armor_contains(self->hitboxes, "punch") )
             {
-                gf3d_collision_armor_add_shape(
-                    self->hitboxes,
-                    gf3d_shape(self->position, vector3d(abs(forward.x * 2 + forward.y * 1.5), abs(forward.y * 2 + forward.x * 1.5), 1), gf3d_model_load("cube", "cube")),
-                    vector3d(0, 2.5, 0),
-                    "punch"
-                );
-                vector3d_slog(self->hitboxes->shapes[0].extents);
+                app_naruto_add_hitbox(self, "punch");
             }
         }
     }
@@ -428,6 +423,7 @@ void app_naruto_think (struct Entity_S* self)
         currf = gf3d_animation_get_current_frame(self->animationManager);
         if (fcount - currf <= 0.5f)
         {
+            gf3d_collision_armor_remove_shape(self->hitboxes, "kick");
             if(self->locked == 3)
             {
                 gf3d_animation_play(self->animationManager, "idle", 1);
@@ -439,6 +435,13 @@ void app_naruto_think (struct Entity_S* self)
                 self->state |= ES_Idle;
                 gf3d_animation_play(self->animationManager, "idle", 1);
                 self->locked = 0;
+            }
+        }
+        else if ( currf * 3 <= ATK_FRAME_NARUTO_KICK )
+        {
+            if( !gf3d_collision_armor_contains(self->hitboxes, "kick") )
+            {
+                app_naruto_add_hitbox(self, "kick");
             }
         }
     }
@@ -486,14 +489,54 @@ void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 
 void app_naruto_clone_update(struct Entity_S *e)
 {
-    Timer *timer;
-    float ticks;
+    float fcount, currf;
 
     app_naruto_update(e);
 
-    if(gf3d_animation_get_frame_count(e->animationManager, "punch") - gf3d_animation_get_current_frame(e->animationManager) < 0.5f)
+    fcount = gf3d_animation_get_frame_count(e->animationManager, "punch");
+    currf = gf3d_animation_get_current_frame(e->animationManager);
+
+    if( fcount - currf < 0.5f)
     {
         gf3d_animation_manager_free(e->animationManager);
+        gf3d_collision_armor_remove_shape(e->hitboxes, "punch");
         gf3d_entity_free(e);
     }
+    else if ( currf * 3 <= ATK_FRAME_NARUTO_PUNCH )
+    {
+        if( !gf3d_collision_armor_contains(e->hitboxes, "punch") )
+        {
+            app_naruto_add_hitbox(e, "punch");
+        }
+    }
+}
+
+void app_naruto_add_hitbox(struct Entity_S *ent, char *name)
+{
+    Vector3D forward;
+
+    if(!ent) return;
+    if(!ent->hitboxes) return;
+
+    vector3d_angle_vectors(ent->rotation, &forward, NULL, NULL);
+
+    if( gfc_line_cmp(name, "punch") == 0 )
+    {
+        gf3d_collision_armor_add_shape(
+            ent->hitboxes,
+            gf3d_shape(ent->position, vector3d(abs(forward.x * 2 + forward.y * 1.5), abs(forward.y * 2 + forward.x * 1.5), 1), gf3d_model_load("cube", "cube")),
+            vector3d(0, 2.5, 0),
+            "punch"
+        );
+    }
+    else if ( gfc_line_cmp(name, "kick") == 0 )
+    {
+        gf3d_collision_armor_add_shape(
+            ent->hitboxes,
+            gf3d_shape(ent->position, vector3d(abs(forward.x * 3 + forward.y * 1.5), abs(forward.y * 3 + forward.x * 1.5), 1), gf3d_model_load("cube", "cube")),
+            vector3d(0, 3, 0),
+            "kick"
+        );   
+    }
+    
 }
