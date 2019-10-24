@@ -87,6 +87,8 @@ void gf3d_projectile_update(Entity *self)
     vector3d_set_magnitude(&dir, PROJECTILE_MAX_SPEED);
     vector3d_copy(self->velocity, dir);
 
+    self->rotation.x = vector2d_angle( vector2d(target->position.x, target->position.y) );
+
     gf3d_entity_general_update(self);
 }
 
@@ -103,7 +105,8 @@ void gf3d_projectile_touch(Entity *self, Entity *other)
 
     slog("Projectile touch");
 
-    gf3d_combat_meele_attack(self, data[PROJECTILE_TARGET], 2, 3);
+    /* health on a projectile is damage to deal, and chakra is the knockback */
+    gf3d_combat_meele_attack(self, data[PROJECTILE_TARGET], self->health, self->chakra);
     free(self->data);
     self->data = NULL;
     gf3d_entity_free(self);

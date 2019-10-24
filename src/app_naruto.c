@@ -104,7 +104,7 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     }
     
 
-    if (e->locked) return;
+    if (e->locked > 0) return;
     /* Forward and Backwards */
     if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
     {
@@ -293,6 +293,9 @@ void app_naruto_throw_knife(struct Entity_S* e)
                 vector3d(0, 0, 0),
                 "body"
             );
+
+            projectile->health = 2;
+            projectile->chakra = 3;
         }
     }
 }

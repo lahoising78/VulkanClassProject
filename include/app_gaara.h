@@ -3,6 +3,10 @@
 
 #include "app_player.h"
 
+#define SAND_FORWARD    8.0f
+#define SAND_LEFT       15.0f
+#define SAND_SPEED      120.0f
+
 /* 
  * @brief create a new gaara as an entity
  * @return a pointer to the entity created

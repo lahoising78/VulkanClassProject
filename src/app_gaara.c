@@ -2,10 +2,14 @@
 
 #include "simple_logger.h"
 #include "gf3d_camera.h"
+#include "gf3d_combat.h"
 
 void app_gaara_punch(Entity *self);
 void app_gaara_throw_sand(Entity *self);
 void app_gaara_charge(Entity *self);
+
+void app_gaara_sand_attack(Entity *owner, Vector3D ownerForward, Vector3D dir);
+void app_gaara_sand_attack_update(Entity *self);
 
 Entity *app_gaara_new()
 {
@@ -243,6 +247,7 @@ void app_gaara_punch(Entity *self)
 {
     float fcount = 0.0f;
     float currf = 0.0f;
+    Vector3D forward, right;
 
     if(!self) return;
 
@@ -255,6 +260,9 @@ void app_gaara_punch(Entity *self)
             self->state |= ES_Attacking;
             self->velocity.x = self->velocity.y = 0.0f;
             self->locked = 1;
+
+            vector3d_angle_vectors(self->rotation, &forward, &right, NULL);
+            app_gaara_sand_attack(self, forward, right);
         }
     }
     else if (self->state & ES_Attacking)
@@ -320,6 +328,7 @@ void app_gaara_think(Entity *self)
     float currf = 0.0f; /* current frame */
     float distanceToFloor = 0.0f;
     Uint8 onFloor = 0;
+    Vector3D forward, right;
 
     if(!self->animationManager || !self->modelBox)
     {
@@ -372,6 +381,7 @@ void app_gaara_think(Entity *self)
                 self->locked = 0;
             }
         }
+        
     }
     else if ( gf3d_animation_is_playing(self->animationManager, "swipe left") )
     {
@@ -428,5 +438,64 @@ void app_gaara_update(Entity *self)
 
 void app_gaara_touch(Entity *self, Entity *other)
 {
+    slog("gaara touch");
+}
 
+/* Gaara sand */
+void app_gaara_sand_attack(Entity *owner, Vector3D ownerForward, Vector3D dir)
+{
+    Entity *sand = NULL;
+    Vector3D buff;
+
+    sand = gf3d_entity_new();
+    if(!sand) return;
+
+    vector3d_scale(sand->velocity, dir, SAND_SPEED);
+
+    vector3d_scale(buff, ownerForward, SAND_FORWARD);
+    vector3d_add(sand->position, owner->position, buff);
+    vector3d_scale(buff, dir, -SAND_LEFT);
+    vector3d_add(sand->position, sand->position, buff);
+
+    sand->model = gf3d_model_load("dino", "dino");
+
+    sand->hitboxes = gf3d_collision_armor_new(1);
+    gf3d_collision_armor_add_shape(
+        sand->hitboxes,
+        gf3d_shape(sand->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, 0),
+        "body"
+    );
+
+    sand->update = app_gaara_sand_attack_update;
+    sand->touch = app_gaara_touch;
+
+    sand->data = owner;
+}
+
+void app_gaara_sand_attack_update(Entity *self)
+{
+    Entity *owner = NULL;
+    Vector3D forward, right;
+    Vector3D buff;
+    gf3d_entity_general_update(self);
+
+    owner = (Entity*)self->data;
+    if(owner)
+    {
+        vector3d_angle_vectors(owner->rotation, &forward, &right, NULL);
+        vector3d_scale(right, right, SAND_LEFT);
+        vector3d_add(buff, right, owner->position);
+        vector3d_scale(forward, forward, SAND_FORWARD);
+        vector3d_add(buff, buff, forward);
+        vector3d_sub(buff, self->position, buff);
+        if( vector3d_magnitude_squared(buff) <= 0.25f )
+        {
+            /* the entity has reached the limit */
+            self->data = NULL;
+            gf3d_entity_free(self);
+        }
+    }
+
+    vector3d_set_magnitude(&self->velocity, SAND_SPEED);
 }
