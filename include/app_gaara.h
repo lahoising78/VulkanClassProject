@@ -4,9 +4,9 @@
 #include "app_player.h"
 
 /* sand values */
-#define SAND_FORWARD                8.0f
+#define SAND_FORWARD                6.0f
 #define SAND_LEFT                   15.0f
-#define SAND_SPEED                  120.0f
+#define SAND_SPEED                  150.0f
 
 /* attack damaage */
 #define DMG_GAARA_SAND_ATK          5
@@ -21,6 +21,15 @@ enum GaaraSandAttackType
     ATK_LEFT = 1,
     ATK_FORWARD = 2
 };
+
+/* *********************
+ * ABILITIES
+ *  -Sand Burial
+ *  -Sand Protection 
+ *  -Sand Storm
+ *  -Knock Up
+ *  -Sand Tsunami
+ * ***********************/
 
 /* 
  * @brief create a new gaara as an entity

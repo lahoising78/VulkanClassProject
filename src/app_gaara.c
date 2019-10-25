@@ -32,11 +32,11 @@ Entity *app_gaara_new()
     gf3d_animation_play(ent->animationManager, "idle", 1);
     gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
     gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.5f);
+    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.8f);
     gf3d_animation_load(ent->animationManager, "swipe left", "gaara_swipe_left", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.5f);
+    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.8f);
     gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
-    gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.5f);
+    gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.8f);
     gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
     gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
     gf3d_animation_load(ent->animationManager, "charge", "gaara_charge", 1, 36);
@@ -290,6 +290,7 @@ void app_gaara_throw_sand(Entity *self)
 {
     float fcount = 0.0f;
     float currf = 0.0f;
+    Entity *projectile = NULL;
     if(!self) return;
 
     if(self->state & ES_Idle)
@@ -301,6 +302,21 @@ void app_gaara_throw_sand(Entity *self)
             self->state |= ES_Attacking;
             self->velocity.x = self->velocity.y = 0.0f;
             self->locked = 1;
+
+            projectile = gf3d_combat_projectile_new(self, self->enemy);
+            if(!projectile) return;
+
+            projectile->model = gf3d_model_load("dino", "dino");
+            projectile->hitboxes = gf3d_collision_armor_new(1);
+            gf3d_collision_armor_add_shape(
+                projectile->hitboxes,
+                gf3d_shape(projectile->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
+                vector3d(0, 0, 0),
+                "body"
+            );
+
+            projectile->health = 2;
+            projectile->chakra = 3;
         }
     }
 }

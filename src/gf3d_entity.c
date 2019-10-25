@@ -179,11 +179,11 @@ void gf3d_entity_general_update( Entity *self )
     vector3d_add(self->velocity, self->velocity, buff);
 
     /* df = di + v*t + at^2/2*/
-    vector3d_scale(buff, self->velocity, deltaTime);
-    vector3d_add(buff, self->position, buff);
-    vector3d_scale(buff2, self->acceleration, deltaTime * deltaTime / 2);
-    vector3d_add(buff, buff2, buff);
-    if ( within_stage(buff) )
+    vector3d_scale(buff, self->velocity, deltaTime); /* v*t */
+    vector3d_add(buff, self->position, buff); /* pos + v*t */
+    vector3d_scale(buff2, self->acceleration, deltaTime * deltaTime / 2); /* a*t^2 / 2 */
+    vector3d_add(buff, buff2, buff); /* all together */
+    if ( within_stage(buff) ) /* make sure it's within */
         vector3d_copy(self->position, buff);
 
     /* update collision boxes */

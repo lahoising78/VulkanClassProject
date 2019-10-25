@@ -34,6 +34,15 @@
 #define KICK_NARUTO_PUNCH 3.0f
 #define KICK_NARUTO_CLONE_PUNCH 30.0f
 
+/* ****************************** 
+ * ABILITIES
+ *  -Rasengan
+ *  -Rasen-shuriken
+ *  -Jinchuriki cloak
+ *  -Kunai Teleport
+ *  -Barrage
+ * ******************************/
+
 /* 
 @brief get an entity with naruto's moves, model, functions
 */
