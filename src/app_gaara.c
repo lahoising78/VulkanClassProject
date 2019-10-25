@@ -8,7 +8,7 @@ void app_gaara_punch(Entity *self);
 void app_gaara_throw_sand(Entity *self);
 void app_gaara_charge(Entity *self);
 
-void app_gaara_sand_attack(Entity *owner, Vector3D ownerForward, Vector3D dir);
+void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type);
 void app_gaara_sand_attack_update(Entity *self);
 
 Entity *app_gaara_new()
@@ -247,7 +247,6 @@ void app_gaara_punch(Entity *self)
 {
     float fcount = 0.0f;
     float currf = 0.0f;
-    Vector3D forward, right;
 
     if(!self) return;
 
@@ -260,9 +259,7 @@ void app_gaara_punch(Entity *self)
             self->state |= ES_Attacking;
             self->velocity.x = self->velocity.y = 0.0f;
             self->locked = 1;
-
-            vector3d_angle_vectors(self->rotation, &forward, &right, NULL);
-            app_gaara_sand_attack(self, forward, right);
+            app_gaara_sand_attack(self, ATK_RIGHT);
         }
     }
     else if (self->state & ES_Attacking)
@@ -372,6 +369,7 @@ void app_gaara_think(Entity *self)
             if(self->locked == 2)
             {
                 gf3d_animation_play(self->animationManager, "swipe left", 1);
+                app_gaara_sand_attack(self, ATK_LEFT);
             } 
             else 
             {
@@ -392,6 +390,7 @@ void app_gaara_think(Entity *self)
             if( self->locked == 3 )
             {
                 gf3d_animation_play(self->animationManager, "swipe forward", 1);
+                app_gaara_sand_attack(self, ATK_FORWARD);
             }
             else
             {
@@ -438,24 +437,69 @@ void app_gaara_update(Entity *self)
 
 void app_gaara_touch(Entity *self, Entity *other)
 {
-    slog("gaara touch");
+    Entity *owner = NULL;
+    
+    if(!self || !other) return;
+    owner = self->data;
+    if(!owner) return;
+
+    gf3d_combat_meele_attack(owner, other, self->health, self->chakra);
 }
 
-/* Gaara sand */
-void app_gaara_sand_attack(Entity *owner, Vector3D ownerForward, Vector3D dir)
+/* *********************************************
+ * Gaara sand 
+ * ********************************************/
+void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
 {
     Entity *sand = NULL;
+    Vector3D forward, right;
+    // Vector3D start, dst;
     Vector3D buff;
+
+    if(!owner) return;
 
     sand = gf3d_entity_new();
     if(!sand) return;
+        
+    vector3d_angle_vectors(owner->rotation, &forward, &right, NULL);
 
-    vector3d_scale(sand->velocity, dir, SAND_SPEED);
+    switch (type)
+    {
+    case ATK_RIGHT:
+            vector3d_scale(sand->position, forward, SAND_FORWARD); /* scale forward and save to start */
+            vector3d_add(sand->position, sand->position, owner->position); /* add start to position of the creating entity */
+            vector3d_scale(right, right, -SAND_LEFT); /* right becomes the left, already scaled */
+            vector3d_sub(sand->rotation, sand->position, right); /* add right to start to get dest */
+            vector3d_add(sand->position, sand->position, right); /* add left to start to get start */
+            sand->health = DMG_GAARA_SAND_ATK; /* health of sand will be damage */
+            sand->chakra = KICK_GAARA_SAND_ATK; /* chakra of sand will be kick */
+        break;
 
-    vector3d_scale(buff, ownerForward, SAND_FORWARD);
-    vector3d_add(sand->position, owner->position, buff);
-    vector3d_scale(buff, dir, -SAND_LEFT);
-    vector3d_add(sand->position, sand->position, buff);
+    case ATK_LEFT:
+            vector3d_scale(sand->position, forward, SAND_FORWARD);
+            vector3d_add(sand->position, sand->position, owner->position);
+            vector3d_scale(right, right, -SAND_LEFT);
+            vector3d_add(sand->rotation, sand->position, right);
+            vector3d_sub(sand->position, sand->position, right);
+            sand->health = DMG_GAARA_SAND_ATK;
+            sand->chakra = KICK_GAARA_SAND_ATK;
+        break;
+
+    case ATK_FORWARD:
+            vector3d_scale(sand->position, forward, SAND_FORWARD / 2);
+            vector3d_add(sand->position, sand->position, owner->position);
+            vector3d_scale(sand->rotation, forward, SAND_FORWARD);
+            vector3d_add(sand->rotation, sand->position, sand->rotation);
+            sand->health = DMG_GAARA_SAND_ATK;
+            sand->chakra = KICK_GAARA_SAND_FWD_ATK;
+        break;
+    
+    default:
+        break;
+    }
+
+    vector3d_sub(sand->velocity, sand->rotation, sand->position);
+    vector3d_set_magnitude(&sand->velocity, SAND_SPEED);
 
     sand->model = gf3d_model_load("dino", "dino");
 
@@ -475,26 +519,16 @@ void app_gaara_sand_attack(Entity *owner, Vector3D ownerForward, Vector3D dir)
 
 void app_gaara_sand_attack_update(Entity *self)
 {
-    Entity *owner = NULL;
-    Vector3D forward, right;
     Vector3D buff;
     gf3d_entity_general_update(self);
 
-    owner = (Entity*)self->data;
-    if(owner)
+    // calculate how far we are from destination
+    vector3d_sub(buff, self->rotation, self->position);
+    if( vector3d_magnitude_squared(buff) <= 0.25f )
     {
-        vector3d_angle_vectors(owner->rotation, &forward, &right, NULL);
-        vector3d_scale(right, right, SAND_LEFT);
-        vector3d_add(buff, right, owner->position);
-        vector3d_scale(forward, forward, SAND_FORWARD);
-        vector3d_add(buff, buff, forward);
-        vector3d_sub(buff, self->position, buff);
-        if( vector3d_magnitude_squared(buff) <= 0.25f )
-        {
-            /* the entity has reached the limit */
-            self->data = NULL;
-            gf3d_entity_free(self);
-        }
+        /* the entity has reached the limit */
+        self->data = NULL;
+        gf3d_entity_free(self);
     }
 
     vector3d_set_magnitude(&self->velocity, SAND_SPEED);
