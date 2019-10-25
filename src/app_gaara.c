@@ -306,7 +306,7 @@ void app_gaara_throw_sand(Entity *self)
             projectile = gf3d_combat_projectile_new(self, self->enemy);
             if(!projectile) return;
 
-            projectile->model = gf3d_model_load("dino", "dino");
+            projectile->model = gf3d_model_load("sand", "Sand");
             projectile->hitboxes = gf3d_collision_armor_new(1);
             gf3d_collision_armor_add_shape(
                 projectile->hitboxes,
@@ -517,7 +517,7 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
     vector3d_sub(sand->velocity, sand->rotation, sand->position);
     vector3d_set_magnitude(&sand->velocity, SAND_SPEED);
 
-    sand->model = gf3d_model_load("dino", "dino");
+    sand->model = gf3d_model_load("sand", "Sand");
 
     sand->hitboxes = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
