@@ -4,7 +4,8 @@
 #include "app_player.h"
 
 /* sand values */
-#define SAND_FORWARD                6.0f
+#define SAND_FORWARD_1              6.0f
+#define SAND_FORWARD_2              10.0f
 #define SAND_LEFT                   15.0f
 #define SAND_SPEED                  150.0f
 
@@ -12,7 +13,7 @@
 #define DMG_GAARA_SAND_ATK          5
 
 /* attack kick */
-#define KICK_GAARA_SAND_ATK         3.0f
+#define KICK_GAARA_SAND_ATK         5.5f
 #define KICK_GAARA_SAND_FWD_ATK     30.0f
 
 enum GaaraSandAttackType

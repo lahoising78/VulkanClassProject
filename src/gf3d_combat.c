@@ -20,7 +20,9 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
     target->health -= damage;
 
     /* make target look at attacker */
-    target->rotation.x = 180 - attacker->rotation.x;
+    target->rotation.x = 180 + attacker->rotation.x;
+    if(target->rotation.x > 180) target->rotation.x -= 360;
+    else if (target->rotation.x < -180) target->rotation.x += 360;
 }
 
 /* 
@@ -87,6 +89,8 @@ void gf3d_projectile_update(Entity *self)
     vector3d_copy(self->velocity, dir);
 
     self->rotation.x = vector2d_angle( vector2d(target->position.x, target->position.y) );
+    if(self->rotation.x > 180) self->rotation.x -= 360;
+    else if (self->rotation.x < -180) self->rotation.x += 360;
 
     gf3d_entity_general_update(self);
 }

@@ -3,6 +3,7 @@
 #include "simple_logger.h"
 #include "gf3d_camera.h"
 #include "gf3d_combat.h"
+#include "gf3d_common.h"
 
 void app_gaara_punch(Entity *self);
 void app_gaara_throw_sand(Entity *self);
@@ -10,6 +11,9 @@ void app_gaara_charge(Entity *self);
 
 void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type);
 void app_gaara_sand_attack_update(Entity *self);
+
+/* Abilities */
+void app_gaara_knockup(Entity *self);
 
 Entity *app_gaara_new()
 {
@@ -261,7 +265,6 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     {
         if ( events[ usedScancodes[i] ].type == SDL_KEYUP )
         {
-            slog("setting up keyup");
             events[ usedScancodes[i] ].type = -SDL_KEYUP;
         }
     }
@@ -274,7 +277,7 @@ void app_gaara_punch(Entity *self)
 
     if(!self) return;
 
-    if( self-> locked >= 100)
+    if( self->locked >= 100)
     {
         if(!gf3d_animation_is_playing(self->animationManager, "knock up"))
         {
@@ -282,7 +285,7 @@ void app_gaara_punch(Entity *self)
             self->state &= ~ES_Idle;
             self->state |= ES_Attacking;
             self->velocity.x = self->velocity.y = 0.0f;
-            self->locked = 1;
+            self->locked = 101;
         }
         return;
     }
@@ -368,6 +371,7 @@ void app_gaara_charge(Entity *self)
             gf3d_animation_play(self->animationManager, "charge", 1);
             self->velocity.x = self->velocity.y = 0.0f;
             self->locked = 1;
+            gf3d_common_chakra_new(self);
         }
     }
 }
@@ -489,6 +493,10 @@ void app_gaara_think(Entity *self)
             gf3d_animation_play(self->animationManager, "idle", 1);
             self->locked = 0;
         }
+        else if ( (fcount - currf) <= 20.0f && self->locked == 101 )
+        {
+            app_gaara_knockup(self);
+        }
     }
 }
 
@@ -531,17 +539,17 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
     switch (type)
     {
     case ATK_RIGHT:
-            vector3d_scale(sand->position, forward, SAND_FORWARD); /* scale forward and save to start */
-            vector3d_add(sand->position, sand->position, owner->position); /* add start to position of the creating entity */
-            vector3d_scale(right, right, -SAND_LEFT); /* right becomes the left, already scaled */
-            vector3d_sub(sand->rotation, sand->position, right); /* add right to start to get dest */
-            vector3d_add(sand->position, sand->position, right); /* add left to start to get start */
-            sand->health = DMG_GAARA_SAND_ATK; /* health of sand will be damage */
-            sand->chakra = KICK_GAARA_SAND_ATK; /* chakra of sand will be kick */
+            vector3d_scale(sand->position, forward, SAND_FORWARD_1);        /* scale forward and save to start */
+            vector3d_add(sand->position, sand->position, owner->position);  /* add start to position of the creating entity */
+            vector3d_scale(right, right, -SAND_LEFT);                       /* right becomes the left, already scaled */
+            vector3d_sub(sand->rotation, sand->position, right);            /* add right to start to get dest */
+            vector3d_add(sand->position, sand->position, right);            /* add left to start to get start */
+            sand->health = DMG_GAARA_SAND_ATK;                              /* health of sand will be damage */
+            sand->chakra = KICK_GAARA_SAND_ATK;                             /* chakra of sand will be kick */
         break;
 
     case ATK_LEFT:
-            vector3d_scale(sand->position, forward, SAND_FORWARD);
+            vector3d_scale(sand->position, forward, SAND_FORWARD_2);
             vector3d_add(sand->position, sand->position, owner->position);
             vector3d_scale(right, right, -SAND_LEFT);
             vector3d_add(sand->rotation, sand->position, right);
@@ -551,9 +559,9 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
         break;
 
     case ATK_FORWARD:
-            vector3d_scale(sand->position, forward, SAND_FORWARD / 2);
+            vector3d_scale(sand->position, forward, SAND_FORWARD_1 / 2);
             vector3d_add(sand->position, sand->position, owner->position);
-            vector3d_scale(sand->rotation, forward, SAND_FORWARD);
+            vector3d_scale(sand->rotation, forward, SAND_FORWARD_2);
             vector3d_add(sand->rotation, sand->position, sand->rotation);
             sand->health = DMG_GAARA_SAND_ATK;
             sand->chakra = KICK_GAARA_SAND_FWD_ATK;
@@ -597,4 +605,14 @@ void app_gaara_sand_attack_update(Entity *self)
     }
 
     vector3d_set_magnitude(&self->velocity, SAND_SPEED);
+}
+
+/* *****************************************
+ * ABILITIES
+ * *****************************************/
+void app_gaara_knockup(Entity *self)
+{
+    if(!self) return;
+    self->locked = 102;
+    slog("Knock up function");
 }
