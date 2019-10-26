@@ -33,7 +33,6 @@ Entity *gf3d_combat_projectile_new(Entity *owner, Entity *target)
     Entity *projectile = gf3d_entity_new();
     Entity **data = NULL;
     Vector3D forward;
-    Vector3D position;
 
     if(!projectile) 
     {

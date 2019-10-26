@@ -44,7 +44,10 @@ typedef struct Entity_S
     float chakra;
     float chakraMax;
 
-    Uint32 locked; /* to flag if an entity is in the middle of an animation that shouldn't be interrupted */
+    /* to flag if an entity is in the middle of an animation that shouldn't be interrupted 
+       locked < 0 :             when being attacked 
+       100 <= locked <= 200 :   when using a jutsu*/
+    Uint32 locked; 
     
     void *data;
 

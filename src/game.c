@@ -164,6 +164,7 @@ int main(int argc,char *argv[])
 
     // just in case we need it later
     gf3d_model_load("dino", "dino");
+    gf3d_model_load("sand", "Sand");
 
     ent2->enemy = p1->entity;
     p1->entity->enemy = ent2;

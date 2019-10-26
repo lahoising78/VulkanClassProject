@@ -51,7 +51,6 @@ void app_player_manager_update( SDL_Event *events )
 
 Player *app_player_new()
 {
-    Player *ent = NULL;
     int i;
     for(i = 0; i <app_player_manager.player_max; i++)
     {

@@ -263,8 +263,6 @@ void app_naruto_charge(struct Entity_S *e)
 
 void app_naruto_throw_knife(struct Entity_S* e)
 {
-    float fcount = 0.0f;
-    float currf = 0.0f;
     Entity *projectile = NULL;
 
     if(!e) return;
