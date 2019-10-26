@@ -14,10 +14,15 @@ void app_gaara_charge(Entity *self);
 void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type);
 void app_gaara_sand_attack_update(Entity *self);
 
-/* Abilities */
+/* knock up */
 void app_gaara_knockup(Entity *self);
 void app_gaara_knockup_update(Entity *self);
 void app_gaara_knockup_touch(Entity *self, Entity *other);
+
+/* sand burial */
+void app_gaara_sand_burial(Entity *ent);
+void app_gaara_sand_burial_update(Entity *self);
+void app_gaara_sand_burial_touch(Entity *self, Entity *other);
 
 Entity *app_gaara_new()
 {
@@ -36,19 +41,20 @@ Entity *app_gaara_new()
     ent->model = gf3d_model_new();
     ent->model->texture = gf3d_texture_load("images/gaara.png");
     ent->animationManager = gf3d_animation_manager_init(16, ent->model);
-    gf3d_animation_load(ent->animationManager, "idle", "gaara_idle", 1, 60);
-    gf3d_animation_play(ent->animationManager, "idle", 1);
-    gf3d_animation_load(ent->animationManager, "running", "gaara_running", 1, 20);
-    gf3d_animation_load(ent->animationManager, "swipe right", "gaara_swipe_right", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe right", 1.8f);
-    gf3d_animation_load(ent->animationManager, "swipe left", "gaara_swipe_left", 1, 68);
-    gf3d_animation_set_speed(ent->animationManager, "swipe left", 1.8f);
-    gf3d_animation_load(ent->animationManager, "swipe forward", "gaara_forward_attack", 1, 50);
-    gf3d_animation_set_speed(ent->animationManager, "swipe forward", 1.8f);
-    gf3d_animation_load(ent->animationManager, "throw sand", "gaara_throw_sand", 1, 51);
-    gf3d_animation_load(ent->animationManager, "jump", "gaara_jump", 1, 58);
-    gf3d_animation_load(ent->animationManager, "charge", "gaara_charge", 1, 36);
-    gf3d_animation_load(ent->animationManager, "knock up", "gaara_knock_up", 1, 70);
+    gf3d_animation_load(ent->animationManager, "idle",              "gaara_idle",               1, 60);
+    gf3d_animation_play(ent->animationManager, "idle",                                          1);
+    gf3d_animation_load(ent->animationManager, "running",           "gaara_running",            1, 20);
+    gf3d_animation_load(ent->animationManager, "swipe right",       "gaara_swipe_right",        1, 68);
+    gf3d_animation_set_speed(ent->animationManager,                 "swipe right",              1.8f);
+    gf3d_animation_load(ent->animationManager, "swipe left",        "gaara_swipe_left",         1, 68);
+    gf3d_animation_set_speed(ent->animationManager,                 "swipe left",               1.8f);
+    gf3d_animation_load(ent->animationManager, "swipe forward",     "gaara_forward_attack",     1, 50);
+    gf3d_animation_set_speed(ent->animationManager,                 "swipe forward",            1.8f);
+    gf3d_animation_load(ent->animationManager, "throw sand",        "gaara_throw_sand",         1, 51);
+    gf3d_animation_load(ent->animationManager, "jump",              "gaara_jump",               1, 58);
+    gf3d_animation_load(ent->animationManager, "charge",            "gaara_charge",             1, 36);
+    gf3d_animation_load(ent->animationManager, "knock up",          "gaara_knock_up",           1, 70);
+    gf3d_animation_load(ent->animationManager, "choke",             "gaara_choke",              1, 115);
     ent->modelOffset.z = -4.9f;
     ent->scale = vector3d(1.7f, 1.7f, 1.7f);
     gfc_matrix_identity(ent->modelMat);
@@ -67,7 +73,8 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     const int usedScancodes[] = {
         SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, 
         SDL_SCANCODE_SPACE,
-        SDL_SCANCODE_J, SDL_SCANCODE_K, SDL_SCANCODE_L, SDL_SCANCODE_O
+        SDL_SCANCODE_J, SDL_SCANCODE_K, SDL_SCANCODE_L, 
+        SDL_SCANCODE_O, SDL_SCANCODE_P
     };
 
     /* dont take input if being attacked */
@@ -115,7 +122,7 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     {
         if(e->locked >= 100) 
         {
-            e->locked++;
+            e->locked+=100;
         }
         else
         {
@@ -126,6 +133,12 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
     
     if ( e->locked % 100 == 0)
     {
+        if(events[SDL_SCANCODE_P].type == SDL_KEYUP)
+        {
+            /* Stop Expecting a Jutsu */
+            e->locked = 0;
+        }
+
         /* Get camera angles */
         gf3d_camera_get_angles(&camera_f, &camera_r, NULL);
         vector3d_normalize(&camera_f);
@@ -283,14 +296,20 @@ void app_gaara_punch(Entity *self)
 
     if( self->locked >= 100)
     {
-        if(!gf3d_animation_is_playing(self->animationManager, "knock up"))
+        if( self->locked == 100 )
         {
             gf3d_animation_play(self->animationManager, "knock up", 1);
-            self->state &= ~ES_Idle;
-            self->state |= ES_Attacking;
-            self->velocity.x = self->velocity.y = 0.0f;
             self->locked = 101;
         }
+        else if( self->locked == 200 )
+        {
+            gf3d_animation_play(self->animationManager, "choke", 1);
+            self->locked = 201;
+            app_gaara_sand_burial(self);
+        }
+        self->state &= ~ES_Idle;
+        self->state |= ES_Attacking;
+        self->velocity.x = self->velocity.y = 0.0f;
         return;
     }
 
@@ -502,6 +521,22 @@ void app_gaara_think(Entity *self)
             app_gaara_knockup(self);
         }
     }
+    else if ( gf3d_animation_is_playing(self->animationManager, "choke") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "choke");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            self->state &= ~ES_Attacking;
+            self->state |= ES_Idle;
+            gf3d_animation_play(self->animationManager, "idle", 1);
+            self->locked = 0;
+        }
+        else if ( (self->locked != 201) && (currf * 3 >= 35.0f) )
+        {
+            gf3d_animation_pause(self->animationManager, "choke");
+        }
+    }
 }
 
 void app_gaara_update(Entity *self)
@@ -612,7 +647,7 @@ void app_gaara_sand_attack_update(Entity *self)
 }
 
 /* *****************************************
- * ABILITIES
+ * KNOCK UP
  * *****************************************/
 void app_gaara_knockup(Entity *self)
 {
@@ -671,4 +706,48 @@ void app_gaara_knockup_touch(Entity *self, Entity *other)
     
     self->data = NULL;
     gf3d_entity_free(self);
+}
+
+/* *****************************************
+ * SAND BURIAL
+ * *****************************************/
+void app_gaara_sand_burial(Entity *ent)
+{
+    Entity *proj = NULL;
+
+    if(!ent) return;
+    ent->locked = 202;
+
+    proj = gf3d_entity_new();
+    if(!proj) return;
+
+    proj->update = app_gaara_sand_burial_update;
+    proj->touch  = app_gaara_sand_burial_touch;
+
+    proj->data = ent;
+}
+
+void app_gaara_sand_burial_update(Entity *self)
+{
+    Entity *owner = NULL;
+
+    slog("sand burial update");
+    if(!self) return;
+
+    owner = (Entity*)self->data;
+    if(!owner) 
+    {
+        gf3d_entity_free(self);
+        return;
+    }
+
+    gf3d_animation_unpause(owner->animationManager, "choke");
+
+    self->data = NULL;
+    gf3d_entity_free(self);
+}
+
+void app_gaara_sand_burial_touch(Entity *self, Entity *other)
+{
+
 }

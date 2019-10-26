@@ -75,6 +75,12 @@ void gf3d_animation_play(AnimationManager *manager, char *animationName, Uint32 
 void gf3d_animation_pause(AnimationManager *manager, char *animationName);
 
 /* 
+ * @brief if specified animation is not running, unpause it
+ * @param animationName : the animation to unpause
+ */
+void gf3d_animation_unpause(AnimationManager *manager, char *animationName);
+
+/* 
  * @brief set the speed of an animation
  * @param manager : the animation manager that contains the animation
  * @param animationName : name of the animation

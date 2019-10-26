@@ -224,6 +224,20 @@ void gf3d_animation_pause(AnimationManager *manager, char *animationName)
     }
 }
 
+void gf3d_animation_unpause(AnimationManager *manager, char *animationName)
+{
+    int i;
+    if(!manager) return;
+    for(i = 0; i < manager->animationCount; i++)
+    {
+        if( gfc_line_cmp(manager->animationNames[i], animationName) == 0 )
+        {
+            manager->animations[i]->playing = 1;
+            return;
+        }
+    }
+}
+
 void gf3d_animation_set_speed(AnimationManager *manager, char *animationName, float speed)
 {
     if(!manager) return;
