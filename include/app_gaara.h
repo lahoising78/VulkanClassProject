@@ -5,16 +5,20 @@
 
 /* sand values */
 #define SAND_FORWARD_1              6.0f
-#define SAND_FORWARD_2              10.0f
+#define SAND_FORWARD_2              8.0f
 #define SAND_LEFT                   15.0f
 #define SAND_SPEED                  150.0f
 
-/* attack damaage */
+/* Sand Attack */
 #define DMG_GAARA_SAND_ATK          5
-
-/* attack kick */
 #define KICK_GAARA_SAND_ATK         5.5f
 #define KICK_GAARA_SAND_FWD_ATK     30.0f
+
+/* Knock Up */
+#define GAARA_KU_DMG                10
+#define GAARA_KU_SPEED              100.0f /* knock up speed */
+#define GAARA_KU_MAX_Z              100.0f
+#define GAARA_KU_KICK               100.0f
 
 enum GaaraSandAttackType
 {
