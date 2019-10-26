@@ -532,7 +532,7 @@ void app_gaara_think(Entity *self)
             gf3d_animation_play(self->animationManager, "idle", 1);
             self->locked = 0;
         }
-        else if ( (self->locked != 201) && (currf * 3 >= 35.0f) )
+        else if ( (self->locked == 201) && (currf * 3 >= 35.0f) )
         {
             gf3d_animation_pause(self->animationManager, "choke");
         }
@@ -714,40 +714,122 @@ void app_gaara_knockup_touch(Entity *self, Entity *other)
 void app_gaara_sand_burial(Entity *ent)
 {
     Entity *proj = NULL;
+    Entity **ents = NULL;
+    Vector3D forward;
 
     if(!ent) return;
-    ent->locked = 202;
 
     proj = gf3d_entity_new();
     if(!proj) return;
 
+    vector3d_angle_vectors(ent->rotation, &forward, NULL, NULL);
+    vector3d_scale(proj->position, forward, GAARA_SB_FWD);
+    vector3d_add(proj->position, proj->position, ent->position);
+    vector3d_scale(proj->rotation, forward, GAARA_SB_EXTENT_FWD);
+    vector3d_add(proj->rotation, proj->rotation, proj->position); /* once again, rotation is the destination of the attack */
+
+    vector3d_sub(proj->velocity, proj->rotation, proj->position);
+    vector3d_set_magnitude(&proj->velocity, GAARA_SB_FWD_SPEED);
+
+    proj->model = gf3d_model_load("sand", "sand");
+    proj->hitboxes = gf3d_collision_armor_new(1);
+    gf3d_collision_armor_add_shape(
+        proj->hitboxes,
+        gf3d_shape(proj->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, 0),
+        "body"
+    );
+
     proj->update = app_gaara_sand_burial_update;
     proj->touch  = app_gaara_sand_burial_touch;
 
-    proj->data = ent;
+    /* the first entity in data will be owner; the second will be the entity we touched */
+    proj->data = (Entity**)gfc_allocate_array(sizeof(Entity*), 2);
+    if(!proj->data) return;
+    ents = (Entity**)proj->data;
+    ents[ GAARA_SB_DATA_OWNER ] = ent;
+    ents[ GAARA_SB_DATA_TOUCHED ] = NULL;
 }
 
 void app_gaara_sand_burial_update(Entity *self)
 {
     Entity *owner = NULL;
+    Entity *touched = NULL;
+    Entity **ents = NULL;
+    Vector3D distanceToDst;
 
-    slog("sand burial update");
     if(!self) return;
 
-    owner = (Entity*)self->data;
-    if(!owner) 
+    ents = (Entity**)self->data;
+    if(!ents) return;
+    owner = ents[ GAARA_SB_DATA_OWNER ];
+    if(!owner) return;
+    
+    touched = ents[ GAARA_SB_DATA_TOUCHED ];
+    if(touched)
     {
-        gf3d_entity_free(self);
-        return;
+        vector3d_set_magnitude(&self->velocity, GAARA_SB_UP_SPEED);
     }
+    else
+    {
+        vector3d_set_magnitude(&self->velocity, GAARA_SB_FWD_SPEED);
+    }
+    gf3d_entity_general_update(self);
 
-    gf3d_animation_unpause(owner->animationManager, "choke");
-
-    self->data = NULL;
-    gf3d_entity_free(self);
+    vector3d_sub(distanceToDst, self->position, self->rotation);
+    if( vector3d_magnitude_squared(distanceToDst) <= 2.0f || self->state & ES_Walking_Out)
+    {
+        if( !gf3d_animation_is_playing(owner->animationManager, "choke") ||
+            gf3d_animation_get_current_frame(owner->animationManager) * 3 >= GAARA_SB_END_FRAME)
+        {
+            if(touched) gf3d_combat_meele_attack(self, touched, GAARA_SB_DMG, 0);
+            if(self->data) free(self->data);
+            self->data = NULL;
+            gf3d_entity_free(self);
+        }
+        if(owner && !touched) gf3d_common_init_state(owner);
+    }
 }
 
 void app_gaara_sand_burial_touch(Entity *self, Entity *other)
 {
+    Entity *owner = NULL;
+    Entity *touched = NULL;
+    Entity **ents = NULL;
 
+    if(!self || !other) return;
+
+    ents = (Entity**)self->data;
+    if(!ents) return;
+
+    owner = ents[ GAARA_SB_DATA_OWNER ];
+    if(!owner || owner == other) return;
+    touched = ents[ GAARA_SB_DATA_TOUCHED ];
+
+    if(touched)
+    {
+        vector3d_copy(touched->position, self->position);
+        vector3d_clear(touched->velocity);
+        vector3d_clear(touched->acceleration);
+
+        if( self->position.z >= self->rotation.z )
+        {
+            self->position.z = self->rotation.z;
+        }
+    }
+    else
+    {
+        ents[ GAARA_SB_DATA_TOUCHED ] = other;
+        
+        owner->locked = 202;
+        gf3d_animation_unpause(owner->animationManager, "choke");
+        
+        vector3d_copy(self->position, other->position);
+
+        vector3d_clear(self->velocity);
+        self->velocity.z = GAARA_SB_UP_SPEED;
+
+        vector3d_add(self->rotation, other->position, vector3d(0, 0, GAARA_SB_EXTENT_UP));
+        vector3d_scale(self->scale, self->scale, GAARA_SB_TOUCH_SCALE);
+    }
 }

@@ -4,6 +4,12 @@
 #include "gf3d_entity.h"
 
 /* 
+ * @brief set state to initial
+ * @param ent : entity to set
+ */
+void gf3d_common_init_state(Entity *ent);
+
+/* 
  * @brief create the chackra when charging
  * @param ent : the entity to attack chakra to
  */

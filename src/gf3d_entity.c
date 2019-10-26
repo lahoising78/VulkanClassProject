@@ -184,7 +184,14 @@ void gf3d_entity_general_update( Entity *self )
     vector3d_scale(buff2, self->acceleration, deltaTime * deltaTime / 2); /* a*t^2 / 2 */
     vector3d_add(buff, buff2, buff); /* all together */
     if ( within_stage(buff) ) /* make sure it's within */
+    {
+        self->state &= ~ES_Walking_Out;
         vector3d_copy(self->position, buff);
+    } 
+    else
+    {
+        self->state |= ES_Walking_Out;
+    }
 
     /* update collision boxes */
     gf3d_collision_armor_update(self->hitboxes, self->position, self->rotation);

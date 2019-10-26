@@ -20,6 +20,18 @@
 #define GAARA_KU_MAX_Z              100.0f
 #define GAARA_KU_KICK               100.0f
 
+/* Sand Burial */
+#define GAARA_SB_FWD                4.0f
+#define GAARA_SB_EXTENT_FWD         60.0f
+#define GAARA_SB_EXTENT_UP          20.0f
+#define GAARA_SB_FWD_SPEED          100.0f
+#define GAARA_SB_UP_SPEED           30.0f
+#define GAARA_SB_DMG                30.0f
+#define GAARA_SB_END_FRAME          75.0f
+#define GAARA_SB_TOUCH_SCALE        5
+#define GAARA_SB_DATA_OWNER         0
+#define GAARA_SB_DATA_TOUCHED       1
+
 enum GaaraSandAttackType
 {
     ATK_RIGHT = 0,
@@ -29,7 +41,7 @@ enum GaaraSandAttackType
 
 /* *********************
  * ABILITIES
- *  -Sand Burial
+ *  o Sand Burial
  *  -Sand Protection 
  *  -Sand Storm
  *  o Knock Up

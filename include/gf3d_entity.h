@@ -8,11 +8,12 @@
 
 typedef enum
 {
-    ES_Idle = 1,
-    ES_Dying = 2,
-    ES_Dead = 4,
-    ES_Jumping = 8,
-    ES_Attacking = 16
+    ES_Idle =           1,
+    ES_Dying =          2,
+    ES_Dead =           4,
+    ES_Jumping =        8,
+    ES_Attacking =      16,
+    ES_Walking_Out =    32
 } EntityState;
 
 typedef struct Entity_S
