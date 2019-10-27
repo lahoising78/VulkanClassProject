@@ -65,7 +65,7 @@ enum GaaraSandAttackType
  *  -Sand Protection 
  *  o Sand Storm
  *  o Knock Up
- *  -Sand Tsunami
+ *  o Sand Tsunami
  * ***********************/
 
 /* 

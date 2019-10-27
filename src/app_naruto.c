@@ -2,15 +2,24 @@
 #include "app_naruto.h"
 #include "gf3d_camera.h"
 #include "gf3d_timer.h"
+#include "gf3d_common.h"
 
-// extern float worldTime;
+void app_naruto_add_hitbox(struct Entity_S *ent, char *name); /* predefined hitboxes for attacks */
 
-void app_naruto_charge(struct Entity_S *e);
-void app_naruto_throw_knife(struct Entity_S *e);
+/* basic */
 void app_naruto_punch(struct Entity_S *e);
+void app_naruto_throw_knife(struct Entity_S *e);
+void app_naruto_charge(struct Entity_S *e);
+
+/* clones */
+void app_naruto_punch_create_shadow_clones(struct Entity_S *self);
 void app_naruto_clone_update( struct Entity_S *e );
 void app_naruto_clone_touch(struct Entity_S *self, struct Entity_S *other);
-void app_naruto_add_hitbox(struct Entity_S *ent, char *name); /* predefined hitboxes for attacks */
+
+/* rasenshuriken */
+void app_naruto_rasenshuriken(Entity *ent);
+void app_naruto_rasenshuriken_update(Entity *self);
+void app_naruto_rasenshuriken_touch(Entity *self, Entity *other);
 
 Entity *app_naruto_new()
 {
@@ -27,16 +36,18 @@ Entity *app_naruto_new()
     e->model = gf3d_model_new();
     e->model->texture = gf3d_texture_load("images/naruto.png");
     e->animationManager = gf3d_animation_manager_init(10, e->model);
-    gf3d_animation_load(e->animationManager, "idle",            "naruto_idle",          ANIM_NARUTO_IDLE_START,         ANIM_NARUTO_IDLE_END);
-    gf3d_animation_play(e->animationManager, "idle",                                    ANIM_NARUTO_IDLE_START);
-    gf3d_animation_load(e->animationManager, "running",         "naruto_running",       ANIM_NARUTO_RUN_START,          ANIM_NARUTO_RUN_END);
-    gf3d_animation_load(e->animationManager, "jump up",         "naruto_jump_up",       ANIM_NARUTO_JUMP_UP_START,      ANIM_NARUTO_JUMP_UP_END);
-    gf3d_animation_load(e->animationManager, "jump down",       "naruto_jump_down",     ANIM_NARUTO_JUMP_DOWN_START,    ANIM_NARUTO_JUMP_DOWN_END);
-    gf3d_animation_load(e->animationManager, "punch",           "naruto_punch",         ANIM_NARUTO_PUNCH_START,        ANIM_NARUTO_PUNCH_END);
-    gf3d_animation_load(e->animationManager, "punch mirror",    "naruto_punch_mirror",  ANIM_NARUTO_PUNCH_START,        ANIM_NARUTO_PUNCH_END);
-    gf3d_animation_load(e->animationManager, "kick",            "naruto_kick",          ANIM_NARUTO_KICK_START,         ANIM_NARUTO_KICK_END);
-    gf3d_animation_load(e->animationManager, "throw",           "naruto_throw",         ANIM_NARUTO_THROW_START,        ANIM_NARUTO_THROW_END);
-    gf3d_animation_load(e->animationManager, "charge",          "naruto_charge",        ANIM_NARUTO_CHARGE_START,       ANIM_NARUTO_CHARGE_END);
+    gf3d_animation_load(        e->animationManager, "idle",            "naruto_idle",          ANIM_NARUTO_IDLE_START,             ANIM_NARUTO_IDLE_END);
+    gf3d_animation_play(        e->animationManager, "idle",                                    ANIM_NARUTO_IDLE_START);
+    gf3d_animation_load(        e->animationManager, "running",         "naruto_running",       ANIM_NARUTO_RUN_START,              ANIM_NARUTO_RUN_END);
+    gf3d_animation_load(        e->animationManager, "jump up",         "naruto_jump_up",       ANIM_NARUTO_JUMP_UP_START,          ANIM_NARUTO_JUMP_UP_END);
+    gf3d_animation_load(        e->animationManager, "jump down",       "naruto_jump_down",     ANIM_NARUTO_JUMP_DOWN_START,        ANIM_NARUTO_JUMP_DOWN_END);
+    gf3d_animation_load(        e->animationManager, "punch",           "naruto_punch",         ANIM_NARUTO_PUNCH_START,            ANIM_NARUTO_PUNCH_END);
+    gf3d_animation_load(        e->animationManager, "punch mirror",    "naruto_punch_mirror",  ANIM_NARUTO_PUNCH_START,            ANIM_NARUTO_PUNCH_END);
+    gf3d_animation_load(        e->animationManager, "kick",            "naruto_kick",          ANIM_NARUTO_KICK_START,             ANIM_NARUTO_KICK_END);
+    gf3d_animation_load(        e->animationManager, "throw",           "naruto_throw",         ANIM_NARUTO_THROW_START,            ANIM_NARUTO_THROW_END);
+    gf3d_animation_load(        e->animationManager, "charge",          "naruto_charge",        ANIM_NARUTO_CHARGE_START,           ANIM_NARUTO_CHARGE_END);
+    gf3d_animation_load(        e->animationManager, "rasenshuriken",   "naruto_rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START,    ANIM_NARUTO_RASENSHURIKEN_END);
+    gf3d_animation_set_speed(   e->animationManager, "rasenshuriken",   0.5f);
     e->modelOffset.z = -4.9f;
     e->scale = vector3d(5, 5, 5);
     // e->scale = vector3d(1, 1, 1);
@@ -57,22 +68,23 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     const int usedScancodes[] = {
         SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, 
         SDL_SCANCODE_SPACE,
-        SDL_SCANCODE_J, SDL_SCANCODE_K
+        SDL_SCANCODE_J, SDL_SCANCODE_K, SDL_SCANCODE_L,
+        SDL_SCANCODE_O, SDL_SCANCODE_P
     };
+
+    if(e->locked < 0)
+    {
+        return;
+    }
 
     if (self->entity->modelBox)
     {
         distanceToFloor = distance_to_floor( e->modelBox->shapes[0].position.z - e->modelBox->shapes[0].extents.z );
         onFloor = on_floor( distanceToFloor );
     }
-    
-    /* Get camera angles */
-    gf3d_camera_get_angles(&camera_f, &camera_r, NULL);
-    vector3d_normalize(&camera_f);
-    vector3d_normalize(&camera_r);
 
     /* Jumping */
-    if (events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN && !e->locked)
+    if (events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN && (!e->locked || e->locked >= 100))
     {
         if (distanceToFloor < 0.7f)
         {
@@ -104,134 +116,159 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
             e->locked = 0;
         }
     }
-    
-
-    if (e->locked > 0) return;
-    /* Forward and Backwards */
-    if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
+    /* Start Jutsu */
+    else if (events[SDL_SCANCODE_O].type == SDL_KEYUP)
     {
-        e->rotation.x = 90.0f;
-        vector3d_set_magnitude(&camera_f, MAX_SPEED);
-        vector3d_add(e->velocity, e->velocity, camera_f);
-        /* Cap speed */
-        if ( abs(e->velocity.y) > MAX_SPEED )
+        if(e->locked >= 100)
         {
-            e->velocity.y = MAX_SPEED;
-        }
-
-        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "running", 1);
-        }
-    }
-    else if (events[SDL_SCANCODE_S].type == SDL_KEYDOWN)
-    {
-        e->rotation.x = 270.0f;
-        vector3d_set_magnitude(&camera_f, MAX_SPEED);
-        vector3d_sub(e->velocity, e->velocity, camera_f);
-        /* Cap speed */
-        if ( abs(e->velocity.y) > MAX_SPEED )
-        {
-            e->velocity.y = -MAX_SPEED;
-        }
-
-        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "running", 1);
-        }
-    }
-    else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
-
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "idle", 1);
-        }
-    }
-    else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
-
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-        {
-            gf3d_animation_play(e->animationManager, "idle", 1);
-        }
-    }
-
-    /* Right and Left */
-    if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
-    {
-        /* To rotate according to direction */
-        if (e->velocity.y > 0)
-        {
-            e->rotation.x = 45.0f;
-        }
-        else if (e->velocity.y < 0)
-        {
-            e->rotation.x = -45.0f;
+            e->locked+=100;
         }
         else
         {
-            e->rotation.x = 0.0f;
+            e->locked = 100;
         }
-        
-        vector3d_set_magnitude(&camera_r, MAX_SPEED);
-        vector3d_sub(e->velocity, e->velocity, camera_r);
-        /* Cap speed */
-        if ( abs(e->velocity.x) > MAX_SPEED )
+        slog("locked: %d", e->locked);
+    }
+
+    if (e->locked % 100 == 0 ) 
+    {
+        if(events[SDL_SCANCODE_P].type == SDL_KEYUP)
         {
-            e->velocity.x = MAX_SPEED;
+            /* Stop Expecting a Jutsu */
+            e->locked = 0;
         }
 
-        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        /* Get camera angles */
+        gf3d_camera_get_angles(&camera_f, &camera_r, NULL);
+        vector3d_normalize(&camera_f);
+        vector3d_normalize(&camera_r);
+
+        /* Forward and Backwards */
+        if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
         {
-            gf3d_animation_play(e->animationManager, "running", 1);
+            e->rotation.x = 90.0f;
+            vector3d_set_magnitude(&camera_f, MAX_SPEED);
+            vector3d_add(e->velocity, e->velocity, camera_f);
+            /* Cap speed */
+            if ( abs(e->velocity.y) > MAX_SPEED )
+            {
+                e->velocity.y = MAX_SPEED;
+            }
+
+            if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "running", 1);
+            }
         }
-    }
-    else if (events[SDL_SCANCODE_A].type == SDL_KEYDOWN)
-    {
-        /* To rotate according to direction */
-        if (e->velocity.y > 0)
+        else if (events[SDL_SCANCODE_S].type == SDL_KEYDOWN)
         {
-            e->rotation.x = 135.0f;
+            e->rotation.x = 270.0f;
+            vector3d_set_magnitude(&camera_f, MAX_SPEED);
+            vector3d_sub(e->velocity, e->velocity, camera_f);
+            /* Cap speed */
+            if ( abs(e->velocity.y) > MAX_SPEED )
+            {
+                e->velocity.y = -MAX_SPEED;
+            }
+
+            if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "running", 1);
+            }
         }
-        else if (e->velocity.y < 0)
+        else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
         {
-            e->rotation.x = 225.0f;
+            vector3d_clear(e->velocity);
+
+            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "idle", 1);
+            }
         }
-        else
+        else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
         {
-            e->rotation.x = 180.0f;
-        }
-        
-        vector3d_set_magnitude(&camera_r, MAX_SPEED);
-        vector3d_add(e->velocity, e->velocity, camera_r);
-        /* Cap speed */
-        if ( abs(e->velocity.x) > MAX_SPEED )
-        {
-            e->velocity.x = -MAX_SPEED;
+            vector3d_clear(e->velocity);
+
+            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "idle", 1);
+            }
         }
 
-        if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        /* Right and Left */
+        if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
         {
-            gf3d_animation_play(e->animationManager, "running", 1);
+            /* To rotate according to direction */
+            if (e->velocity.y > 0)
+            {
+                e->rotation.x = 45.0f;
+            }
+            else if (e->velocity.y < 0)
+            {
+                e->rotation.x = -45.0f;
+            }
+            else
+            {
+                e->rotation.x = 0.0f;
+            }
+            
+            vector3d_set_magnitude(&camera_r, MAX_SPEED);
+            vector3d_sub(e->velocity, e->velocity, camera_r);
+            /* Cap speed */
+            if ( abs(e->velocity.x) > MAX_SPEED )
+            {
+                e->velocity.x = MAX_SPEED;
+            }
+
+            if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "running", 1);
+            }
         }
-    }
-    else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        else if (events[SDL_SCANCODE_A].type == SDL_KEYDOWN)
         {
-            gf3d_animation_play(e->animationManager, "idle", 1);
+            /* To rotate according to direction */
+            if (e->velocity.y > 0)
+            {
+                e->rotation.x = 135.0f;
+            }
+            else if (e->velocity.y < 0)
+            {
+                e->rotation.x = 225.0f;
+            }
+            else
+            {
+                e->rotation.x = 180.0f;
+            }
+            
+            vector3d_set_magnitude(&camera_r, MAX_SPEED);
+            vector3d_add(e->velocity, e->velocity, camera_r);
+            /* Cap speed */
+            if ( abs(e->velocity.x) > MAX_SPEED )
+            {
+                e->velocity.x = -MAX_SPEED;
+            }
+
+            if(!gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "running", 1);
+            }
         }
-    }
-    else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
-    {
-        vector3d_clear(e->velocity);
-        if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+        else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
         {
-            gf3d_animation_play(e->animationManager, "idle", 1);
+            vector3d_clear(e->velocity);
+            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "idle", 1);
+            }
+        }
+        else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
+        {
+            vector3d_clear(e->velocity);
+            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
+            {
+                gf3d_animation_play(e->animationManager, "idle", 1);
+            }
         }
     }
 
@@ -357,6 +394,20 @@ void app_naruto_punch(struct Entity_S* e)
     float currf  = 0.0f;
 
     if(!e) return;
+
+    if( e->locked >= 100 )
+    {
+        if(e->locked == 100)
+        {
+            e->locked = 101;
+            app_naruto_rasenshuriken(e);
+        }
+
+        e->state &= ~ES_Idle;
+        e->state |= ES_Attacking;
+        e->velocity.x = e->velocity.y = 0.0f;
+        return;
+    }
 
     if(e->state & ES_Jumping)
     {
@@ -519,6 +570,15 @@ void app_naruto_think (struct Entity_S* self)
             self->locked = 0;
         }
     }
+    else if ( gf3d_animation_is_playing(self->animationManager, "rasenshuriken") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "rasenshuriken");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            gf3d_common_init_state(self);
+        }
+    }
 }
 
 void app_naruto_update(struct Entity_S* self)
@@ -599,4 +659,25 @@ void app_naruto_add_hitbox(struct Entity_S *ent, char *name)
         );   
     }
     
+}
+
+/* ******************************
+ * RASENSHURIKEN
+ * ******************************/
+void app_naruto_rasenshuriken(Entity *ent)
+{
+    Entity *proj = NULL;
+    gf3d_animation_play(ent->animationManager, "rasenshuriken", 1);
+}
+
+void app_naruto_rasenshuriken_update(Entity *self)
+{
+    slog("rasenshuriken update");
+
+}
+
+void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
+{
+    slog("rasenshuriken touch");
+
 }
