@@ -969,7 +969,6 @@ void app_gaara_sand_tsunami(Entity *ent)
     int i;
     Entity *proj = NULL;
     Vector3D forward;
-    slog("sand tsunami");
 
     if(!ent) return;
     vector3d_angle_vectors(ent->rotation, &forward, NULL, NULL);
@@ -1005,7 +1004,6 @@ void app_gaara_sand_tsunami(Entity *ent)
 
 void app_gaara_sand_tsunami_update(Entity *self)
 {
-    // slog("sand tsunami update");
     Entity *owner = NULL;
     Vector3D distanceToDest;
     if(!self) return;
@@ -1032,7 +1030,6 @@ void app_gaara_sand_tsunami_update(Entity *self)
 void app_gaara_sand_tsunami_touch(Entity *self, Entity *other)
 {
     Entity *owner = NULL;
-    slog("sand tsunami touch");
 
     if(!self || !other) return;
 

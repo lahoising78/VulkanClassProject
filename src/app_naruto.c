@@ -397,10 +397,11 @@ void app_naruto_punch(struct Entity_S* e)
 
     if( e->locked >= 100 )
     {
-        if(e->locked == 100)
+        if(e->locked == NARUTO_RASENSHURIKEN_LOCKED)
         {
             e->locked = 101;
-            app_naruto_rasenshuriken(e);
+            gf3d_animation_play(e->animationManager, "rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START);
+            // app_naruto_rasenshuriken(e);
         }
 
         e->state &= ~ES_Idle;
@@ -578,6 +579,14 @@ void app_naruto_think (struct Entity_S* self)
         {
             gf3d_common_init_state(self);
         }
+        else if ( self->locked == NARUTO_RASENSHURIKEN_LOCKED + 1)
+        {
+            if( currf * 3 >= NARUTO_RASENSHURIKEN_ATK_FRAME )
+            {
+                app_naruto_rasenshuriken(self);
+                self->locked++;
+            }
+        }
     }
 }
 
@@ -669,7 +678,6 @@ void app_naruto_rasenshuriken(Entity *ent)
     Entity *proj = NULL;
     
     if(!ent) return;
-    gf3d_animation_play(ent->animationManager, "rasenshuriken", 1);
 
     proj = gf3d_entity_new();
     if(!proj) return;
@@ -677,7 +685,7 @@ void app_naruto_rasenshuriken(Entity *ent)
     vector3d_copy(proj->position, ent->position);
     proj->position.z += NARUTO_RASENSHURIKEN_UP_OFFSET;
 
-    proj->model = gf3d_model_load("shuriken", "shuriken");
+    proj->model = gf3d_model_load("shuriken", "rasenshuriken");
     proj->hitboxes = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         proj->hitboxes,
@@ -721,7 +729,7 @@ void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
 {
     Entity *owner = NULL;
     Vector3D dir;
-    slog("rasenshuriken touch");
+    
     if(!self || !other) return;
 
     owner = (Entity*)self->data;
