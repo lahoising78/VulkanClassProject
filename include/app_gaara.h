@@ -41,7 +41,13 @@
 #define GAARA_KU_MAX_Z              100.0f
 #define GAARA_KU_KICK               100.0f
 
-// extern float worldTime;
+/* Sand Tsunami */
+#define GAARA_ST_NUM                3
+#define GAARA_ST_UP_OFFSET          5.0f
+#define GAARA_ST_FWD_OFFSET         15.0f
+#define GAARA_ST_FWD_OFFSET_INC     10
+#define GAARA_ST_SPEED              50.0f
+
 extern float worldTime;
 
 enum GaaraSandAttackType
@@ -55,7 +61,7 @@ enum GaaraSandAttackType
  * ABILITIES
  *  o Sand Burial
  *  -Sand Protection 
- *  -Sand Storm
+ *  o Sand Storm
  *  o Knock Up
  *  -Sand Tsunami
  * ***********************/

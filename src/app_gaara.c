@@ -31,6 +31,11 @@ void app_gaara_knockup(Entity *self);
 void app_gaara_knockup_update(Entity *self);
 void app_gaara_knockup_touch(Entity *self, Entity *other);
 
+/* sand tsunami */
+void app_gaara_sand_tsunami(Entity *ent);
+void app_gaara_sand_tsunami_update(Entity *self);
+void app_gaara_sand_tsunami_touch(Entity *self, Entity *other);
+
 Entity *app_gaara_new()
 {
     Entity *ent = gf3d_entity_new();
@@ -318,6 +323,11 @@ void app_gaara_punch(Entity *self)
         {
             self->locked = 301;
             app_gaara_sand_storm(self);
+        }
+        else if ( self->locked == 400 )
+        {
+            self->locked = 401;
+            app_gaara_sand_tsunami(self);
         }
         self->state &= ~ES_Idle;
         self->state |= ES_Attacking;
@@ -949,4 +959,70 @@ void app_gaara_knockup_touch(Entity *self, Entity *other)
     
     self->data = NULL;
     gf3d_entity_free(self);
+}
+
+/* *****************************
+ * SAND TSUNAMI
+ * *****************************/
+void app_gaara_sand_tsunami(Entity *ent)
+{
+    int i;
+    Entity *proj = NULL;
+    Vector3D forward;
+    slog("sand tsunami");
+
+    if(!ent) return;
+    vector3d_angle_vectors(ent->rotation, &forward, NULL, NULL);
+
+    for(i = 0; i < GAARA_ST_NUM; i++)
+    {
+        proj = gf3d_entity_new();
+        if(!proj) continue;
+
+        vector3d_copy(proj->position, ent->position);
+        proj->position.z += GAARA_ST_UP_OFFSET;
+
+        vector3d_scale(proj->rotation, forward, GAARA_ST_FWD_OFFSET + GAARA_ST_FWD_OFFSET_INC * i); /* rotation is the destination */
+        vector3d_add(proj->rotation, proj->rotation, ent->position);
+        proj->rotation.z = MAX_STAGE_Z + STAGE_SCALE_Z;
+
+        proj->model = gf3d_model_load("sand", "sand");
+
+        proj->update = app_gaara_sand_tsunami_update;
+        proj->touch = app_gaara_sand_tsunami_touch;
+
+        proj->locked = i;
+        proj->data = ent;
+    }
+}
+
+void app_gaara_sand_tsunami_update(Entity *self)
+{
+    // slog("sand tsunami update");
+    Entity *owner = NULL;
+    Vector3D distanceToDest;
+    if(!self) return;
+
+    vector3d_sub(self->velocity, self->rotation, self->position);
+    vector3d_set_magnitude(&self->velocity, GAARA_ST_SPEED);
+
+    gf3d_entity_general_update(self);
+
+    vector3d_sub(distanceToDest, self->rotation, self->position);
+    if( vector3d_magnitude_squared(distanceToDest) <= 2.0f || self->state & ES_Walking_Out)
+    {
+        owner = (Entity*)self->data;
+        if( owner && self->locked == GAARA_ST_NUM - 1 )
+        {
+            gf3d_common_init_state(owner);
+        }
+
+        self->data = NULL;
+        gf3d_entity_free(self);
+    }
+}
+
+void app_gaara_sand_tsunami_touch(Entity *self, Entity *other)
+{
+    slog("sand tsunami touch");
 }
