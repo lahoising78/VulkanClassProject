@@ -21,6 +21,11 @@ void app_naruto_rasenshuriken(Entity *ent);
 void app_naruto_rasenshuriken_update(Entity *self);
 void app_naruto_rasenshuriken_touch(Entity *self, Entity *other);
 
+/* Shuriken Teleport */
+void app_naruto_shuriken_teleport(Entity *ent);
+void app_naruto_shuriken_teleport_update(Entity *self);
+void app_naruto_shuriken_teleport_touch(Entity *self, Entity *other);
+
 Entity *app_naruto_new()
 {
     Entity *e = NULL;
@@ -399,9 +404,14 @@ void app_naruto_punch(struct Entity_S* e)
     {
         if(e->locked == NARUTO_RASENSHURIKEN_LOCKED)
         {
-            e->locked = 101;
+            e->locked = NARUTO_RASENSHURIKEN_LOCKED + 1;
             gf3d_animation_play(e->animationManager, "rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START);
             // app_naruto_rasenshuriken(e);
+        }
+        else if ( e->locked == NARUTO_ST_LOCKED )
+        {
+            e->locked = NARUTO_ST_LOCKED + 1;
+            gf3d_animation_play(e->animationManager, "rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START);
         }
 
         e->state &= ~ES_Idle;
@@ -579,11 +589,16 @@ void app_naruto_think (struct Entity_S* self)
         {
             gf3d_common_init_state(self);
         }
-        else if ( self->locked == NARUTO_RASENSHURIKEN_LOCKED + 1)
+        else if( currf * 3 >= NARUTO_RASENSHURIKEN_ATK_FRAME )
         {
-            if( currf * 3 >= NARUTO_RASENSHURIKEN_ATK_FRAME )
+            if ( self->locked == NARUTO_RASENSHURIKEN_LOCKED + 1)
             {
                 app_naruto_rasenshuriken(self);
+                self->locked++;
+            }
+            else if ( self->locked == NARUTO_ST_LOCKED + 1 )
+            {
+                app_naruto_shuriken_teleport(self);
                 self->locked++;
             }
         }
@@ -721,9 +736,9 @@ void app_naruto_rasenshuriken_update(Entity *self)
     }
 
     gf3d_entity_general_update(self);
-    gfc_matrix_rotate(self->modelMat, self->modelMat, self->rotation.y, vector3d(1, 0, 0));
+    gfc_matrix_rotate(self->modelMat, self->modelMat, self->rotation.y * GFC_DEGTORAD, vector3d(1, 0, 0));
 
-    self->chakra += worldTime;
+    self->chakra += worldTime; /* chakra is time spent alive for this entity */
 }
 
 void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
@@ -739,4 +754,82 @@ void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
     vector3d_sub(dir, other->position, self->position);
 
     gf3d_combat_attack(owner, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, dir);
+}
+
+/* **********************************
+ * SHURIKEN TELEPORT
+ * **********************************/
+void app_naruto_shuriken_teleport(Entity *ent)
+{
+    Entity *proj = NULL;
+
+    if(!ent) return;
+
+    proj= gf3d_entity_new();
+    if(!proj) return;
+
+    vector3d_copy(proj->position, ent->position);
+    proj->position.z += NARUTO_ST_UP_OFFSET;
+
+    proj->model = gf3d_model_load("shuriken", "shuriken");
+    proj->hitboxes = gf3d_collision_armor_new(1);
+    gf3d_collision_armor_add_shape(
+        proj->hitboxes,
+        gf3d_shape(proj->position, vector3d(3, 3, 1), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, 0),
+        "body"
+    );
+
+    proj->update = app_naruto_shuriken_teleport_update;
+    proj->touch = app_naruto_shuriken_teleport_touch;
+
+    proj->data = ent;
+}
+
+void app_naruto_shuriken_teleport_update(Entity *self)
+{
+    Entity *owner = NULL;
+
+    if(!self) return;
+
+    owner = (Entity*)self->data;
+    if(self->chakra >= NARUTO_ST_TIME || self->state & ES_Walking_Out)
+    {
+        if(owner)
+        {
+            vector3d_copy(owner->position, self->position);
+        }
+        self->data = NULL;
+        gf3d_entity_free(self);
+    }
+
+    if(owner && owner->enemy)
+    {
+        vector3d_sub(self->velocity, owner->enemy->position, self->position);
+        vector3d_set_magnitude(&self->velocity, NARUTO_ST_SPEED);
+    }
+
+    self->rotation.x += worldTime * NARUTO_ST_ROT_SPEED;
+
+    gf3d_entity_general_update(self);
+    gfc_matrix_rotate(self->modelMat, self->modelMat, self->rotation.y * GFC_DEGTORAD, vector3d(1, 0, 0));
+    
+    self->chakra += worldTime; /* chakra is time spent alive */
+}
+
+void app_naruto_shuriken_teleport_touch(Entity *self, Entity *other)
+{
+    Entity *owner = NULL;
+
+    if(!self || !other) return;
+    owner = (Entity*)self->data;
+    if(!owner || owner == other) return;
+
+    // vector3d_sub(self->position, other->position, self->position);
+    // vector3d_set_magnitude(&self->position, NARUTO_ST_OFFSET);
+    // vector3d_add(self->position, self->position, other->position);
+
+    vector3d_copy(owner->position, self->position);
+    self->data = NULL;
+    gf3d_entity_free(self);
 }

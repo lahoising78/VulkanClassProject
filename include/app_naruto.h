@@ -46,12 +46,20 @@
 #define NARUTO_RASENSHURIKEN_DMG            20.0f
 #define NARUTO_RASENSHURIKEN_KICK           10.0f
 
+/* Shuriken Teleport */
+#define NARUTO_ST_LOCKED                    200
+#define NARUTO_ST_SPEED                     80.0f
+#define NARUTO_ST_TIME                      1.0f
+#define NARUTO_ST_ROT_SPEED                 2000.0f
+#define NARUTO_ST_UP_OFFSET                 5.0f
+#define NARUTO_ST_OFFSET                    3.0f
+
 /* ****************************** 
  * ABILITIES
  *  -Rasengan
- *  -Rasen-shuriken
+ *  o Rasen-shuriken
  *  -Jinchuriki cloak
- *  -Kunai Teleport
+ *  -Shuriken Teleport
  *  -Barrage
  * ******************************/
 
