@@ -987,6 +987,13 @@ void app_gaara_sand_tsunami(Entity *ent)
         proj->rotation.z = MAX_STAGE_Z + STAGE_SCALE_Z;
 
         proj->model = gf3d_model_load("sand", "sand");
+        proj->hitboxes = gf3d_collision_armor_new(1);
+        gf3d_collision_armor_add_shape(
+            proj->hitboxes, 
+            gf3d_shape(proj->position, proj->scale, gf3d_model_load("cube", "cube")),
+            vector3d(0, 0, 0),
+            "body"
+        );
 
         proj->update = app_gaara_sand_tsunami_update;
         proj->touch = app_gaara_sand_tsunami_touch;
@@ -1024,5 +1031,13 @@ void app_gaara_sand_tsunami_update(Entity *self)
 
 void app_gaara_sand_tsunami_touch(Entity *self, Entity *other)
 {
+    Entity *owner = NULL;
     slog("sand tsunami touch");
+
+    if(!self || !other) return;
+
+    owner = (Entity*)self->data;
+    if(!owner || owner == other) return;
+
+    gf3d_combat_attack(owner, other, GAARA_ST_DMG, GAARA_ST_KICK, self->velocity);
 }
