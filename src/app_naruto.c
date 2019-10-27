@@ -623,6 +623,7 @@ void app_naruto_clone_update(struct Entity_S *e)
         owner->state |= ES_Idle;
         owner->locked = 0;
         
+        e->data = NULL;
         gf3d_entity_free(e);
     }
     else if ( currf * 3 <= NARUTO_PUNCH_ATK_FRAME )
