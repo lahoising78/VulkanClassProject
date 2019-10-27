@@ -23,7 +23,7 @@
 #define ANIM_NARUTO_CHARGE_START            1
 #define ANIM_NARUTO_CHARGE_END              18 
 #define ANIM_NARUTO_RASENGAN_START          1
-#define ANIM_NARUTO_RASENGAN_END            85
+#define ANIM_NARUTO_RASENGAN_END            41
 #define ANIM_NARUTO_RASENSHURIKEN_START     1
 #define ANIM_NARUTO_RASENSHURIKEN_END       54
 
@@ -40,8 +40,14 @@
 
 /* Rasengan */
 #define NARUTO_RASENGAN_LOCKED              400
-#define NARUTO_RASENGAN_TIME                2.0f
+#define NARUTO_RASENGAN_TIME                1.5f
+#define NARUTO_RASENGAN_SPEED               100.0f
 #define NARUTO_RASENGAN_OFFSET              10.0f
+#define NARUTO_RASENGAN_FWD_OFFSET          4
+#define NARUTO_RASENGAN_RIGHT_OFFSET        1
+#define NARUTO_RASENGAN_ATK_FRAME           32
+#define NARUTO_RASENGAN_DMG                 20.0f
+#define NARUTO_RASENGAN_KICK                300.0f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
