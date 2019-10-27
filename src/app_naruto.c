@@ -624,6 +624,15 @@ void app_naruto_think (struct Entity_S* self)
             }
         }
     }
+    else if ( gf3d_animation_is_playing(self->animationManager, "rasengan") )
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "rasengan");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            self->locked = NARUTO_RASENGAN_LOCKED + 3;
+        }
+    }
 }
 
 void app_naruto_update(struct Entity_S* self)
@@ -714,7 +723,7 @@ void app_naruto_rasengan(Entity *self)
 {
     float *time;
     if(!self || !self->animationManager) return;
-    self->locked++;
+    // self->locked++;
     
     gf3d_animation_play(self->animationManager, "running", 1);
     time = (float*)malloc(sizeof(float));
@@ -726,6 +735,16 @@ void app_naruto_rasengan(Entity *self)
 
     *time = 0.0f;
     self->data = time;
+    if(!self->hitboxes)
+    {
+        self->hitboxes = gf3d_collision_armor_new(1);
+    }
+    gf3d_collision_armor_add_shape(
+        self->hitboxes,
+        gf3d_shape(self->position, vector3d(1, 1, 4), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, -0.7),
+        "body"
+    );
 
     self->update = app_naruto_rasengan_update;
     self->touch = app_naruto_rasengan_touch;
@@ -734,18 +753,21 @@ void app_naruto_rasengan(Entity *self)
 void app_naruto_rasengan_update(Entity *self)
 {
     float *time = NULL;
-    Vector3D buff3d;
     Vector2D buff2d;
 
     if(!self) return;
 
     time = (float*)self->data;
-    if(time && *time >= NARUTO_RASENGAN_TIME)
+    if( (time && *time >= NARUTO_RASENGAN_TIME) || self->locked == NARUTO_RASENGAN_LOCKED + 3 )
     {
         if(self->data)
         {
             free(self->data);
             self->data = NULL;
+        }
+        if(self->hitboxes)
+        {
+            gf3d_collision_armor_remove_shape(self->hitboxes, "body");
         }
         self->update = app_naruto_update;
         self->touch = app_naruto_touch;
@@ -753,13 +775,17 @@ void app_naruto_rasengan_update(Entity *self)
         return;
     }
 
-    if(self->enemy)
+    if(self->locked == NARUTO_RASENGAN_LOCKED + 1 && self->enemy)
     {
         vector3d_sub(self->velocity, self->enemy->position, self->position);
         vector3d_set_magnitude(&self->velocity, MAX_SPEED);
         buff2d = vector2d(self->velocity.x, self->velocity.y);
         self->rotation.x = vector2d_angle( buff2d );
     } 
+    else
+    {
+        vector2d_clear(self->velocity);
+    }
 
     app_naruto_update(self);
 
@@ -768,7 +794,17 @@ void app_naruto_rasengan_update(Entity *self)
 
 void app_naruto_rasengan_touch(Entity *self, Entity *other)
 {
-    slog("rasengan touch");
+    if(!self || !other) return;
+    if(self == other) return;
+    if(!self->animationManager) return;
+
+    self->locked = NARUTO_RASENGAN_LOCKED + 2;
+    vector2d_clear(self->velocity);
+    gf3d_animation_play(self->animationManager, "rasengan", ANIM_NARUTO_RASENGAN_START);
+
+    vector3d_sub(self->position, other->position, self->position);
+    vector3d_set_magnitude(&self->position, NARUTO_RASENGAN_OFFSET);
+    vector3d_sub(self->position, other->position, self->position);
 }
 
 /* ******************************
@@ -921,6 +957,9 @@ void app_naruto_shuriken_teleport_touch(Entity *self, Entity *other)
 void app_naruto_barrage(Entity *ent)
 {
     slog("barrage");
+    if(!ent) return;
+
+    ent->locked = 0;
 }
 
 void app_naruto_barrage_update(Entity *self)

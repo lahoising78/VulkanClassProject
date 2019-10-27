@@ -41,6 +41,7 @@
 /* Rasengan */
 #define NARUTO_RASENGAN_LOCKED              400
 #define NARUTO_RASENGAN_TIME                2.0f
+#define NARUTO_RASENGAN_OFFSET              10.0f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
