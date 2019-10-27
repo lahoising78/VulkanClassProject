@@ -22,6 +22,8 @@
 #define ANIM_NARUTO_THROW_END               51
 #define ANIM_NARUTO_CHARGE_START            1
 #define ANIM_NARUTO_CHARGE_END              18 
+#define ANIM_NARUTO_RASENGAN_START          1
+#define ANIM_NARUTO_RASENGAN_END            85
 #define ANIM_NARUTO_RASENSHURIKEN_START     1
 #define ANIM_NARUTO_RASENSHURIKEN_END       54
 
@@ -35,6 +37,10 @@
 
 /* Clone Punch */
 #define NARUTO_CLONE_PUNCH_KICK             30.0f
+
+/* Rasengan */
+#define NARUTO_RASENGAN_LOCKED              400
+#define NARUTO_RASENGAN_TIME                2.0f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
@@ -53,6 +59,9 @@
 #define NARUTO_ST_ROT_SPEED                 2000.0f
 #define NARUTO_ST_UP_OFFSET                 5.0f
 #define NARUTO_ST_OFFSET                    3.0f
+
+/* Barrage */
+#define NARUTO_BARRAGE_LOCKED               300
 
 /* ****************************** 
  * ABILITIES
