@@ -23,6 +23,7 @@
 #include "gf3d_gui.h"
 
 // extern float worldTime;
+float worldTime = 0.0f;
 
 int main(int argc,char *argv[])
 {
@@ -243,6 +244,7 @@ int main(int argc,char *argv[])
         }
 
         frame = gf3d_timer_get_ticks(&frameTimer);
+        worldTime = frame;
     }    
     
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    

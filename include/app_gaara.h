@@ -30,8 +30,7 @@
 #define GAARA_SS_NUM                4
 #define GAARA_SS_SCALE              0.5f
 #define GAARA_SS_DISTANCE_TO_ENT    3.0f
-#define GAARA_SS_LOCKED_MIN         301
-#define GAARA_SS_LOCKED_MAX         350
+#define GAARA_SS_TIME               4.0f
 #define GAARA_SS_SPEED              60.0f
 #define GAARA_SS_DMG                10.0f
 #define GAARA_SS_KICK               50.0f
@@ -43,6 +42,7 @@
 #define GAARA_KU_KICK               100.0f
 
 // extern float worldTime;
+extern float worldTime;
 
 enum GaaraSandAttackType
 {

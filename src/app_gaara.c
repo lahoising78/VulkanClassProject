@@ -138,7 +138,7 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         slog("locked: %d", e->locked);
     }
     
-    if ( e->locked % 100 == 0 || (e->locked >= GAARA_SS_LOCKED_MIN && e->locked <= GAARA_SS_LOCKED_MAX) )
+    if ( e->locked % 100 == 0 || e->locked == 301 )
     {
         if(events[SDL_SCANCODE_P].type == SDL_KEYUP)
         {
@@ -549,19 +549,6 @@ void app_gaara_think(Entity *self)
             gf3d_animation_pause(self->animationManager, "choke");
         }
     }
-    else if (self->locked >= GAARA_SS_LOCKED_MIN && self->locked <= GAARA_SS_LOCKED_MAX)
-    {
-        fcount = gf3d_animation_get_frame_count(self->animationManager, "idle");
-        currf = gf3d_animation_get_current_frame(self->animationManager);
-        if( fcount - currf <= 0.5f )
-        {
-            self->locked++;
-            if(self->locked > GAARA_SS_LOCKED_MAX)
-            {
-                gf3d_common_init_state(self);
-            }
-        }
-    }
 }
 
 void app_gaara_update(Entity *self)
@@ -863,8 +850,9 @@ void app_gaara_sand_storm_update(Entity *self)
     if(!owner) return;
 
     // if(owner->locked < GAARA_SS_LOCKED_MIN || owner->locked > GAARA_SS_LOCKED_MAX)
-    if(self->chakra >= 3.0f)
+    if(self->chakra >= GAARA_SS_TIME)
     {
+        gf3d_common_init_state(owner);
         self->data = NULL;
         gf3d_entity_free(self);
         return;
@@ -884,7 +872,7 @@ void app_gaara_sand_storm_update(Entity *self)
     vector3d_add(self->position, owner->position, in);
     self->position.z = z;
 
-    // self->chakra += worldTime;
+    self->chakra += worldTime;
 }
 
 void app_gaara_sand_storm_touch(Entity *self, Entity *other)
