@@ -1,8 +1,24 @@
 #include "gf3d_combat.h"
 #include "simple_logger.h"
 
+// extern float worldTime;
+
 void gf3d_projectile_update(Entity *self);
 void gf3d_projectile_touch(Entity *self, Entity *other);
+
+void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir)
+{
+    Vector3D push;
+    if(!attacker || !target) return;
+
+    /* knockback */
+    vector3d_copy(push, dir);
+    vector3d_set_magnitude(&push, knockback);
+    vector3d_add(target->velocity, target->velocity, push);
+
+    /* do damage */
+    target->health -= damage;
+}
 
 void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback)
 {

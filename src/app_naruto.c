@@ -3,6 +3,8 @@
 #include "gf3d_camera.h"
 #include "gf3d_timer.h"
 
+// extern float worldTime;
+
 void app_naruto_charge(struct Entity_S *e);
 void app_naruto_throw_knife(struct Entity_S *e);
 void app_naruto_punch(struct Entity_S *e);

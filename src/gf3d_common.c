@@ -1,6 +1,8 @@
 #include "gf3d_common.h"
 #include "simple_logger.h"
 
+// extern float worldTime;
+
 void gf3d_common_init_state(Entity *ent)
 {
     if(!ent || !ent->animationManager) return;

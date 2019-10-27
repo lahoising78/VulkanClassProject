@@ -5,6 +5,8 @@
 #include "gf3d_entity.h"
 #include "gf3d_timer.h"
 
+// extern float worldTime;
+
 Timer timer;
 
 typedef struct

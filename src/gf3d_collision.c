@@ -2,6 +2,8 @@
 #include "simple_logger.h"
 #include "gf3d_game_defines.h"
 
+// extern float worldTime;
+
 CollisionArmor *gf3d_collision_armor_new( Uint32 count )
 {
     CollisionArmor *armor = NULL;

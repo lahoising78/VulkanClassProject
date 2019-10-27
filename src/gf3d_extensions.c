@@ -7,6 +7,8 @@
 
 #include "gf3d_extensions.h"
 
+// extern float worldTime;
+
 typedef struct
 {
     Uint32                      enabled_extension_count;

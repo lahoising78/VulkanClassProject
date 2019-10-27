@@ -5,6 +5,8 @@
 #include "gf3d_combat.h"
 #include "gf3d_common.h"
 
+// extern float worldTime;
+
 /* Regular stuff */
 void app_gaara_punch(Entity *self);
 void app_gaara_throw_sand(Entity *self);
@@ -14,15 +16,20 @@ void app_gaara_charge(Entity *self);
 void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type);
 void app_gaara_sand_attack_update(Entity *self);
 
-/* knock up */
-void app_gaara_knockup(Entity *self);
-void app_gaara_knockup_update(Entity *self);
-void app_gaara_knockup_touch(Entity *self, Entity *other);
-
 /* sand burial */
 void app_gaara_sand_burial(Entity *ent);
 void app_gaara_sand_burial_update(Entity *self);
 void app_gaara_sand_burial_touch(Entity *self, Entity *other);
+
+/* sand storm */
+void app_gaara_sand_storm(Entity *ent);
+void app_gaara_sand_storm_update(Entity *self);
+void app_gaara_sand_storm_touch(Entity *self, Entity *other);
+
+/* knock up */
+void app_gaara_knockup(Entity *self);
+void app_gaara_knockup_update(Entity *self);
+void app_gaara_knockup_touch(Entity *self, Entity *other);
 
 Entity *app_gaara_new()
 {
@@ -131,7 +138,7 @@ void app_gaara_input_handler(Player *self, SDL_Event *events)
         slog("locked: %d", e->locked);
     }
     
-    if ( e->locked % 100 == 0)
+    if ( e->locked % 100 == 0 || (e->locked >= GAARA_SS_LOCKED_MIN && e->locked <= GAARA_SS_LOCKED_MAX) )
     {
         if(events[SDL_SCANCODE_P].type == SDL_KEYUP)
         {
@@ -306,6 +313,11 @@ void app_gaara_punch(Entity *self)
             gf3d_animation_play(self->animationManager, "choke", 1);
             self->locked = 201;
             app_gaara_sand_burial(self);
+        }
+        else if( self->locked == 300 )
+        {
+            self->locked = 301;
+            app_gaara_sand_storm(self);
         }
         self->state &= ~ES_Idle;
         self->state |= ES_Attacking;
@@ -537,6 +549,19 @@ void app_gaara_think(Entity *self)
             gf3d_animation_pause(self->animationManager, "choke");
         }
     }
+    else if (self->locked >= GAARA_SS_LOCKED_MIN && self->locked <= GAARA_SS_LOCKED_MAX)
+    {
+        fcount = gf3d_animation_get_frame_count(self->animationManager, "idle");
+        currf = gf3d_animation_get_current_frame(self->animationManager);
+        if( fcount - currf <= 0.5f )
+        {
+            self->locked++;
+            if(self->locked > GAARA_SS_LOCKED_MAX)
+            {
+                gf3d_common_init_state(self);
+            }
+        }
+    }
 }
 
 void app_gaara_update(Entity *self)
@@ -644,68 +669,6 @@ void app_gaara_sand_attack_update(Entity *self)
     }
 
     vector3d_set_magnitude(&self->velocity, SAND_SPEED);
-}
-
-/* *****************************************
- * KNOCK UP
- * *****************************************/
-void app_gaara_knockup(Entity *self)
-{
-    Entity *projectile = NULL;
-    if(!self) return;
-    self->locked = 102;
-
-    projectile = gf3d_entity_new();
-    if(!projectile) return;
-
-    if(self->enemy) vector3d_copy(projectile->position, self->enemy->position);
-    else vector3d_copy(projectile->position, self->position);
-    projectile->position.z = MAX_STAGE_Z - 10;
-    
-    projectile->velocity.z = GAARA_KU_SPEED;
-    projectile->rotation.y = -90.0f;
-
-    projectile->model = gf3d_model_load("sand", "sand");
-    projectile->hitboxes = gf3d_collision_armor_new(1);
-    gf3d_collision_armor_add_shape(
-        projectile->hitboxes,
-        gf3d_shape(projectile->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
-        vector3d(0, 0, 0),
-        "body"
-    );
-
-    projectile->data = self;
-
-    projectile->update = app_gaara_knockup_update;
-    projectile->touch = app_gaara_knockup_touch;
-}
-
-void app_gaara_knockup_update(Entity *self)
-{
-    if(!self) return;
-    gf3d_entity_general_update(self);
-
-    if( self->position.z > GAARA_KU_MAX_Z )
-    {
-        self->data = NULL;
-        gf3d_entity_free(self);
-    }
-}
-
-void app_gaara_knockup_touch(Entity *self, Entity *other)
-{
-    Entity *owner = NULL;
-
-    if(!self || !other) return;
-    owner = (Entity*)self->data;
-
-    if(!owner || owner == other) return;
-
-    gf3d_combat_meele_attack(self, other, GAARA_KU_DMG, GAARA_KU_KICK);
-    other->state |= ES_Jumping;
-    
-    self->data = NULL;
-    gf3d_entity_free(self);
 }
 
 /* *****************************************
@@ -832,4 +795,170 @@ void app_gaara_sand_burial_touch(Entity *self, Entity *other)
         vector3d_add(self->rotation, other->position, vector3d(0, 0, GAARA_SB_EXTENT_UP));
         vector3d_scale(self->scale, self->scale, GAARA_SB_TOUCH_SCALE);
     }
+}
+
+/* ******************************
+ * SAND STORM
+ * 
+ * -note that chakra will be the time the thing has been alive
+ * ******************************/
+void app_gaara_sand_storm(Entity *ent)
+{
+    int i;
+    Entity *proj = NULL;
+    Vector3D forward, right;
+    
+    if(!ent) return;
+    vector3d_angle_vectors(ent->rotation, &forward, &right, NULL);
+
+    for( i = 0; i < GAARA_SS_NUM; i++)
+    {
+        proj = gf3d_entity_new();
+        if(!proj) return;
+
+        proj->data = ent;
+
+        if(i == 0)
+        {
+            vector3d_scale(proj->position, forward, GAARA_SS_DISTANCE_TO_ENT);
+        }
+        else if (i == 1)
+        {
+            vector3d_scale(proj->position, forward, -GAARA_SS_DISTANCE_TO_ENT);
+        }
+        else if (i == 2)
+        {
+            vector3d_scale(proj->position, right, GAARA_SS_DISTANCE_TO_ENT);
+        }
+        else if (i == 3)
+        {
+            vector3d_scale(proj->position, right, -GAARA_SS_DISTANCE_TO_ENT);
+        }
+        vector3d_add(proj->position, ent->position, proj->position);
+        proj->position.z += (i - 1.5f) * 2;
+        proj->scale = vector3d(GAARA_SS_SCALE, GAARA_SS_SCALE, GAARA_SS_SCALE);
+
+        proj->model = gf3d_model_load("sand", "sand");
+        proj->hitboxes = gf3d_collision_armor_new(1);
+        gf3d_collision_armor_add_shape(
+            proj->hitboxes,
+            gf3d_shape(proj->position, proj->scale, gf3d_model_load("cube", "cube")),
+            vector3d(0, 0, 0),
+            "body"
+        );
+
+        proj->update = app_gaara_sand_storm_update;
+        proj->touch = app_gaara_sand_storm_touch;
+    }
+}
+
+void app_gaara_sand_storm_update(Entity *self)
+{
+    Vector3D in;
+    Entity *owner = NULL;
+    float z;
+    if(!self) return;
+
+    owner = (Entity*)self->data;
+    if(!owner) return;
+
+    // if(owner->locked < GAARA_SS_LOCKED_MIN || owner->locked > GAARA_SS_LOCKED_MAX)
+    if(self->chakra >= 3.0f)
+    {
+        self->data = NULL;
+        gf3d_entity_free(self);
+        return;
+    }
+
+    vector3d_sub(in, self->position, owner->position);
+    vector3d_normalize(&in);
+    vector3d_cross_product(&self->velocity, in, vector3d(0, 0, 1));
+    vector3d_scale(self->velocity, self->velocity, GAARA_SS_SPEED);
+
+    gf3d_entity_general_update(self);
+
+    vector3d_sub(in, self->position, owner->position);
+    in.z = 0;
+    z = self->position.z;
+    vector3d_set_magnitude(&in, GAARA_SS_DISTANCE_TO_ENT);
+    vector3d_add(self->position, owner->position, in);
+    self->position.z = z;
+
+    // self->chakra += worldTime;
+}
+
+void app_gaara_sand_storm_touch(Entity *self, Entity *other)
+{
+    Entity *owner = NULL;
+    Vector3D dir;
+
+    if(!self || !other) return;
+
+    owner = (Entity*)self->data;
+    if(!owner || owner == other) return;
+
+    vector3d_sub(dir, other->position, owner->position);
+    gf3d_combat_attack(owner, other, GAARA_SS_DMG, GAARA_SS_KICK, dir);
+}
+
+/* *****************************************
+ * KNOCK UP
+ * *****************************************/
+void app_gaara_knockup(Entity *self)
+{
+    Entity *projectile = NULL;
+    if(!self) return;
+    self->locked = 102;
+
+    projectile = gf3d_entity_new();
+    if(!projectile) return;
+
+    if(self->enemy) vector3d_copy(projectile->position, self->enemy->position);
+    else vector3d_copy(projectile->position, self->position);
+    projectile->position.z = MAX_STAGE_Z - 10;
+    
+    projectile->velocity.z = GAARA_KU_SPEED;
+    projectile->rotation.y = -90.0f;
+
+    projectile->model = gf3d_model_load("sand", "sand");
+    projectile->hitboxes = gf3d_collision_armor_new(1);
+    gf3d_collision_armor_add_shape(
+        projectile->hitboxes,
+        gf3d_shape(projectile->position, vector3d(1, 1, 1), gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, 0),
+        "body"
+    );
+
+    projectile->data = self;
+
+    projectile->update = app_gaara_knockup_update;
+    projectile->touch = app_gaara_knockup_touch;
+}
+
+void app_gaara_knockup_update(Entity *self)
+{
+    if(!self) return;
+    gf3d_entity_general_update(self);
+
+    if( self->position.z > GAARA_KU_MAX_Z )
+    {
+        self->data = NULL;
+        gf3d_entity_free(self);
+    }
+}
+
+void app_gaara_knockup_touch(Entity *self, Entity *other)
+{
+    Entity *owner = NULL;
+
+    if(!self || !other) return;
+    owner = (Entity*)self->data;
+
+    if(!owner || owner == other) return;
+
+    gf3d_combat_meele_attack(self, other, GAARA_KU_DMG, GAARA_KU_KICK);
+    other->state |= ES_Jumping;
+    
+    self->data = NULL;
+    gf3d_entity_free(self);
 }

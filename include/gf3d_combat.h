@@ -9,6 +9,16 @@
 #define PROJECTILE_MAX_SPEED    90.0f
 
 /* 
+ * @brief attack
+ * @param attacker : the entity attacking
+ * @param target : the entity receiving the damage
+ * @param damage : damage
+ * @param knockback : value to push target
+ * @param dir : direction to push target
+ */
+void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir);
+
+/* 
  * @brief do meele attack
  * @param attacker : the entity attacking
  * @param target : the entity that is being attacked

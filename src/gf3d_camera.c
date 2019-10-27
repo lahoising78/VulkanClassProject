@@ -3,6 +3,7 @@
 
 #include <string.h>
 
+// extern float worldTime;
 Matrix4 gf3d_camera = {0};
 Vector3D gf3d_camera_forward = {0};
 Vector3D gf3d_camera_right = {0};

@@ -2,7 +2,6 @@
 #define _GF3D_COMMON_H_
 
 #include "gf3d_entity.h"
-
 /* 
  * @brief set state to initial
  * @param ent : entity to set

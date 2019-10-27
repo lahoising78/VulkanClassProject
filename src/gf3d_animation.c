@@ -2,6 +2,7 @@
 #include "gf3d_animation.h"
 #include "gf3d_timer.h"
 
+// extern float worldTime;
 static Timer timer = {0};
 
 typedef struct AnimationAll_S

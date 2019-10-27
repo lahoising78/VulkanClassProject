@@ -22,6 +22,8 @@
 
 #include "gf3d_gui.h"
 
+// extern float worldTime;
+
 int main(int argc,char *argv[])
 {
     int done = 0;

@@ -14,12 +14,6 @@
 #define KICK_GAARA_SAND_ATK         5.5f
 #define KICK_GAARA_SAND_FWD_ATK     30.0f
 
-/* Knock Up */
-#define GAARA_KU_DMG                10
-#define GAARA_KU_SPEED              100.0f /* knock up speed */
-#define GAARA_KU_MAX_Z              100.0f
-#define GAARA_KU_KICK               100.0f
-
 /* Sand Burial */
 #define GAARA_SB_FWD                4.0f
 #define GAARA_SB_EXTENT_FWD         60.0f
@@ -31,6 +25,24 @@
 #define GAARA_SB_TOUCH_SCALE        5
 #define GAARA_SB_DATA_OWNER         0
 #define GAARA_SB_DATA_TOUCHED       1
+
+/* Sand Storm */
+#define GAARA_SS_NUM                4
+#define GAARA_SS_SCALE              0.5f
+#define GAARA_SS_DISTANCE_TO_ENT    3.0f
+#define GAARA_SS_LOCKED_MIN         301
+#define GAARA_SS_LOCKED_MAX         350
+#define GAARA_SS_SPEED              60.0f
+#define GAARA_SS_DMG                10.0f
+#define GAARA_SS_KICK               50.0f
+
+/* Knock Up */
+#define GAARA_KU_DMG                10
+#define GAARA_KU_SPEED              100.0f /* knock up speed */
+#define GAARA_KU_MAX_Z              100.0f
+#define GAARA_KU_KICK               100.0f
+
+// extern float worldTime;
 
 enum GaaraSandAttackType
 {

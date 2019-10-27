@@ -10,7 +10,7 @@
 
 
  // TODO: Make a command buffer resource manager
-
+// extern float worldTime;
  
 typedef struct
 {

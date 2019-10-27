@@ -4,6 +4,8 @@
 #include "simple_logger.h"
 #include "app_player.h"
 
+// extern float worldTime;
+
 typedef struct
 {
     Player *player_list;
