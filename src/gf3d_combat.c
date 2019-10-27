@@ -11,6 +11,8 @@ void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float kn
     Vector3D push;
     if(!attacker || !target) return;
 
+    if(target->locked < 0) return;
+
     /* knockback */
     vector3d_copy(push, dir);
     vector3d_set_magnitude(&push, knockback);
@@ -18,6 +20,7 @@ void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float kn
 
     /* do damage */
     target->health -= damage;
+    target->locked = -1;
 }
 
 void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback)
@@ -27,6 +30,8 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
 
     if(!attacker || !target) return;
 
+    // if(target->locked < 0) return;
+
     /* add knockback */
     vector3d_angle_vectors(attacker->rotation, &forward, NULL, NULL);
     vector3d_scale(forward, forward, knockback);
@@ -34,6 +39,7 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
 
     /* do damage */
     target->health -= damage;
+    // target->locked = -1;
 
     /* make target look at attacker */
     target->rotation.x = 180 + attacker->rotation.x;

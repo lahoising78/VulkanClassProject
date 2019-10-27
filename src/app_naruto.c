@@ -66,6 +66,7 @@ Entity *app_naruto_new()
     gf3d_animation_set_speed(   e->animationManager, "rasengan",        3.0f);
     gf3d_animation_load(        e->animationManager, "rasenshuriken",   "naruto_rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START,    ANIM_NARUTO_RASENSHURIKEN_END);
     gf3d_animation_set_speed(   e->animationManager, "rasenshuriken",   0.5f);
+    gf3d_animation_load(        e->animationManager, "barrage",         "naruto_barrage",       ANIM_NARUTO_BARRAGE_START,          ANIM_NARUTO_BARRAGE_END);
     e->modelOffset.z = -4.9f;
     e->scale = vector3d(5, 5, 5);
     // e->scale = vector3d(1, 1, 1);
@@ -145,6 +146,8 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         {
             e->locked = 100;
         }
+
+        if(e->locked == NARUTO_BARRAGE_LOCKED) e->locked+=100;
         slog("locked: %d", e->locked);
     }
 
@@ -324,6 +327,15 @@ void app_naruto_throw_knife(struct Entity_S* e)
 
     if(!e) return;
 
+    if(e->locked == NARUTO_BARRAGE_LOCKED /* && e->locked < NARUTO_BARRAGE_LOCKED + 100 */)
+    {
+        e->locked = NARUTO_BARRAGE_LOCKED + 1;
+        app_naruto_barrage(e);
+        e->state &= ~ES_Idle;
+        e->state |= ES_Attacking;
+        return;
+    }
+
     if (e->state & ES_Idle)
     {
         if ( !gf3d_animation_is_playing(e->animationManager, "throw") )
@@ -426,11 +438,6 @@ void app_naruto_punch(struct Entity_S* e)
             e->locked = NARUTO_ST_LOCKED + 1;
             gf3d_animation_play(e->animationManager, "rasenshuriken", ANIM_NARUTO_RASENSHURIKEN_START);
         }
-        else if ( e->locked == NARUTO_BARRAGE_LOCKED )
-        {
-            e->locked = NARUTO_BARRAGE_LOCKED + 1;
-            app_naruto_barrage(e);
-        }
         else if ( e->locked == NARUTO_RASENGAN_LOCKED )
         {
             e->locked = NARUTO_RASENGAN_LOCKED + 1;
@@ -488,6 +495,8 @@ void app_naruto_think (struct Entity_S* self)
     float fcount = 0.0f, currf = 0.0f;
     float distanceToFloor = 0.0f;
     Uint32 onFloor = 0;
+
+    if(!self) return;
 
     if(!self->animationManager || !self->modelBox)
     {
@@ -630,7 +639,7 @@ void app_naruto_think (struct Entity_S* self)
 
 void app_naruto_update(struct Entity_S* self)
 {
-    self->think(self);
+    if(self->think) self->think(self);
     gf3d_entity_general_update(self);
     gfc_matrix_rotate(self->modelMat, self->modelMat, ( self->rotation.y + 90 ) * GFC_DEGTORAD, vector3d(1, 0, 0));
 }
@@ -659,7 +668,7 @@ void app_naruto_clone_update(struct Entity_S *e)
         owner = (Entity*)e->data;
         owner->state &= ~ES_Attacking;
         owner->state |= ES_Idle;
-        owner->locked = 0;
+        owner->locked = NARUTO_BARRAGE_LOCKED;
         
         e->data = NULL;
         gf3d_entity_free(e);
@@ -785,6 +794,8 @@ void app_naruto_rasengan_ball_update(Entity *self)
     vector3d_add( self->position, owner->position, forward);
 
     gf3d_entity_general_update(self);
+
+    self->chakra += worldTime;
 }
 
 void app_naruto_rasengan_touch(Entity *self, Entity *other)
@@ -956,15 +967,83 @@ void app_naruto_shuriken_teleport_touch(Entity *self, Entity *other)
  * *************************/
 void app_naruto_barrage(Entity *ent)
 {
+    Entity *clone = NULL;
+    Vector3D forward, right;
     slog("barrage");
     if(!ent) return;
 
-    ent->locked = 0;
+    clone = gf3d_entity_new();
+    if(!clone) 
+    {
+        slog("no clone");
+        return;
+    }
+
+    clone->model = gf3d_model_new();
+    if(!clone->model) 
+    {
+        slog("no model");
+        return;
+    }
+    
+    clone->model->texture = gf3d_texture_load("images/naruto.png");
+    if(!clone->model->texture) 
+    {
+        slog("no texture");
+        return;
+    }
+    
+    clone->animationManager = gf3d_animation_manager_init(1, clone->model);
+    if(!clone->animationManager) 
+    {
+        slog("no anim manager");
+        return;
+    }
+    gf3d_animation_load(clone->animationManager, "barrage", "naruto_barrage", ANIM_NARUTO_BARRAGE_START, ANIM_NARUTO_BARRAGE_END);
+    gf3d_animation_play(clone->animationManager, "barrage", ANIM_NARUTO_BARRAGE_START);
+
+    vector3d_angle_vectors(ent->rotation, &forward, &right, NULL);
+
+    vector3d_copy(clone->scale, ent->scale);
+    vector3d_scale(clone->position, forward, NARUTO_BARRAGE_FWD_OFFSET);
+    vector3d_add(clone->position, clone->position, ent->position);
+    vector3d_copy(clone->rotation, ent->rotation);
+    vector3d_copy(clone->modelOffset, ent->modelOffset);
+
+    clone->update = app_naruto_barrage_update;
+    clone->touch = app_naruto_barrage_touch;
+
+    clone->data = ent;
 }
 
 void app_naruto_barrage_update(Entity *self)
 {
-    slog("barrage update");
+    Entity *owner = NULL;
+    float fcount = 0.0f, currf = 0.0f;
+    
+    if(!self) return;
+    if(!self->animationManager) return;
+
+    owner = (Entity*)self->data;
+    if(!owner)
+    {
+        return;
+    }
+    
+    fcount = gf3d_animation_get_frame_count(self->animationManager, "barrage");
+    currf = gf3d_animation_get_current_frame(self->animationManager);
+    if( fcount - currf <= 0.5f )
+    {
+        if(self->animationManager) 
+        {
+            gf3d_animation_manager_free(self->animationManager);
+        }
+        gf3d_common_init_state(owner);
+        self->data = NULL;
+        gf3d_entity_free(self);
+    }
+
+    app_naruto_update(self);
 }
 
 void app_naruto_barrage_touch(Entity *self, Entity *other)

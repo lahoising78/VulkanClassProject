@@ -26,6 +26,8 @@
 #define ANIM_NARUTO_RASENGAN_END            41
 #define ANIM_NARUTO_RASENSHURIKEN_START     1
 #define ANIM_NARUTO_RASENSHURIKEN_END       54
+#define ANIM_NARUTO_BARRAGE_START           1
+#define ANIM_NARUTO_BARRAGE_END             81
 
 /* Naruto Punch */
 #define NARUTO_PUNCH_DMG                    5
@@ -40,7 +42,7 @@
 
 /* Rasengan */
 #define NARUTO_RASENGAN_LOCKED              400
-#define NARUTO_RASENGAN_TIME                1.5f
+#define NARUTO_RASENGAN_TIME                0.5f
 #define NARUTO_RASENGAN_SPEED               100.0f
 #define NARUTO_RASENGAN_OFFSET              10.0f
 #define NARUTO_RASENGAN_FWD_OFFSET          4
@@ -69,10 +71,11 @@
 
 /* Barrage */
 #define NARUTO_BARRAGE_LOCKED               300
+#define NARUTO_BARRAGE_FWD_OFFSET           6                       
 
 /* ****************************** 
  * ABILITIES
- *  -Rasengan
+ *  o Rasengan
  *  o Rasen-shuriken
  *  -Jinchuriki cloak
  *  o Shuriken Teleport
