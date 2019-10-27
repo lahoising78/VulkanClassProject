@@ -84,7 +84,7 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     }
 
     /* Jumping */
-    if (events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN && (!e->locked || e->locked >= 100))
+    if (events[SDL_SCANCODE_SPACE].type == SDL_KEYDOWN && (!e->locked || e->locked % 100 == 0))
     {
         if (distanceToFloor < 0.7f)
         {
@@ -511,7 +511,7 @@ void app_naruto_think (struct Entity_S* self)
             }
             
         }
-        else if ( currf * 3 <= ATK_FRAME_NARUTO_PUNCH )
+        else if ( currf * 3 <= NARUTO_PUNCH_ATK_FRAME )
         {
             if( !gf3d_collision_armor_contains(self->hitboxes, "punch") )
             {
@@ -539,7 +539,7 @@ void app_naruto_think (struct Entity_S* self)
                 self->locked = 0;
             }
         }
-        else if ( currf * 3 <= ATK_FRAME_NARUTO_KICK )
+        else if ( currf * 3 <= NARUTO_KICK_ATK_FRAME )
         {
             if( !gf3d_collision_armor_contains(self->hitboxes, "kick") )
             {
@@ -590,7 +590,7 @@ void app_naruto_update(struct Entity_S* self)
 
 void app_naruto_touch (struct Entity_S* self, struct Entity_S* other)
 {
-    gf3d_combat_meele_attack(self, other, DMG_NARUTO_PUNCH, KICK_NARUTO_PUNCH);
+    gf3d_combat_meele_attack(self, other, NARUTO_PUNCH_DMG, NARUTO_PUNCH_KICK);
 }
 
 void app_naruto_clone_update(struct Entity_S *e)
@@ -616,7 +616,7 @@ void app_naruto_clone_update(struct Entity_S *e)
         
         gf3d_entity_free(e);
     }
-    else if ( currf * 3 <= ATK_FRAME_NARUTO_PUNCH )
+    else if ( currf * 3 <= NARUTO_PUNCH_ATK_FRAME )
     {
         if( !gf3d_collision_armor_contains(e->hitboxes, "punch") )
         {
@@ -628,7 +628,7 @@ void app_naruto_clone_update(struct Entity_S *e)
 void app_naruto_clone_touch(struct Entity_S *self, struct Entity_S *other)
 {
     if(self && other && (Entity*)self->data != other)
-        gf3d_combat_meele_attack(self, other, DMG_NARUTO_PUNCH, KICK_NARUTO_CLONE_PUNCH);
+        gf3d_combat_meele_attack(self, other, NARUTO_PUNCH_DMG, NARUTO_CLONE_PUNCH_KICK);
 }
 
 void app_naruto_add_hitbox(struct Entity_S *ent, char *name)
@@ -667,17 +667,67 @@ void app_naruto_add_hitbox(struct Entity_S *ent, char *name)
 void app_naruto_rasenshuriken(Entity *ent)
 {
     Entity *proj = NULL;
+    
+    if(!ent) return;
     gf3d_animation_play(ent->animationManager, "rasenshuriken", 1);
+
+    proj = gf3d_entity_new();
+    if(!proj) return;
+
+    vector3d_copy(proj->position, ent->position);
+    proj->position.z += NARUTO_RASENSHURIKEN_UP_OFFSET;
+
+    proj->model = gf3d_model_load("shuriken", "shuriken");
+    proj->hitboxes = gf3d_collision_armor_new(1);
+    gf3d_collision_armor_add_shape(
+        proj->hitboxes,
+        gf3d_shape(proj->position, proj->scale, gf3d_model_load("cube", "cube")),
+        vector3d(0, 0, 0),
+        "body"
+    );
+
+    proj->update = app_naruto_rasenshuriken_update;
+    proj->touch = app_naruto_rasenshuriken_touch;
+
+    proj->data = ent;
 }
 
 void app_naruto_rasenshuriken_update(Entity *self)
 {
-    slog("rasenshuriken update");
+    Entity *owner = NULL;
+    if( self->chakra >= NARUTO_RASENSHURIKEN_TIME )
+    {
+        self->data = NULL;
+        gf3d_entity_free(self);
+        return;
+    }
 
+    self->rotation.x += worldTime * NARUTO_RASENSHURIKEN_ROT_SPEED;
+
+    owner = (Entity*)self->data;
+    if(owner && owner->enemy)
+    {
+        vector3d_sub(self->velocity, owner->enemy->position, self->position);
+        vector3d_set_magnitude(&self->velocity, NARUTO_RASENSHURIKEN_SPEED);
+    }
+
+    gf3d_entity_general_update(self);
+    gfc_matrix_rotate(self->modelMat, self->modelMat, self->rotation.y, vector3d(1, 0, 0));
+
+    self->chakra += worldTime;
 }
 
 void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
 {
+    Entity *owner = NULL;
+    Vector3D dir;
     slog("rasenshuriken touch");
+    if(!self || !other) return;
 
+    owner = (Entity*)self->data;
+    if(!owner || owner == other) return;
+
+    vector3d_sub(dir, other->position, self->position);
+
+    gf3d_combat_attack(owner, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, dir);
 }

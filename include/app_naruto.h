@@ -25,16 +25,24 @@
 #define ANIM_NARUTO_RASENSHURIKEN_START     1
 #define ANIM_NARUTO_RASENSHURIKEN_END       54
 
-/* attack frames */
-#define ATK_FRAME_NARUTO_PUNCH      17.5f
-#define ATK_FRAME_NARUTO_KICK       30.0f
+/* Naruto Punch */
+#define NARUTO_PUNCH_DMG                    5
+#define NARUTO_PUNCH_KICK                   3.0f
+#define NARUTO_PUNCH_ATK_FRAME              17.5f
 
-/* Attack damage */
-#define DMG_NARUTO_PUNCH 5
+/* Naruto Kick */
+#define NARUTO_KICK_ATK_FRAME               30.0f
 
-/* Attack kick */
-#define KICK_NARUTO_PUNCH 3.0f
-#define KICK_NARUTO_CLONE_PUNCH 30.0f
+/* Clone Punch */
+#define NARUTO_CLONE_PUNCH_KICK             30.0f
+
+/* Rasenshuriken */
+#define NARUTO_RASENSHURIKEN_UP_OFFSET      10.0f
+#define NARUTO_RASENSHURIKEN_TIME           1.5f
+#define NARUTO_RASENSHURIKEN_ROT_SPEED      2000.0f
+#define NARUTO_RASENSHURIKEN_SPEED          80.0f
+#define NARUTO_RASENSHURIKEN_DMG            20.0f
+#define NARUTO_RASENSHURIKEN_KICK           10.0f
 
 /* ****************************** 
  * ABILITIES
@@ -44,6 +52,8 @@
  *  -Kunai Teleport
  *  -Barrage
  * ******************************/
+
+extern float worldTime;
 
 /* 
 @brief get an entity with naruto's moves, model, functions
