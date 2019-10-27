@@ -825,10 +825,6 @@ void app_naruto_shuriken_teleport_touch(Entity *self, Entity *other)
     owner = (Entity*)self->data;
     if(!owner || owner == other) return;
 
-    // vector3d_sub(self->position, other->position, self->position);
-    // vector3d_set_magnitude(&self->position, NARUTO_ST_OFFSET);
-    // vector3d_add(self->position, self->position, other->position);
-
     vector3d_copy(owner->position, self->position);
     self->data = NULL;
     gf3d_entity_free(self);

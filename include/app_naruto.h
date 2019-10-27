@@ -59,7 +59,7 @@
  *  -Rasengan
  *  o Rasen-shuriken
  *  -Jinchuriki cloak
- *  -Shuriken Teleport
+ *  o Shuriken Teleport
  *  -Barrage
  * ******************************/
 
