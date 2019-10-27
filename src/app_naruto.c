@@ -725,7 +725,7 @@ void app_naruto_rasengan(Entity *self)
     proj = gf3d_entity_new();
     if(!proj) return;
 
-    proj->model = gf3d_model_load("sand", "sand");
+    proj->model = gf3d_model_load("sand", "rasengan");
     proj->hitboxes = gf3d_collision_armor_new(1);
     gf3d_collision_armor_add_shape(
         proj->hitboxes,
