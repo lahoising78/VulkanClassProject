@@ -43,6 +43,12 @@ int gf3d_collision_armor_add_shape( CollisionArmor *armor, Shape s, Vector3D off
 int gf3d_collision_armor_remove_shape( CollisionArmor *armor, char *name );
 
 /* 
+ * @brief remove all shapes from armor
+ * @param armor : armor to wipe
+ */
+int gf3d_collision_armor_remove_all( CollisionArmor *armor );
+
+/* 
  * @brief update the position of the shapes in the armor
  * @param armor : the armor to update
  * @param parentPosition : the origin to calculate offsets from, usually the the origin of the entity that holds the armor

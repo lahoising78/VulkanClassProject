@@ -402,6 +402,7 @@ void app_gaara_throw_sand(Entity *self)
 
             projectile->health = 2;
             projectile->chakra = 3;
+            projectile->hitstun = 0.1f;
         }
     }
 }
@@ -577,7 +578,7 @@ void app_gaara_touch(Entity *self, Entity *other)
     owner = self->data;
     if(!owner) return;
 
-    gf3d_combat_meele_attack(owner, other, self->health, self->chakra);
+    gf3d_combat_meele_attack(owner, other, self->health, self->chakra, self->hitstun);
 }
 
 /* *********************************************
@@ -600,32 +601,35 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
     switch (type)
     {
     case ATK_RIGHT:
-            vector3d_scale(sand->position, forward, SAND_FORWARD_1);        /* scale forward and save to start */
+            vector3d_scale(sand->position, forward, GAARA_SA_SWIPE_FWD1_OFFSET);        /* scale forward and save to start */
             vector3d_add(sand->position, sand->position, owner->position);  /* add start to position of the creating entity */
-            vector3d_scale(right, right, -SAND_LEFT);                       /* right becomes the left, already scaled */
+            vector3d_scale(right, right, -GAARA_SA_SWIPE_LEFT_OFFSET);                       /* right becomes the left, already scaled */
             vector3d_sub(sand->rotation, sand->position, right);            /* add right to start to get dest */
             vector3d_add(sand->position, sand->position, right);            /* add left to start to get start */
-            sand->health = DMG_GAARA_SAND_ATK;                              /* health of sand will be damage */
-            sand->chakra = KICK_GAARA_SAND_ATK;                             /* chakra of sand will be kick */
+            sand->health = GAARA_SA_SWIPE_DMG;                              /* health of sand will be damage */
+            sand->chakra = GAARA_SA_SWIPE_KICK;                             /* chakra of sand will be kick */
+            sand->hitstun  = GAARA_SA_SWIPE_HITSTUN;                        /* hitstun of sand will be hitstun duration */
         break;
 
     case ATK_LEFT:
-            vector3d_scale(sand->position, forward, SAND_FORWARD_2);
+            vector3d_scale(sand->position, forward, GAARA_SA_SWIPE_FWD2_OFFSET);
             vector3d_add(sand->position, sand->position, owner->position);
-            vector3d_scale(right, right, -SAND_LEFT);
+            vector3d_scale(right, right, -GAARA_SA_SWIPE_LEFT_OFFSET);
             vector3d_add(sand->rotation, sand->position, right);
             vector3d_sub(sand->position, sand->position, right);
-            sand->health = DMG_GAARA_SAND_ATK;
-            sand->chakra = KICK_GAARA_SAND_ATK;
+            sand->health = GAARA_SA_FWD_DMG;
+            sand->chakra = GAARA_SA_FWD_KICK;
+            sand->hitstun = GAARA_SA_SWIPE_HITSTUN;
         break;
 
     case ATK_FORWARD:
-            vector3d_scale(sand->position, forward, SAND_FORWARD_1 / 2);
+            vector3d_scale(sand->position, forward, GAARA_SA_SWIPE_FWD1_OFFSET / 2);
             vector3d_add(sand->position, sand->position, owner->position);
-            vector3d_scale(sand->rotation, forward, SAND_FORWARD_2 * 1.3);
+            vector3d_scale(sand->rotation, forward, GAARA_SA_SWIPE_FWD2_OFFSET * 1.3);
             vector3d_add(sand->rotation, sand->position, sand->rotation);
-            sand->health = DMG_GAARA_SAND_ATK;
-            sand->chakra = KICK_GAARA_SAND_FWD_ATK;
+            sand->health = GAARA_SA_FWD_DMG;
+            sand->chakra = GAARA_SA_FWD_KICK;
+            sand->hitstun = GAARA_SA_SWIPE_HITSTUN;
         break;
     
     default:
@@ -633,7 +637,7 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
     }
 
     vector3d_sub(sand->velocity, sand->rotation, sand->position);
-    vector3d_set_magnitude(&sand->velocity, SAND_SPEED);
+    vector3d_set_magnitude(&sand->velocity, SA_SPEED);
 
     sand->model = gf3d_model_load("sand", "sand");
 
@@ -665,7 +669,7 @@ void app_gaara_sand_attack_update(Entity *self)
         gf3d_entity_free(self);
     }
 
-    vector3d_set_magnitude(&self->velocity, SAND_SPEED);
+    vector3d_set_magnitude(&self->velocity, SA_SPEED);
 }
 
 /* *****************************************
@@ -742,7 +746,7 @@ void app_gaara_sand_burial_update(Entity *self)
         if( !gf3d_animation_is_playing(owner->animationManager, "choke") ||
             gf3d_animation_get_current_frame(owner->animationManager) * 3 >= GAARA_SB_END_FRAME)
         {
-            if(touched) gf3d_combat_meele_attack(self, touched, GAARA_SB_DMG, 0);
+            if(touched) gf3d_combat_meele_attack(self, touched, GAARA_SB_DMG, 0, GAARA_SB_HITSTUN);
             if(self->data) free(self->data);
             self->data = NULL;
             gf3d_entity_free(self);
@@ -896,7 +900,7 @@ void app_gaara_sand_storm_touch(Entity *self, Entity *other)
     if(!owner || owner == other) return;
 
     vector3d_sub(dir, other->position, owner->position);
-    gf3d_combat_attack(owner, other, GAARA_SS_DMG, GAARA_SS_KICK, dir);
+    gf3d_combat_attack(owner, other, GAARA_SS_DMG, GAARA_SS_KICK, dir, GAARA_SS_HITSTUN);
 }
 
 /* *****************************************
@@ -954,7 +958,7 @@ void app_gaara_knockup_touch(Entity *self, Entity *other)
 
     if(!owner || owner == other) return;
 
-    gf3d_combat_meele_attack(self, other, GAARA_KU_DMG, GAARA_KU_KICK);
+    gf3d_combat_meele_attack(self, other, GAARA_KU_DMG, GAARA_KU_KICK, GAARA_KU_HITSTUN);
     other->state |= ES_Jumping;
     
     self->data = NULL;
@@ -1036,5 +1040,5 @@ void app_gaara_sand_tsunami_touch(Entity *self, Entity *other)
     owner = (Entity*)self->data;
     if(!owner || owner == other) return;
 
-    gf3d_combat_attack(owner, other, GAARA_ST_DMG, GAARA_ST_KICK, self->velocity);
+    gf3d_combat_attack(owner, other, GAARA_ST_DMG, GAARA_ST_KICK, self->velocity, GAARA_KU_HITSTUN);
 }

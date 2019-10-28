@@ -70,6 +70,7 @@ void gf3d_collision_armor_free( CollisionArmor *armor )
     }
     if(armor->shapeNames) free(armor->shapeNames);
     free(armor->_inuse);
+    armor->shapeCount = 0;
     free(armor);
 }
 
@@ -118,6 +119,27 @@ int gf3d_collision_armor_remove_shape( CollisionArmor *armor, char *name )
         }
     }
     return 0;
+}
+
+int gf3d_collision_armor_remove_all( CollisionArmor *armor )
+{
+    int i;
+    if(!armor) return 0;
+    slog("empty armor");
+    for(i = 0; i < armor->shapeCount; i++)
+    {
+        if(armor->shapeNames[i]) free(armor->shapeNames[i]);
+        armor->shapeNames[i] = NULL;
+        memset(&armor->offsets[i], 0, sizeof(Vector3D));
+        memset(&armor->shapes[i], 0, sizeof(Shape));
+        memset(&armor->_inuse[i], 0, sizeof(Uint8));
+    }
+    // memset(armor->offsets, 0, sizeof(Vector3D) * armor->shapeCount );
+    // memset(armor->shapeNames, 0, sizeof(char*) * armor->shapeCount);
+    // memset(armor->shapes, 0, sizeof(Shape) * armor->shapeCount);
+    // memset(armor->_inuse, 0, sizeof(Uint8) * armor->shapeCount);
+    // armor->shapeCount = 0;
+    return 1;
 }
 
 void gf3d_collision_armor_update( CollisionArmor *armor, Vector3D parentPosition, Vector3D parentRotation )

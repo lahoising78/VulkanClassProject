@@ -16,7 +16,7 @@
  * @param knockback : value to push target
  * @param dir : direction to push target
  */
-void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir);
+void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir, float hitstun);
 
 /* 
  * @brief do meele attack
@@ -25,7 +25,7 @@ void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float kn
  * @param damage : damage to apply
  * @param knockback : value to push target
  */
-void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback);
+void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback, float hitstun);
 
 /* 
  * @brief create a projectile

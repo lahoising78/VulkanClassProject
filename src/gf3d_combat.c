@@ -6,12 +6,15 @@
 void gf3d_projectile_update(Entity *self);
 void gf3d_projectile_touch(Entity *self, Entity *other);
 
-void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir)
+int  gf3d_combat_can_damage(Entity *self);
+
+void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float knockback, Vector3D dir, float hitstun)
 {
     Vector3D push;
     if(!attacker || !target) return;
 
-    if(target->locked < 0) return;
+    if(!gf3d_combat_can_damage(target)) return;
+    target->hitstun = hitstun;
 
     /* knockback */
     vector3d_copy(push, dir);
@@ -23,13 +26,15 @@ void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float kn
     target->locked = -1;
 }
 
-void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback)
+void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback, float hitstun)
 {
     Vector3D forward;
     // Vector3D buff;
 
     if(!attacker || !target) return;
-
+    // slog("combat hitstun: %f", hitstun);
+    if(!gf3d_combat_can_damage(target)) return;
+    target->hitstun = hitstun; 
     // if(target->locked < 0) return;
 
     /* add knockback */
@@ -45,6 +50,16 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
     target->rotation.x = 180 + attacker->rotation.x;
     if(target->rotation.x > 180) target->rotation.x -= 360;
     else if (target->rotation.x < -180) target->rotation.x += 360;
+}
+
+/* *************************************
+ * GENERAL STUFF
+ * *************************************/
+int gf3d_combat_can_damage(Entity *self)
+{
+    int canDamage = self->hitstun <= 0.0f;
+    slog("can damage: %s, hit: %f", canDamage ? "yes" : "no", self->hitstun);
+    return canDamage;
 }
 
 /* 
@@ -131,7 +146,7 @@ void gf3d_projectile_touch(Entity *self, Entity *other)
     slog("Projectile touch");
 
     /* health on a projectile is damage to deal, and chakra is the knockback */
-    gf3d_combat_meele_attack(self, data[PROJECTILE_TARGET], self->health, self->chakra);
+    gf3d_combat_meele_attack(self, data[PROJECTILE_TARGET], self->health, self->chakra, self->hitstun);
     free(self->data);
     self->data = NULL;
     gf3d_entity_free(self);

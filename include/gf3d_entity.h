@@ -6,6 +6,8 @@
 #include "gf3d_game_defines.h"
 #include "gf3d_animation.h"
 
+extern float worldTime;
+
 typedef enum
 {
     ES_Idle =           1,
@@ -49,6 +51,7 @@ typedef struct Entity_S
        locked < 0 :             when being attacked 
        locked % 100 == 0 :   when using a jutsu*/
     Uint32 locked; 
+    float hitstun;
     
     void *data;
 

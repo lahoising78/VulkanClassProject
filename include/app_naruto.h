@@ -31,14 +31,22 @@
 
 /* Naruto Punch */
 #define NARUTO_PUNCH_DMG                    5
-#define NARUTO_PUNCH_KICK                   3.0f
+#define NARUTO_PUNCH_KICK                   70.0f
 #define NARUTO_PUNCH_ATK_FRAME              17.5f
+#define NARUTO_PUNCH_LOCKED                 1
+#define NARUTO_PUNCH_HITSTUN                0.18f
 
 /* Naruto Kick */
 #define NARUTO_KICK_ATK_FRAME               30.0f
+#define NARUTO_KICK_LOCKED                  3
+#define NARUTO_KICK_DMG                     3
+#define NARUTO_KICK_KICK                    50.0f
+#define NARUTO_KICK_HITSTUN                 0.3f
 
 /* Clone Punch */
-#define NARUTO_CLONE_PUNCH_KICK             30.0f
+#define NARUTO_CLONE_PUNCH_LOCKED           5
+#define NARUTO_CLONE_PUNCH_KICK             250.0f
+#define NARUTO_CLONE_PUNCH_HITSTUN          0.3f
 
 /* Rasengan */
 #define NARUTO_RASENGAN_LOCKED              400
@@ -50,6 +58,7 @@
 #define NARUTO_RASENGAN_ATK_FRAME           32
 #define NARUTO_RASENGAN_DMG                 20.0f
 #define NARUTO_RASENGAN_KICK                300.0f
+#define NARUTO_RASENGAN_HITSTUN             0.7f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
@@ -59,7 +68,8 @@
 #define NARUTO_RASENSHURIKEN_ROT_SPEED      2000.0f
 #define NARUTO_RASENSHURIKEN_SPEED          80.0f
 #define NARUTO_RASENSHURIKEN_DMG            20.0f
-#define NARUTO_RASENSHURIKEN_KICK           10.0f
+#define NARUTO_RASENSHURIKEN_KICK           50.0f
+#define NARUTO_RASENSHURIKEN_HITSTUN        0.1f
 
 /* Shuriken Teleport */
 #define NARUTO_ST_LOCKED                    200
@@ -82,7 +92,7 @@
  *  -Barrage
  * ******************************/
 
-extern float worldTime;
+// extern float worldTime;
 
 /* 
 @brief get an entity with naruto's moves, model, functions

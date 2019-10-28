@@ -96,6 +96,7 @@ void gf3d_entity_manager_update(  )
                 if ( e->touch && gf3d_collision_check(e->hitboxes, o->hurtboxes) )
                 {
                     e->touch(e, o);
+                    continue;
                 }
             }
 
@@ -205,6 +206,11 @@ void gf3d_entity_general_update( Entity *self )
     gfc_matrix_make_translation(self->modelMat, buff);
     gf3d_model_scale( self->modelMat, self->scale);
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
+
+    /* calculate hitstun */
+    self->hitstun -= worldTime;
+    if(self->hitstun < 0.0f)  self->hitstun = 0.0f;
+    // slog("hitstun: %f; worldTime: %f", self->hitstun, worldTime);
 }
 
 // void gf3d_entity_general_touch( Entity *self, Entity *other )
