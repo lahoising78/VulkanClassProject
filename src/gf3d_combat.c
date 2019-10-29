@@ -23,7 +23,7 @@ void gf3d_combat_attack(Entity *attacker, Entity *target, float damage, float kn
 
     /* do damage */
     target->health -= damage;
-    target->locked = -1;
+    // target->locked = -1;
 }
 
 void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, float knockback, float hitstun)
@@ -58,7 +58,7 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
 int gf3d_combat_can_damage(Entity *self)
 {
     int canDamage = self->hitstun <= 0.0f;
-    slog("can damage: %s, hit: %f", canDamage ? "yes" : "no", self->hitstun);
+    if(canDamage) slog("can damage: yes");
     return canDamage;
 }
 

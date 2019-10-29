@@ -63,9 +63,9 @@
 #define GAARA_ST_FWD_OFFSET         15.0f
 #define GAARA_ST_FWD_OFFSET_INC     10
 #define GAARA_ST_SPEED              80.0f
-#define GAARA_ST_DMG                30.0f
+#define GAARA_ST_DMG                0.01f
 #define GAARA_ST_KICK               10.0f
-#define GAARA_ST_HITSTUN            0.1f
+#define GAARA_ST_HITSTUN            0.0f
 
 // extern float worldTime;
 

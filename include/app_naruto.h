@@ -45,11 +45,11 @@
 
 /* Clone Punch */
 #define NARUTO_CLONE_PUNCH_LOCKED           5
-#define NARUTO_CLONE_PUNCH_KICK             250.0f
-#define NARUTO_CLONE_PUNCH_HITSTUN          0.3f
+#define NARUTO_CLONE_PUNCH_KICK             265.0f
+#define NARUTO_CLONE_PUNCH_HITSTUN          0.7f
 
 /* Rasengan */
-#define NARUTO_RASENGAN_LOCKED              400
+#define NARUTO_RASENGAN_LOCKED              300
 #define NARUTO_RASENGAN_TIME                0.5f
 #define NARUTO_RASENGAN_SPEED               100.0f
 #define NARUTO_RASENGAN_OFFSET              10.0f
@@ -58,7 +58,7 @@
 #define NARUTO_RASENGAN_ATK_FRAME           32
 #define NARUTO_RASENGAN_DMG                 20.0f
 #define NARUTO_RASENGAN_KICK                300.0f
-#define NARUTO_RASENGAN_HITSTUN             0.7f
+#define NARUTO_RASENGAN_HITSTUN             0.2f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
@@ -68,8 +68,8 @@
 #define NARUTO_RASENSHURIKEN_ROT_SPEED      2000.0f
 #define NARUTO_RASENSHURIKEN_SPEED          80.0f
 #define NARUTO_RASENSHURIKEN_DMG            20.0f
-#define NARUTO_RASENSHURIKEN_KICK           50.0f
-#define NARUTO_RASENSHURIKEN_HITSTUN        0.1f
+#define NARUTO_RASENSHURIKEN_KICK           200.0f
+#define NARUTO_RASENSHURIKEN_HITSTUN        0.01f
 
 /* Shuriken Teleport */
 #define NARUTO_ST_LOCKED                    200
@@ -80,8 +80,10 @@
 #define NARUTO_ST_OFFSET                    3.0f
 
 /* Barrage */
-#define NARUTO_BARRAGE_LOCKED               300
-#define NARUTO_BARRAGE_FWD_OFFSET           6                       
+#define NARUTO_BARRAGE_LOCKED               400
+#define NARUTO_BARRAGE_LOCKED_COUNT         2
+#define NARUTO_BARRAGE_FWD_OFFSET           17
+#define NARUTO_BARRAGE_ATK_FRAME            45
 
 /* ****************************** 
  * ABILITIES

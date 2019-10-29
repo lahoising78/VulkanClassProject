@@ -1040,5 +1040,5 @@ void app_gaara_sand_tsunami_touch(Entity *self, Entity *other)
     owner = (Entity*)self->data;
     if(!owner || owner == other) return;
 
-    gf3d_combat_attack(owner, other, GAARA_ST_DMG, GAARA_ST_KICK, self->velocity, GAARA_KU_HITSTUN);
+    gf3d_combat_attack(owner, other, GAARA_ST_DMG, GAARA_ST_KICK, self->velocity, GAARA_ST_HITSTUN);
 }

@@ -146,8 +146,7 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         {
             e->locked = 100;
         }
-
-        if(e->locked == NARUTO_BARRAGE_LOCKED) e->locked+=100;
+        if(e->locked == NARUTO_BARRAGE_LOCKED) e->locked += 100;
         slog("locked: %d", e->locked);
     }
 
@@ -327,12 +326,15 @@ void app_naruto_throw_knife(struct Entity_S* e)
 
     if(!e) return;
 
-    if(e->locked == NARUTO_BARRAGE_LOCKED /* && e->locked < NARUTO_BARRAGE_LOCKED + 100 */)
+    if(e->locked >= 100)
     {
-        e->locked = NARUTO_BARRAGE_LOCKED + 1;
-        app_naruto_barrage(e);
-        e->state &= ~ES_Idle;
-        e->state |= ES_Attacking;
+        if( e->locked == NARUTO_BARRAGE_LOCKED)
+        {
+            e->locked = NARUTO_BARRAGE_LOCKED + 1;
+            app_naruto_barrage(e);
+            e->state &= ~ES_Idle;
+            e->state |= ES_Attacking;
+        }
         return;
     }
 
@@ -593,16 +595,27 @@ void app_naruto_think (struct Entity_S* self)
             }
         }
     }
-    else if ( self->locked == 3 && gf3d_animation_is_playing(self->animationManager, "idle") )
+    else if ( gf3d_animation_is_playing(self->animationManager, "idle") )
     {
         fcount = gf3d_animation_get_frame_count(self->animationManager, "idle");
         currf = gf3d_animation_get_current_frame(self->animationManager);
-        if(fcount - currf <= 0.5f)
+        if( self->locked == 3 )
         {
-            self->state &= ~ES_Attacking;
-            self->state |= ES_Idle;
-            self->locked = 0;
+            if(fcount - currf <= 0.5f)
+            {
+                self->state &= ~ES_Attacking;
+                self->state |= ES_Idle;
+                self->locked = 0;
+            }
         }
+        else if ( self->locked == NARUTO_BARRAGE_LOCKED )
+        {
+            if( fcount - currf <= 0.5f )
+            {
+                gf3d_common_init_state(self);
+            }
+        }
+        
     }
     else if ( gf3d_animation_is_playing(self->animationManager, "throw") )
     {
@@ -638,10 +651,15 @@ void app_naruto_think (struct Entity_S* self)
             }
         }
     }
+    else if ( self->locked == NARUTO_BARRAGE_LOCKED && gf3d_animation_is_playing(self->animationManager, "running") )
+    {
+        self->locked = 0;
+    }
 }
 
 void app_naruto_update(struct Entity_S* self)
 {
+    if(!self) return;
     if(self->think) self->think(self);
     gf3d_entity_general_update(self);
     gfc_matrix_rotate(self->modelMat, self->modelMat, ( self->rotation.y + 90 ) * GFC_DEGTORAD, vector3d(1, 0, 0));
@@ -677,10 +695,15 @@ void app_naruto_clone_update(struct Entity_S *e)
         
         /* release entity from lock */
         owner = (Entity*)e->data;
-        owner->state &= ~ES_Attacking;
-        owner->state |= ES_Idle;
-        owner->locked = NARUTO_BARRAGE_LOCKED;
-        
+        if(owner)
+        {
+            owner->state &= ~ES_Attacking;
+            owner->state |= ES_Idle;
+            if(owner->locked != NARUTO_BARRAGE_LOCKED)
+            {
+                owner->locked = 0;
+            } 
+        }
         e->data = NULL;
         gf3d_entity_free(e);
     }
@@ -698,10 +721,14 @@ void app_naruto_clone_update(struct Entity_S *e)
 
 void app_naruto_clone_touch(struct Entity_S *self, struct Entity_S *other)
 {
+    Entity *owner = NULL;
     if(!self || !other || (Entity*)self->data == other) return;
     gf3d_combat_meele_attack(self, other, NARUTO_PUNCH_DMG, NARUTO_CLONE_PUNCH_KICK, NARUTO_CLONE_PUNCH_HITSTUN);
 
-    // if(self->hitboxes) gf3d_collision_armor_remove_all(self->hitboxes);
+    owner = (Entity*)self->data;
+    if(!owner) return;
+
+    owner->locked = NARUTO_BARRAGE_LOCKED;
 }
 
 void app_naruto_add_hitbox(struct Entity_S *ent, char *name)
@@ -903,6 +930,7 @@ void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
     vector3d_sub(dir, other->position, self->position);
 
     gf3d_combat_attack(owner, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, dir, NARUTO_RASENSHURIKEN_HITSTUN);
+    // gf3d_combat_meele_attack(self, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, NARUTO_RASENSHURIKEN_HITSTUN);
 }
 
 /* **********************************
@@ -1042,6 +1070,8 @@ void app_naruto_barrage(Entity *ent)
         vector3d_copy(clone->rotation, ent->rotation);
         vector3d_copy(clone->modelOffset, ent->modelOffset);
 
+        clone->hitboxes = gf3d_collision_armor_new(1);
+
         clone->update = app_naruto_barrage_update;
         clone->touch = app_naruto_barrage_touch;
 
@@ -1052,6 +1082,7 @@ void app_naruto_barrage(Entity *ent)
 void app_naruto_barrage_update(Entity *self)
 {
     Entity *owner = NULL;
+    Vector3D forward, scale;
     float fcount = 0.0f, currf = 0.0f;
 
     if(!self) return;
@@ -1062,7 +1093,7 @@ void app_naruto_barrage_update(Entity *self)
     {
         return;
     }
-    
+
     fcount = gf3d_animation_get_frame_count(self->animationManager, "barrage");
     currf = gf3d_animation_get_current_frame(self->animationManager);
     if( fcount - currf <= 0.5f )
@@ -1075,11 +1106,33 @@ void app_naruto_barrage_update(Entity *self)
         self->data = NULL;
         gf3d_entity_free(self);
     }
+    else if ( !self->locked && currf * 3 >= NARUTO_BARRAGE_ATK_FRAME )
+    {
+        self->locked = 1;
+        vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
+        // vector3d_copy(scale, self->scale);
+        // scale.x *= forward.x + 0.5;
+        // scale.y *= forward.y + 0.5;
+        // scale.z *= forward.z + 0.5;
+
+        if(self->hitboxes)
+        {
+            gf3d_collision_armor_add_shape(
+                self->hitboxes,
+                gf3d_shape(self->position, self->scale , gf3d_model_load("cube", "cube")),
+                vector3d( forward.x * NARUTO_BARRAGE_FWD_OFFSET, forward.y * NARUTO_BARRAGE_FWD_OFFSET, forward.z * NARUTO_BARRAGE_FWD_OFFSET ),
+                // vector3d( -40.0f, -15.0f, -0.7 ),
+                "body"
+            );
+            vector3d_slog(self->hitboxes->shapes[0].position);
+            vector3d_slog(self->hitboxes->shapes[0].extents);
+        }
+    }
 
     app_naruto_update(self);
 }
 
 void app_naruto_barrage_touch(Entity *self, Entity *other)
 {
-    slog("barrage touch");
+    slog("========== barrage touch");
 }
