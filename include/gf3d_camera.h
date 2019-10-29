@@ -50,6 +50,8 @@ void gf3d_camera_look_at_center(
  */
 void gf3d_camera_set_position(Vector3D position);
 
+Vector3D gf3d_camera_get_position();
+
 /**
  * @brief move the camera relatively based on the vector provided
  * @param move the ammount to move the camera

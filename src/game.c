@@ -22,7 +22,11 @@
 
 #include "gf3d_gui.h"
 
-#define GUIS 4
+#define HEALTH_HEIGHT       0.025f
+#define HEALTH_DOWN_OFFSET  -0.385f
+
+#define CHAKRA_HEIGHT       0.0125f
+#define CHAKRA_DOWN_OFFSET  -0.425f
 
 // extern float worldTime;
 float worldTime = 0.0f;
@@ -47,7 +51,7 @@ int main(int argc,char *argv[])
     Entity* ent2;
     Entity* stage;
     
-
+    GuiElement *element = NULL;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -74,8 +78,6 @@ int main(int argc,char *argv[])
         0,                      //fullscreen
         validate                //validation
     );
-
-    Shape guis[GUIS];
     // Shape guis[8];
 
     // main game loop
@@ -83,6 +85,7 @@ int main(int argc,char *argv[])
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
+    gf3d_gui_manager_init(8);
 
     /* Set up the stage */
     stage = gf3d_entity_new();
@@ -168,27 +171,56 @@ int main(int argc,char *argv[])
     gf3d_model_load("sand", "sand");
     gf3d_model_load("shuriken", "shuriken");
 
-    guis[1] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 0, 2), gf3d_model_load("gui2", "green") );
-    guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 0, 2), gf3d_model_load("gui2", "red") );
-    guis[2] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 0, 2), gf3d_model_load("gui2", "blue") );
-    guis[3] = gf3d_shape( vector3d( 10,  10,  5), vector3d(5, 0, 2), gf3d_model_load("gui2", "blue2") );
-
-    // guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "red") );
-    // guis[1] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "green") );
-    // guis[2] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "blue") );
-
-    // guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "red") );
-    // guis[1] = gf3d_shape( vector3d( 20,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
-    // guis[2] = gf3d_shape( vector3d(-20, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
-    // guis[3] = gf3d_shape( vector3d( 30,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
-    // guis[4] = gf3d_shape( vector3d(-30, -10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
-    // guis[5] = gf3d_shape( vector3d(-40, -10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
-    // guis[6] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "green") );
-    // guis[7] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "blue") );
-
-    for(a = 0; a < 8; a++)
+    /* health 1 */
+    element = gf3d_gui_new();
+    if(element)
     {
-        gfc_matrix_identity(guis[a].matrix);
+        slog("element created");
+        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
+        vector3d_copy(element->size, element->shape.extents);
+        element->offset = vector3d(0.5, 0, HEALTH_DOWN_OFFSET);
+        gfc_matrix_identity(element->shape.matrix);
+        element->val = &p1->entity->health;
+        element->max = &p1->entity->healthmax;
+    }
+    
+    /* health 2 */
+    element = gf3d_gui_new();
+    if(element)
+    {
+        slog("element created");
+        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
+        vector3d_copy(element->size, element->shape.extents);
+        element->offset = vector3d(-0.5, 0, HEALTH_DOWN_OFFSET);
+        gfc_matrix_identity(element->shape.matrix);
+        element->val = &ent2->health;
+        element->max = &ent2->healthmax;
+    }
+    
+    /* chakra 1 */
+    element = gf3d_gui_new();
+    if(element)
+    {
+        slog("element created");
+        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
+        vector3d_copy(element->size, element->shape.extents);
+        element->offset = vector3d(0.5, 0, CHAKRA_DOWN_OFFSET);
+        gfc_matrix_identity(element->shape.matrix);
+        element->val = &p1->entity->chakra;
+        element->max = &p1->entity->chakraMax;
+    }
+    
+    /* chakra 2 */
+    element = gf3d_gui_new();
+    if(element)
+    {
+        slog("element created");
+        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
+        vector3d_copy(element->size, element->shape.extents);
+        element->offset = vector3d(-0.5, 0, CHAKRA_DOWN_OFFSET);
+        gfc_matrix_identity(element->shape.matrix);
+        element->val = &ent2->chakra;
+        element->max = &ent2->chakraMax;
     }
 
     ent2->enemy = p1->entity;
@@ -219,9 +251,9 @@ int main(int argc,char *argv[])
             fps = 0;
             gf3d_timer_start(&timer);
         }
-        
 
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
+        gf3d_gui_manager_update();
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -230,12 +262,8 @@ int main(int argc,char *argv[])
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
-                for(a = 0; a < GUIS; a++)
-                {
-                    gf3d_shape_update_mat(&guis[a]);
-                    gf3d_shape_draw(&guis[a], bufferFrame, commandBuffer);
-                    // vector3d_slog(guis[a].position);
-                }
+                // gf3d_gui_draw(element, bufferFrame, commandBuffer);
+                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);

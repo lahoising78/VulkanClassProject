@@ -7,6 +7,7 @@
 Matrix4 gf3d_camera = {0};
 Vector3D gf3d_camera_forward = {0};
 Vector3D gf3d_camera_right = {0};
+Vector3D cam_pos = {0};
 
 void gf3d_camera_get_angles(Vector3D *forward, Vector3D *right, Vector3D *up)
 {
@@ -72,6 +73,8 @@ void gf3d_camera_look_at_center(
     camera_position.x = middle.x;
     camera_position.z = middle.z + 5.0f;
 
+    vector3d_copy(cam_pos, camera_position);
+
     gf3d_camera_look_at(camera_position, middle, vector3d(0, 0, 1));
     gf3d_vgraphics_set_camera_view( gf3d_camera );
 }
@@ -81,6 +84,11 @@ void gf3d_camera_set_position(Vector3D position)
     gf3d_camera[0][3] = position.x;
     gf3d_camera[1][3] = position.y;
     gf3d_camera[2][3] = position.z;
+}
+
+Vector3D gf3d_camera_get_position()
+{
+    return cam_pos;
 }
 
 void gf3d_camera_move(Vector3D move)

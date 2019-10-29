@@ -47,6 +47,8 @@ Entity *app_gaara_new()
 
     ent->health = 100;
     ent->healthmax = 100;
+    ent->chakra = 100;
+    ent->chakraMax = 100;
     ent->think = app_gaara_think;
     ent->touch = app_gaara_touch;
     ent->update = app_gaara_update;
