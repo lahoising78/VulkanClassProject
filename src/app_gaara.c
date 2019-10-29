@@ -619,8 +619,8 @@ void app_gaara_sand_attack(Entity *owner, enum GaaraSandAttackType type)
             vector3d_scale(right, right, -GAARA_SA_SWIPE_LEFT_OFFSET);
             vector3d_add(sand->rotation, sand->position, right);
             vector3d_sub(sand->position, sand->position, right);
-            sand->health = GAARA_SA_FWD_DMG;
-            sand->chakra = GAARA_SA_FWD_KICK;
+            sand->health = GAARA_SA_SWIPE_DMG;
+            sand->chakra = GAARA_SA_SWIPE_KICK;
             sand->hitstun = GAARA_SA_SWIPE_HITSTUN;
         break;
 
@@ -684,6 +684,11 @@ void app_gaara_sand_burial(Entity *ent)
     Vector3D forward;
 
     if(!ent) return;
+    if(ent->chakra - GAARA_SB_COST < 0.0f) 
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
 
     proj = gf3d_entity_new();
     if(!proj) return;
@@ -715,6 +720,8 @@ void app_gaara_sand_burial(Entity *ent)
     ents = (Entity**)proj->data;
     ents[ GAARA_SB_DATA_OWNER ] = ent;
     ents[ GAARA_SB_DATA_TOUCHED ] = NULL;
+
+    ent->chakra -= GAARA_SB_COST;
 }
 
 void app_gaara_sand_burial_update(Entity *self)
@@ -812,6 +819,11 @@ void app_gaara_sand_storm(Entity *ent)
     Vector3D forward, right;
     
     if(!ent) return;
+    if(ent->chakra - GAARA_SS_COST < 0) 
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
     vector3d_angle_vectors(ent->rotation, &forward, &right, NULL);
 
     for( i = 0; i < GAARA_SS_NUM; i++)
@@ -853,6 +865,7 @@ void app_gaara_sand_storm(Entity *ent)
         proj->update = app_gaara_sand_storm_update;
         proj->touch = app_gaara_sand_storm_touch;
     }
+    ent->chakra -= GAARA_SS_COST;
 }
 
 void app_gaara_sand_storm_update(Entity *self)
@@ -912,6 +925,11 @@ void app_gaara_knockup(Entity *self)
 {
     Entity *projectile = NULL;
     if(!self) return;
+    if(self->chakra - GAARA_KU_COST < 0.0f) 
+    {
+        gf3d_common_init_state(self);
+        return;
+    }
     self->locked = 102;
 
     projectile = gf3d_entity_new();
@@ -937,6 +955,8 @@ void app_gaara_knockup(Entity *self)
 
     projectile->update = app_gaara_knockup_update;
     projectile->touch = app_gaara_knockup_touch;
+
+    self->chakra -= GAARA_KU_COST;
 }
 
 void app_gaara_knockup_update(Entity *self)
@@ -977,6 +997,11 @@ void app_gaara_sand_tsunami(Entity *ent)
     Vector3D forward;
 
     if(!ent) return;
+    if(ent->chakra - GAARA_ST_COST < 0) 
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
     vector3d_angle_vectors(ent->rotation, &forward, NULL, NULL);
 
     for(i = 0; i < GAARA_ST_NUM; i++)
@@ -1006,6 +1031,7 @@ void app_gaara_sand_tsunami(Entity *ent)
         proj->locked = i;
         proj->data = ent;
     }
+    ent->chakra -= GAARA_ST_COST;
 }
 
 void app_gaara_sand_tsunami_update(Entity *self)

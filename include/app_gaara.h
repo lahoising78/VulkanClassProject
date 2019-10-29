@@ -35,6 +35,7 @@
 #define GAARA_SB_UP_SPEED           30.0f
 #define GAARA_SB_DMG                30.0f
 #define GAARA_SB_HITSTUN            0.4f
+#define GAARA_SB_COST               20.0f
 #define GAARA_SB_END_FRAME          75.0f
 #define GAARA_SB_TOUCH_SCALE        5
 #define GAARA_SB_DATA_OWNER         0
@@ -49,11 +50,13 @@
 #define GAARA_SS_DMG                10.0f
 #define GAARA_SS_KICK               50.0f
 #define GAARA_SS_HITSTUN            0.1f
+#define GAARA_SS_COST               15.0f
 
 /* Knock Up */
 #define GAARA_KU_DMG                10
 #define GAARA_KU_KICK               100.0f
 #define GAARA_KU_HITSTUN            0.5f
+#define GAARA_KU_COST               7.0f
 #define GAARA_KU_SPEED              100.0f /* knock up speed */
 #define GAARA_KU_MAX_Z              100.0f
 
@@ -66,6 +69,7 @@
 #define GAARA_ST_DMG                0.01f
 #define GAARA_ST_KICK               10.0f
 #define GAARA_ST_HITSTUN            0.0f
+#define GAARA_ST_COST               3.0f
 
 // extern float worldTime;
 

@@ -50,4 +50,10 @@ void gf3d_common_chakra_update(Entity *ent)
     {
         gf3d_common_chakra_free(ent);
     }
+    else
+    {
+        owner->chakra += worldTime * 10;
+        if(owner->chakra > owner->chakraMax) owner->chakra = owner->chakraMax;
+    }
+    
 }

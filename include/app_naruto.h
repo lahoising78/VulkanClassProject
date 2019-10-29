@@ -59,6 +59,7 @@
 #define NARUTO_RASENGAN_DMG                 20.0f
 #define NARUTO_RASENGAN_KICK                300.0f
 #define NARUTO_RASENGAN_HITSTUN             0.2f
+#define NARUTO_RASENGAN_COST                3.0f
 
 /* Rasenshuriken */
 #define NARUTO_RASENSHURIKEN_LOCKED         100
@@ -67,12 +68,14 @@
 #define NARUTO_RASENSHURIKEN_TIME           1.5f
 #define NARUTO_RASENSHURIKEN_ROT_SPEED      2000.0f
 #define NARUTO_RASENSHURIKEN_SPEED          80.0f
-#define NARUTO_RASENSHURIKEN_DMG            20.0f
+#define NARUTO_RASENSHURIKEN_DMG            200.0f
 #define NARUTO_RASENSHURIKEN_KICK           200.0f
-#define NARUTO_RASENSHURIKEN_HITSTUN        0.01f
+#define NARUTO_RASENSHURIKEN_HITSTUN        0.0f
+#define NARUTO_RASENSHURIKEN_COST           20.0f
 
 /* Shuriken Teleport */
 #define NARUTO_ST_LOCKED                    200
+#define NARUTO_ST_COST                      10.0f
 #define NARUTO_ST_SPEED                     80.0f
 #define NARUTO_ST_TIME                      1.0f
 #define NARUTO_ST_ROT_SPEED                 2000.0f
@@ -81,6 +84,7 @@
 
 /* Barrage */
 #define NARUTO_BARRAGE_LOCKED               400
+#define NARUTO_BARRAGE_COST                 5.0f
 #define NARUTO_BARRAGE_LOCKED_COUNT         2
 #define NARUTO_BARRAGE_FWD_OFFSET           17
 #define NARUTO_BARRAGE_ATK_FRAME            45

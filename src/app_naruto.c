@@ -315,6 +315,7 @@ void app_naruto_charge(struct Entity_S *e)
             gf3d_animation_play(e->animationManager, "charge", 1);
             e->velocity.x = e->velocity.y = 0.0f;
             e->locked = 1;
+            gf3d_common_chakra_new(e);
         }
         
     }
@@ -770,6 +771,11 @@ void app_naruto_rasengan(Entity *self)
     Entity *proj = NULL;
 
     if(!self || !self->animationManager) return;
+    if(self->chakra - NARUTO_RASENGAN_COST < 0.0f)
+    {
+        gf3d_common_init_state(self);
+        return;
+    }
     
     gf3d_animation_play(self->animationManager, "rasengan", 1);
     
@@ -790,6 +796,8 @@ void app_naruto_rasengan(Entity *self)
     proj->update = app_naruto_rasengan_ball_update;
     proj->touch = app_naruto_rasengan_touch;
     proj->data = self;
+
+    self->chakra -= NARUTO_RASENGAN_COST;
 }
 
 void app_naruto_rasengan_update(Entity *self)
@@ -870,6 +878,11 @@ void app_naruto_rasenshuriken(Entity *ent)
     Entity *proj = NULL;
     
     if(!ent) return;
+    if(ent->chakra - NARUTO_RASENSHURIKEN_COST < 0.0f)
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
 
     proj = gf3d_entity_new();
     if(!proj) return;
@@ -890,6 +903,8 @@ void app_naruto_rasenshuriken(Entity *ent)
     proj->touch = app_naruto_rasenshuriken_touch;
 
     proj->data = ent;
+    
+    ent->chakra -= NARUTO_RASENSHURIKEN_COST;
 }
 
 void app_naruto_rasenshuriken_update(Entity *self)
@@ -929,7 +944,7 @@ void app_naruto_rasenshuriken_touch(Entity *self, Entity *other)
 
     vector3d_sub(dir, other->position, self->position);
 
-    gf3d_combat_attack(owner, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, dir, NARUTO_RASENSHURIKEN_HITSTUN);
+    gf3d_combat_attack(owner, other, NARUTO_RASENSHURIKEN_DMG * worldTime, NARUTO_RASENSHURIKEN_KICK, dir, NARUTO_RASENSHURIKEN_HITSTUN);
     // gf3d_combat_meele_attack(self, other, NARUTO_RASENSHURIKEN_DMG, NARUTO_RASENSHURIKEN_KICK, NARUTO_RASENSHURIKEN_HITSTUN);
 }
 
@@ -941,6 +956,11 @@ void app_naruto_shuriken_teleport(Entity *ent)
     Entity *proj = NULL;
 
     if(!ent) return;
+    if(ent->chakra - NARUTO_ST_COST < 0.0f)
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
 
     proj= gf3d_entity_new();
     if(!proj) return;
@@ -961,6 +981,8 @@ void app_naruto_shuriken_teleport(Entity *ent)
     proj->touch = app_naruto_shuriken_teleport_touch;
 
     proj->data = ent;
+
+    ent->chakra -= NARUTO_ST_COST;
 }
 
 void app_naruto_shuriken_teleport_update(Entity *self)
@@ -1017,6 +1039,11 @@ void app_naruto_barrage(Entity *ent)
     int i;
     
     if(!ent) return;
+    if(ent->chakra - NARUTO_BARRAGE_COST < 0.0f)
+    {
+        gf3d_common_init_state(ent);
+        return;
+    }
 
     for(i = 0; i < 3; i++)
     {
@@ -1077,6 +1104,8 @@ void app_naruto_barrage(Entity *ent)
 
         clone->data = ent;
     }
+
+    ent->chakra -= NARUTO_BARRAGE_COST;
 }
 
 void app_naruto_barrage_update(Entity *self)
