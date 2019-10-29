@@ -50,7 +50,7 @@ void gf3d_shape_update_mat( Shape *shape )
     gf3d_model_scale(shape->matrix, shape->extents);
 }
 
-void gf3d_shape_draw( struct Shape_S shape )
+void gf3d_shape_draw( struct Shape_S *shape, Uint32 bufferFrame, VkCommandBuffer commandBuffer )
 {
-    
+    gf3d_model_draw(shape->model, bufferFrame, commandBuffer, shape->matrix, 0);
 }

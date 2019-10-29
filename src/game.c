@@ -22,6 +22,8 @@
 
 #include "gf3d_gui.h"
 
+#define GUIS 4
+
 // extern float worldTime;
 float worldTime = 0.0f;
 
@@ -44,9 +46,8 @@ int main(int argc,char *argv[])
     Player* p1;
     Entity* ent2;
     Entity* stage;
+    
 
-    Square sq;
-    Vector2D uvs[4];
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -73,12 +74,9 @@ int main(int argc,char *argv[])
         0,                      //fullscreen
         validate                //validation
     );
-    
-    uvs[0] = vector2d(0,0);
-    uvs[1] = vector2d(0,0);
-    uvs[2] = vector2d(0,0);
-    uvs[3] = vector2d(0,0);
-    sq = gf3d_gui_element_square( vector2d(0, 0), vector2d(10, 10), uvs);
+
+    Shape guis[GUIS];
+    // Shape guis[8];
 
     // main game loop
     slog("gf3d main loop begin");
@@ -170,6 +168,29 @@ int main(int argc,char *argv[])
     gf3d_model_load("sand", "sand");
     gf3d_model_load("shuriken", "shuriken");
 
+    guis[1] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 0, 2), gf3d_model_load("gui2", "green") );
+    guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 0, 2), gf3d_model_load("gui2", "red") );
+    guis[2] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 0, 2), gf3d_model_load("gui2", "blue") );
+    guis[3] = gf3d_shape( vector3d( 10,  10,  5), vector3d(5, 0, 2), gf3d_model_load("gui2", "blue2") );
+
+    // guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "red") );
+    // guis[1] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "green") );
+    // guis[2] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "blue") );
+
+    // guis[0] = gf3d_shape( vector3d(-10, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "red") );
+    // guis[1] = gf3d_shape( vector3d( 20,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
+    // guis[2] = gf3d_shape( vector3d(-20, -10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
+    // guis[3] = gf3d_shape( vector3d( 30,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
+    // guis[4] = gf3d_shape( vector3d(-30, -10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
+    // guis[5] = gf3d_shape( vector3d(-40, -10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "black") );
+    // guis[6] = gf3d_shape( vector3d( 10,  10, 20), vector3d(5, 1, 1), gf3d_model_load("gui", "green") );
+    // guis[7] = gf3d_shape( vector3d( 10,  10, 10), vector3d(5, 1, 1), gf3d_model_load("gui", "blue") );
+
+    for(a = 0; a < 8; a++)
+    {
+        gfc_matrix_identity(guis[a].matrix);
+    }
+
     ent2->enemy = p1->entity;
     p1->entity->enemy = ent2;
 
@@ -209,11 +230,16 @@ int main(int argc,char *argv[])
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
+                for(a = 0; a < GUIS; a++)
+                {
+                    gf3d_shape_update_mat(&guis[a]);
+                    gf3d_shape_draw(&guis[a], bufferFrame, commandBuffer);
+                    // vector3d_slog(guis[a].position);
+                }
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
-                gf3d_gui_render_square(sq, bufferFrame, commandBuffer);
                 
             gf3d_command_rendering_end(commandBuffer);
             

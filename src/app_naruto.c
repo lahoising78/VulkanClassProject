@@ -1084,6 +1084,7 @@ void app_naruto_barrage_update(Entity *self)
     Entity *owner = NULL;
     Vector3D forward, scale;
     float fcount = 0.0f, currf = 0.0f;
+    // const float mult = 4;
 
     if(!self) return;
     if(!self->animationManager) return;
@@ -1112,18 +1113,24 @@ void app_naruto_barrage_update(Entity *self)
         vector3d_angle_vectors(self->rotation, &forward, NULL, NULL);
         // vector3d_copy(scale, self->scale);
         // scale.x *= forward.x + 0.5;
+        // scale.x *= mult;
         // scale.y *= forward.y + 0.5;
+        // scale.y *= mult;
         // scale.z *= forward.z + 0.5;
+        // vector3d_scale(scale, self->scale, 100);
 
         if(self->hitboxes)
         {
             gf3d_collision_armor_add_shape(
                 self->hitboxes,
+                // gf3d_shape(self->position, scale , gf3d_model_load("cube", "cube")),
                 gf3d_shape(self->position, self->scale , gf3d_model_load("cube", "cube")),
-                vector3d( forward.x * NARUTO_BARRAGE_FWD_OFFSET, forward.y * NARUTO_BARRAGE_FWD_OFFSET, forward.z * NARUTO_BARRAGE_FWD_OFFSET ),
+                // gf3d_shape(self->position, vector3d(100, 100, 100) , gf3d_model_load("cube", "cube")),
+                vector3d( forward.x * (NARUTO_BARRAGE_FWD_OFFSET + 3), forward.y * (NARUTO_BARRAGE_FWD_OFFSET + 3), forward.z * (NARUTO_BARRAGE_FWD_OFFSET + 3) ),
                 // vector3d( -40.0f, -15.0f, -0.7 ),
                 "body"
             );
+            vector3d_slog(forward);
             vector3d_slog(self->hitboxes->shapes[0].position);
             vector3d_slog(self->hitboxes->shapes[0].extents);
         }
@@ -1134,5 +1141,12 @@ void app_naruto_barrage_update(Entity *self)
 
 void app_naruto_barrage_touch(Entity *self, Entity *other)
 {
+    Entity *owner = NULL;
+
+    owner = (Entity*)self->data;
+    if(!owner) return;
+    if(owner == other) return;
+
+
     slog("========== barrage touch");
 }

@@ -47,6 +47,6 @@ void gf3d_shape_update_mat( Shape *shape );
  * @brief draw render
  * @param shape the shape to render
  */
-void gf3d_shape_draw( struct Shape_S shape );
+void gf3d_shape_draw( struct Shape_S *shape, Uint32 bufferFrame, VkCommandBuffer commandBuffer );
 
 #endif

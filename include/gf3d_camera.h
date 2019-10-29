@@ -34,7 +34,7 @@ void gf3d_camera_look_at(
     Vector3D up
 );
 
-/* 
+/** 
  * @brief make camera look at the center between two points
  * @param first first position
  * @param second second position
