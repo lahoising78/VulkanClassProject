@@ -1146,16 +1146,16 @@ void app_naruto_barrage_update(Entity *self)
         // scale.y *= forward.y + 0.5;
         // scale.y *= mult;
         // scale.z *= forward.z + 0.5;
-        // vector3d_scale(scale, self->scale, 100);
+        vector3d_scale(scale, self->scale, 5);
 
         if(self->hitboxes)
         {
             gf3d_collision_armor_add_shape(
                 self->hitboxes,
-                // gf3d_shape(self->position, scale , gf3d_model_load("cube", "cube")),
-                gf3d_shape(self->position, self->scale , gf3d_model_load("cube", "cube")),
+                gf3d_shape(self->position, scale , gf3d_model_load("cube", "cube")),
+                // gf3d_shape(self->position, self->scale , gf3d_model_load("cube", "cube")),
                 // gf3d_shape(self->position, vector3d(100, 100, 100) , gf3d_model_load("cube", "cube")),
-                vector3d( forward.x * (NARUTO_BARRAGE_FWD_OFFSET + 3), forward.y * (NARUTO_BARRAGE_FWD_OFFSET + 3), forward.z * (NARUTO_BARRAGE_FWD_OFFSET + 3) ),
+                vector3d( forward.x * (NARUTO_BARRAGE_FWD_OFFSET + 5), forward.y * (NARUTO_BARRAGE_FWD_OFFSET + 5), forward.z * (NARUTO_BARRAGE_FWD_OFFSET + 5) ),
                 // vector3d( -40.0f, -15.0f, -0.7 ),
                 "body"
             );
@@ -1176,6 +1176,6 @@ void app_naruto_barrage_touch(Entity *self, Entity *other)
     if(!owner) return;
     if(owner == other) return;
 
-
-    slog("========== barrage touch");
+    gf3d_combat_meele_attack(owner, other, NARUTO_BARRAGE_DMG, NARUTO_BARRAGE_KICK, NARUTO_BARRAGE_HITSTUN);
+    // slog("========== barrage touch");
 }

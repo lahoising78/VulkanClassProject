@@ -45,7 +45,7 @@
 
 /* Clone Punch */
 #define NARUTO_CLONE_PUNCH_LOCKED           5
-#define NARUTO_CLONE_PUNCH_KICK             265.0f
+#define NARUTO_CLONE_PUNCH_KICK             200.0f
 #define NARUTO_CLONE_PUNCH_HITSTUN          0.7f
 
 /* Rasengan */
@@ -68,8 +68,8 @@
 #define NARUTO_RASENSHURIKEN_TIME           1.5f
 #define NARUTO_RASENSHURIKEN_ROT_SPEED      2000.0f
 #define NARUTO_RASENSHURIKEN_SPEED          80.0f
-#define NARUTO_RASENSHURIKEN_DMG            200.0f
-#define NARUTO_RASENSHURIKEN_KICK           200.0f
+#define NARUTO_RASENSHURIKEN_DMG            35.0f
+#define NARUTO_RASENSHURIKEN_KICK           5.0f
 #define NARUTO_RASENSHURIKEN_HITSTUN        0.0f
 #define NARUTO_RASENSHURIKEN_COST           20.0f
 
@@ -84,6 +84,9 @@
 
 /* Barrage */
 #define NARUTO_BARRAGE_LOCKED               400
+#define NARUTO_BARRAGE_DMG                  20.0f
+#define NARUTO_BARRAGE_KICK                 200.0f
+#define NARUTO_BARRAGE_HITSTUN              0.5f
 #define NARUTO_BARRAGE_COST                 5.0f
 #define NARUTO_BARRAGE_LOCKED_COUNT         2
 #define NARUTO_BARRAGE_FWD_OFFSET           17

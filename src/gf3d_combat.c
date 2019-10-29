@@ -40,6 +40,7 @@ void gf3d_combat_meele_attack(Entity *attacker, Entity *target, float damage, fl
     /* add knockback */
     vector3d_angle_vectors(attacker->rotation, &forward, NULL, NULL);
     vector3d_scale(forward, forward, knockback);
+    // vector3d_set_magnitude(&forward, knockback);
     vector3d_add(target->velocity, target->velocity, forward);
 
     /* do damage */
