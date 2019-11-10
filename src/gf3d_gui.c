@@ -1,120 +1,105 @@
 #include "gf3d_gui.h"
 
-#include "simple_logger.h"
 #include "gf3d_vgraphics.h"
-#include "gf3d_camera.h"
 
-void gf3d_gui_update(GuiElement *gui);
-void gf3d_gui_draw(GuiElement *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
-
-typedef struct GuiManager_S
+typedef struct
 {
-    Uint32 max_count;
-    GuiElement *elements;
+    // Uint32 max_elements;
+    // GuiElement *elements;
+    Uint32 chain_length;
+    VkDevice device;
+    Pipeline *pipe;
 } GuiManager;
 
-static GuiManager gf3d_gui_manager = {0};
+GuiManager gf3d_gui_manager = {0};
 
 void gf3d_gui_manager_close()
 {
-    int i;
 
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gf3d_gui_free( &gf3d_gui_manager.elements[i] );
-    }
-
-    free(gf3d_gui_manager.elements);
-    memset(&gf3d_gui_manager, 0, sizeof(GuiManager));
 }
 
-int gf3d_gui_manager_init(Uint32 count)
+void gf3d_gui_manager_init(Uint32 count, Uint32 chain_length, VkDevice device)
 {
-    int i;
-    GuiElement *gui = NULL;
-
-    gf3d_gui_manager.elements = (GuiElement*)gfc_allocate_array(sizeof(GuiElement), count);
-    if(!gf3d_gui_manager.elements)
-    {
-        slog("failed to initialize gui manager");
-        return 1;
-    }
-
-    for(i = 0; i < count; i++)
-    {
-        memset(&gf3d_gui_manager.elements[i], 0, sizeof(GuiElement));
-        // gui = &gf3d_gui_manager.elements[i];
-    }
-
-    gf3d_gui_manager.max_count = count;
+    // gf3d_gui_manager.elements = (GuiElement*)gfc_allocate_array(sizeof(GuiElement), count);
+    // if(!gf3d_gui_manager.elements)
+    // {
+    //     slog("failed to allocate gui elements");
+    //     return;
+    // }
+    // // memset(gf3d_gui_manager.elements, 0, sizeof(GuiElement) * count);
+    // gf3d_gui_manager.max_elements = count;
+    gf3d_gui_manager.chain_length = chain_length;
+    gf3d_gui_manager.device = device;
+    gf3d_gui_manager.pipe = gf3d_vgraphics_get_graphics_pipeline2D();
     atexit(gf3d_gui_manager_close);
-    return 0;
 }
 
-void gf3d_gui_manager_update()
+GuiElement gf3d_gui(Vector2D position, Vector2D extents, Color color)
 {
-    int i;
-    GuiElement *gui = NULL;
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gui = &gf3d_gui_manager.elements[i];
-        if( !gui->_inuse ) continue;
+    GuiElement element = {0};
 
-        gf3d_gui_update(gui);
-    }
+    element._inuse = 1;
+    element.transform = gf3d_shape(
+        vector3d(position.x, position.y, 0),
+        vector3d(extents.x, extents.y, 0),
+        NULL
+    );
+
+    element.vertices[0].color = color;
+    element.vertices[0].position = position;
+    
+    element.vertices[1].color = color;
+    element.vertices[1].position = vector2d(position.x + extents.x, position.y);
+    
+    element.vertices[2].color = color;
+    element.vertices[2].position = vector2d(position.x + extents.x, position.y + extents.y);
+    
+    element.vertices[3].color = color;
+    element.vertices[3].position = vector2d(position.x, position.y + extents.y);
+
+    element.color = color;
+
+    return element;
+
+    // int i;
+
+    // for(i = 0; i < gf3d_gui_manager.max_elements; i++)
+    // {
+    //     if(gf3d_gui_manager.elements[i]._inuse) continue;
+
+    //     element = &gf3d_gui_manager.elements[i];
+    //     memset(element, 0, sizeof(GuiElement));
+    //     element->transform = gf3d_shape(
+    //         vector3d(position.x, position.y, 0),
+    //         vector3d(extents.x, extents.y, 0),
+    //         NULL
+    //     );
+    //     element->color = color;
+    //     element->_inuse = 1;
+    // }
 }
 
-void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
+/* stuff that wasn't defined on gfc */
+Color gfc_color(float r, float g, float b, float a)
 {
-    int i;
-    GuiElement *gui = NULL;
+    Color color = {0};
 
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gui = &gf3d_gui_manager.elements[i];
-        if( !gui->_inuse ) continue;
+    if(r > 1) r = 1;
+    else if (r < 0) r = 0;
 
-        gf3d_gui_draw(gui, bufferFrame, commandBuffer);
-    }
-}
+    if(g > 1) g = 1;
+    else if (g < 0) g = 0;
+    
+    if(b > 1) b = 1;
+    else if (b < 0) b = 0;
+    
+    if(a > 1) a = 1;
+    else if (a < 0) a = 0;
+    
+    color.r = r;
+    color.g = g;
+    color.b = b;
+    color.a = a;
 
-GuiElement *gf3d_gui_new()
-{
-    int i;
-    GuiElement *gui = NULL;
-
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gui = &gf3d_gui_manager.elements[i];
-        if(gui->_inuse) continue;
-        gui->_inuse = 1;
-        return gui;
-    }
-
-    return NULL;
-}
-
-void gf3d_gui_free(GuiElement *gui)
-{
-    if(!gui) return;
-    memset(gui, 0, sizeof(GuiElement));
-}
-
-void gf3d_gui_update(GuiElement *gui)
-{
-    gf3d_camera_get_angles( &gui->shape.position, NULL, NULL);
-    vector3d_add(gui->shape.position, gui->shape.position, gf3d_camera_get_position());
-    vector3d_add(gui->shape.position, gui->shape.position, gui->offset);
-    if(gui->val && gui->max)
-    {
-        gui->shape.extents.x = gui->size.x * (*gui->val / *gui->max);
-    }
-    gf3d_shape_update_mat(&gui->shape);
-}
-
-void gf3d_gui_draw(GuiElement *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer)
-{
-    if(!gui) return;
-    if(!gui->shape.model) return;
-    gf3d_model_draw(gui->shape.model, bufferFrame, commandBuffer, gui->shape.matrix, 0);
+    return color;
 }

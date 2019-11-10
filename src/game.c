@@ -21,6 +21,7 @@
 #include "gf3d_shape.h"
 
 #include "gf3d_gui.h"
+#include "gfc_color.h"
 
 #define HEALTH_HEIGHT       0.025f
 #define HEALTH_DOWN_OFFSET  -0.385f
@@ -50,11 +51,14 @@ int main(int argc,char *argv[])
     Player* p1;
     Entity* ent2;
     Entity* stage;
-    
-    GuiElement *element = NULL;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
+
+    GuiElement gui;
+
+    /* controllers */
+    SDL_Joystick *controller = NULL;
     
     for (a = 1; a < argc;a++)
     {
@@ -80,12 +84,25 @@ int main(int argc,char *argv[])
     );
     // Shape guis[8];
 
+    if( SDL_NumJoysticks() < 1 )
+    {
+        slog("No joysticks connected");
+    }
+    else
+    {
+        controller = SDL_JoystickOpen(0);
+        if(!controller)
+        {
+            slog("Couldn't open game controller: %s", SDL_GetError());
+        }
+    }
+
     // main game loop
     slog("gf3d main loop begin");
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
-    gf3d_gui_manager_init(8);
+    // gf3d_gui_manager_init(8);
 
     /* Set up the stage */
     stage = gf3d_entity_new();
@@ -171,60 +188,10 @@ int main(int argc,char *argv[])
     gf3d_model_load("sand", "sand");
     gf3d_model_load("shuriken", "shuriken");
 
-    /* health 1 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(0.5, 0, HEALTH_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &p1->entity->health;
-        element->max = &p1->entity->healthmax;
-    }
-    
-    /* health 2 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(-0.5, 0, HEALTH_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &ent2->health;
-        element->max = &ent2->healthmax;
-    }
-    
-    /* chakra 1 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(0.5, 0, CHAKRA_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &p1->entity->chakra;
-        element->max = &p1->entity->chakraMax;
-    }
-    
-    /* chakra 2 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(-0.5, 0, CHAKRA_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &ent2->chakra;
-        element->max = &ent2->chakraMax;
-    }
-
     ent2->enemy = p1->entity;
     p1->entity->enemy = ent2;
+
+    gui = gf3d_gui( vector2d(1, 1), vector2d(1, 1), gfc_color(1, 1, 1, 1) );
 
     gf3d_timer_start(&timer);
     // gf3d_timer_start(&frameTimer);
@@ -253,7 +220,7 @@ int main(int argc,char *argv[])
         }
 
         gf3d_camera_look_at_center( p1->entity->position, ent2->position );
-        gf3d_gui_manager_update();
+        // gf3d_gui_manager_update();
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -263,7 +230,7 @@ int main(int argc,char *argv[])
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 // gf3d_gui_draw(element, bufferFrame, commandBuffer);
-                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
@@ -302,6 +269,8 @@ int main(int argc,char *argv[])
         worldTime = frame;
     }    
     
+    SDL_JoystickClose( controller );
+    controller = NULL;
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
     //cleanup
     slog("gf3d program end");

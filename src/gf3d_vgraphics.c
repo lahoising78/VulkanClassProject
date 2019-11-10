@@ -20,6 +20,7 @@
 #include "gf3d_swapchain.h"
 #include "gf3d_vgraphics.h"
 #include "gf3d_model.h"
+#include "gf3d_gui.h"
 #include "gf3d_pipeline.h"
 #include "gf3d_commands.h"
 #include "gf3d_texture.h"
@@ -61,6 +62,10 @@ typedef struct
     VkSemaphore                 renderFinishedSemaphore;
         
     Pipeline                   *pipe;
+    
+    /* new stuff */
+    Pipeline                   *pipe2D;
+    /* new stuff end */
     
     Command                 *   graphicsCommandPool; 
     UniformBufferObject         ubo;
@@ -142,6 +147,8 @@ void gf3d_vgraphics_init(
     gf3d_pipeline_init(4);// how many different rendering pipelines we need
     gf3d_vgraphics.pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent(),1024);
     gf3d_model_manager_init(1024,gf3d_swapchain_get_swap_image_count(),device);
+    gf3d_vgraphics.pipe2D = gf3d_pipeline_basic_model_create(device, "shaders/vert_gui.spv", "shaders/frag_gui.spv", gf3d_vgraphics_get_view_extent(), 1024);
+    gf3d_gui_manager_init(16, gf3d_swapchain_get_swap_image_count(), device);
 
     gf3d_command_system_init(8,device);
 
@@ -671,6 +678,11 @@ void gf3d_vgraphics_set_camera_view( Matrix4 camera )
 Pipeline *gf3d_vgraphics_get_graphics_pipeline()
 {
     return gf3d_vgraphics.pipe;
+}
+
+Pipeline *gf3d_vgraphics_get_graphics_pipeline2D()
+{
+    return gf3d_vgraphics.pipe2D;
 }
 
 Command *gf3d_vgraphics_get_graphics_command_pool()

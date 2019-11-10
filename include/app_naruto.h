@@ -45,7 +45,8 @@
 
 /* Clone Punch */
 #define NARUTO_CLONE_PUNCH_LOCKED           5
-#define NARUTO_CLONE_PUNCH_KICK             200.0f
+// #define NARUTO_CLONE_PUNCH_KICK             200.0f
+#define NARUTO_CLONE_PUNCH_KICK             265.0f
 #define NARUTO_CLONE_PUNCH_HITSTUN          0.7f
 
 /* Rasengan */
