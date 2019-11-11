@@ -136,7 +136,7 @@ GuiElement *gf3d_gui(Vector2D position, Vector2D extents, Color color)
         
         element->color = color;
 
-        gf3d_gui_create_image_view(element);
+        // gf3d_gui_create_image_view(element);
         gf3d_gui_create_vertex_buffer(element);
 
         return element;
@@ -174,11 +174,14 @@ void gf3d_gui_delete( GuiElement *gui )
         vkFreeMemory(gf3d_vgraphics_get_default_logical_device(), gui->bufferMemory, NULL);
         slog("gui vert buffer memory freed");
     }
-    if(gui->imageView != VK_NULL_HANDLE)
-    {
-        vkDestroyImageView(gf3d_gui_manager.device, gui->imageView, NULL);
-    }
-
+    // if(gui->imageView != VK_NULL_HANDLE)
+    // {
+    //     vkDestroyImageView(gf3d_gui_manager.device, gui->imageView, NULL);
+    // }
+    // if(gui->texture)
+    // {
+    //     gf3d_texture_free(gui->texture);
+    // }
 }
 
 /* Vulkan Stuff For GUI */
@@ -238,10 +241,10 @@ void gf3d_gui_create_vertex_buffer( GuiElement *gui )
 
 void gf3d_gui_create_image_view(GuiElement *gui)
 {
-    Texture *tex = gf3d_texture_load("images/red.png"); 
-    gui->image = tex->textureImage;
-    gui->imageView = gf3d_vgraphics_create_image_view(gui->image, VK_FORMAT_R8G8B8A8_UNORM);
-    gf3d_texture_free(tex);
+    // gui->texture = gf3d_texture_load("images/red.png"); 
+    // gui->image = tex->textureImage;
+    // gui->imageView = gf3d_vgraphics_create_image_view(gui->image, VK_FORMAT_R8G8B8A8_UNORM);
+    // gf3d_texture_free(tex);
 }
 
 void gf3d_gui_update_basic_gui_descriptor_set(GuiElement *gui, VkDescriptorSet descriptorSet, Uint32 bufferFrame)
@@ -264,8 +267,8 @@ void gf3d_gui_update_basic_gui_descriptor_set(GuiElement *gui, VkDescriptorSet d
     // }
 
     // imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    // imageInfo.imageView = model->texture->textureImageView;
-    // imageInfo.sampler = model->texture->textureSampler;
+    // imageInfo.imageView = gui->texture->textureImageView;
+    // imageInfo.sampler = gui->texture->textureSampler;
 
     // gf3d_model_update_uniform_buffer(model,chainIndex,modelMat);
     // bufferInfo.buffer = model->uniformBuffers[chainIndex];

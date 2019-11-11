@@ -23,8 +23,9 @@ typedef struct
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
     
-    VkImage image;
-    VkImageView imageView;
+    Texture *texture;
+    // VkImage image;
+    // VkImageView imageView;
     
     Color color;
 } GuiElement;
