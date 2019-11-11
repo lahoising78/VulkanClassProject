@@ -1,26 +1,39 @@
 #include "gf3d_gui_element.h"
 
-Square gf3d_gui_element_square( Vector2D position, Vector2D extents, Vector2D *uv )
+#include "simple_logger.h"
+
+GuiElement gf3d_gui_element_create(Vector2D pos, Vector2D ext, Color color)
 {
-    int i;
-    Square sq;
-    sq.position = position;
-    sq.extents = extents;
+    GuiElement element;
+    element.position = pos;
+    element.extents = ext;
+    element.color = color;
+    return element;
+}
 
-    if (!uv) 
-    {
-        for (i = 0; i < 4; i++)
-        {
-            sq.uv[i] = vector2d(0,0); 
-        }
-    }
-    else
-    {
-        for (i = 0; i < 4; i++)
-        {
-            sq.uv[i] = uv[i]; 
-        }
-    } 
+void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer)
+{
+    SDL_Rect rect;
+    // slog("gui element draw");
 
-    return sq;
+    if(!renderer) return;
+
+    rect.x = element.position.x;
+    rect.y = element.position.y;
+    rect.w = element.extents.x;
+    rect.h = element.extents.y;
+
+    SDL_SetRenderDrawColor(renderer, element.color.r * 255, element.color.g * 255, element.color.b * 255, element.color.a * 255);
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+/* ==========COLOR======== */
+Color gfc_color(float r,float g,float b,float a)
+{
+    Color c;
+    c.r = r;
+    c.g = g;
+    c.b = b;
+    c.a = a;
+    return c;
 }

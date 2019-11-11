@@ -1,58 +1,39 @@
 #ifndef _GF3D_GUI_H_
 #define _GF3D_GUI_H_
 
-#include "gf3d_shape.h"
-#include "gfc_color.h"
+#include <SDL2/SDL.h>
+#include "gf3d_vgraphics.h"
+#include "gf3d_gui_element.h"
 
 typedef struct
 {
-    Color color;
-    Vector2D position;
-} GuiVertex;
+    SDL_Surface *surface;
+    SDL_Renderer *renderer;
+    GuiElement **elements;
+    Uint32 elementCount;
+    Uint8 _inuse;
+} Gui;
 
-/* All gui elements will be squares */
-typedef struct
-{
-    Uint8 _inuse;       
-    Shape transform;    /* to define position and extents. Model and modelMat should be NULL */
-    GuiVertex vertices[4];
+void gf3d_gui_manager_init(Uint32 count);
 
-    VkBuffer buffer;
-    VkDeviceMemory bufferMemory;
-    Uint16 indices[6];
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
-    
-    Texture *texture;
-    // VkImage image;
-    // VkImageView imageView;
-    
-    Color color;
-} GuiElement;
-
-/*
- * @brief initialize the gui manager
- * @param count : amount of gui elements to allocate for
- */
-void gf3d_gui_manager_init(Uint32 count, Uint32 chain_length, VkDevice device);
+void gf3d_gui_manager_draw();
 
 /* 
- * @brief draw all guis
+    @brief create a new gui layer
+    @param count : how many elements to allow
+    @param depth : layer level of gui
+    @note depth -1 means it should be added on top of the already existent layers
  */
-void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+Gui *gf3d_gui_new(Uint32 count, int depth);
 
 /* 
- * @brief create a new gui element
- * @param position : the position of the element on screen
- * @param extents  : width and height of element
- * @param color    : the color of the element
+    @brief free the gui layer
+    @param gui : the layer to free
  */
-GuiElement *gf3d_gui(Vector2D position, Vector2D extents, Color color);
+void gf3d_gui_free(Gui *gui);
 
-/* 
- * @brief free gui element 
- * @param gui : the gui element to free
- */
-void gf3d_gui_free(GuiElement *gui);
+void gf3d_gui_add_element(Gui *gui, GuiElement *element);
+
+void gf3d_gui_draw(Gui *gui);
 
 #endif

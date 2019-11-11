@@ -55,7 +55,8 @@ int main(int argc,char *argv[])
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
 
-    GuiElement *gui;
+    Gui *gui;
+    GuiElement el;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -99,6 +100,7 @@ int main(int argc,char *argv[])
 
     // main game loop
     slog("gf3d main loop begin");
+    gf3d_gui_manager_init(4);
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
@@ -191,7 +193,10 @@ int main(int argc,char *argv[])
     ent2->enemy = p1->entity;
     p1->entity->enemy = ent2;
 
-    gui = gf3d_gui( vector2d(-0.5f, -0.5f), vector2d(1.0f, 1.0f), gfc_color(1, 1, 1, 1) );
+    gui = gf3d_gui_new(8, -1);
+
+    el = gf3d_gui_element_create(vector2d(50, 50), vector2d(10.0f, 10.0f), gfc_color(0.5, 0.5, 0.5, 1.0));
+    gf3d_gui_add_element(gui, &el);
 
     gf3d_timer_start(&timer);
     // gf3d_timer_start(&frameTimer);
@@ -230,7 +235,7 @@ int main(int argc,char *argv[])
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 // gf3d_gui_draw(element, bufferFrame, commandBuffer);
-                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                gf3d_gui_manager_draw(/* bufferFrame, commandBuffer */);
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
