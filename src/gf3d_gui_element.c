@@ -16,8 +16,6 @@ void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer)
 {
     SDL_Rect rect;
 
-    slog("algun problema aqui?");
-
     if(!renderer) return;
 
     rect.x = element.position.x;
@@ -27,8 +25,6 @@ void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer)
 
     SDL_SetRenderDrawColor(renderer, element.color.r * 255, element.color.g * 255, element.color.b * 255, element.color.a * 255);
     SDL_RenderFillRect(renderer, &rect);
-
-    slog("termina please");
 }
 
 /* ==========COLOR======== */

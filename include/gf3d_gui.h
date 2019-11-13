@@ -7,14 +7,24 @@
 
 typedef struct
 {
+    Vector2D pos;
+    Vector3D color;
+    Vector2D texel;
+} GuiVertex;
+
+typedef struct
+{
     SDL_Surface *surface;
     SDL_Renderer *renderer;
+    Texture *ui_tex;
     GuiElement **elements;
     Uint32 elementCount;
     Uint8 _inuse;
+
+    GuiVertex vertices[4];
 } Gui;
 
-void gf3d_gui_manager_init(Uint32 count);
+void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device);
 
 void gf3d_gui_manager_draw();
 
@@ -35,5 +45,8 @@ void gf3d_gui_free(Gui *gui);
 void gf3d_gui_add_element(Gui *gui, GuiElement *element);
 
 void gf3d_gui_draw(Gui *gui);
+
+VkVertexInputBindingDescription *gf3d_gui_get_bind_description();
+VkVertexInputAttributeDescription *gf3d_gui_get_attribute_descriptions(Uint32 *count);
 
 #endif

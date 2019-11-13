@@ -15,11 +15,18 @@
 #endif
 
 // extern Texture *ui_tex;
+#define _UI_ATTRIBUTE_COUNT_ 3
 
 typedef struct 
 {
     Uint32 count;
     Gui *gui_list;
+
+    Pipeline *pipe;
+    VkDevice device;
+
+    VkVertexInputAttributeDescription attributeDescriptions[_UI_ATTRIBUTE_COUNT_];
+    VkVertexInputBindingDescription bindingDescription;
 } GuiManager;
 
 static GuiManager gf3d_gui = {0};
@@ -50,7 +57,7 @@ void gf3d_gui_manager_close()
     gf3d_gui.count = 0;
 }
 
-void gf3d_gui_manager_init(Uint32 count)
+void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device)
 {
     gf3d_gui.gui_list = (Gui*)gfc_allocate_array(sizeof(Gui), count);
     if(!gf3d_gui.gui_list)
@@ -60,6 +67,29 @@ void gf3d_gui_manager_init(Uint32 count)
     }
 
     gf3d_gui.count = count;
+
+    gf3d_gui.device = device;
+    gf3d_gui.pipe = pipe;
+
+    gf3d_gui.bindingDescription.binding = 1;
+    gf3d_gui.bindingDescription.stride = sizeof(GuiVertex);
+    gf3d_gui.bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    gf3d_gui.attributeDescriptions[0].binding = 1;
+    gf3d_gui.attributeDescriptions[0].location = 0;
+    gf3d_gui.attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+    gf3d_gui.attributeDescriptions[0].offset = offsetof(GuiVertex, pos);
+    
+    gf3d_gui.attributeDescriptions[1].binding = 1;
+    gf3d_gui.attributeDescriptions[1].location = 1;
+    gf3d_gui.attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    gf3d_gui.attributeDescriptions[1].offset = offsetof(GuiVertex, color);
+    
+    gf3d_gui.attributeDescriptions[2].binding = 1;
+    gf3d_gui.attributeDescriptions[2].location = 2;
+    gf3d_gui.attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    gf3d_gui.attributeDescriptions[2].offset = offsetof(GuiVertex, texel);
+
     atexit(gf3d_gui_manager_close);
 }
 
@@ -147,22 +177,25 @@ void gf3d_gui_draw(Gui *gui)
 {
     int i;
 
-    slog("draw sucia");
-
     if(!gui || !gui->renderer) return;
 
-    slog("render clear");
     SDL_RenderClear(gui->renderer);
 
-    slog("iterate elements");
     for(i = 0; i < gui->elementCount; i++)
     {
         if(gui->elements[i]) gf3d_gui_element_draw(*gui->elements[i], gui->renderer);
     }
 
     SDL_RenderPresent(gui->renderer);
+}
 
-    // slog("getting texture");
-    // if(!ui_tex) ui_tex = gf3d_texture_from_surface(gui->surface);
-    // slog("woop woop");
+VkVertexInputBindingDescription *gf3d_gui_get_bind_description()
+{
+    return &gf3d_gui.bindingDescription;
+}
+
+VkVertexInputAttributeDescription *gf3d_gui_get_attribute_descriptions(Uint32 *count)
+{
+    if(count) *count = _UI_ATTRIBUTE_COUNT_;
+    return gf3d_gui.attributeDescriptions;
 }

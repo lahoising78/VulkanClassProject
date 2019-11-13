@@ -7,6 +7,7 @@
 #include "gf3d_vgraphics.h"
 #include "gf3d_shaders.h"
 #include "gf3d_model.h"
+#include "gf3d_gui.h"
 
 typedef struct
 {
@@ -21,6 +22,10 @@ void gf3d_pipeline_close();
 void gf3d_pipeline_create_basic_model_descriptor_pool(Pipeline *pipe);
 void gf3d_pipeline_create_basic_model_descriptor_set_layout(Pipeline *pipe);
 void gf3d_pipeline_create_descriptor_sets(Pipeline *pipe);
+
+void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe);
+void gf3d_pipeline_create_basic_model_descriptor_set_layout_2d(Pipeline *pipe);
+void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe);
 
 void gf3d_pipeline_init(Uint32 max_pipelines)
 {
@@ -167,162 +172,158 @@ void gf3d_pipeline_render_pass_setup(Pipeline *pipe)
     }
 }
 
-// Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,char *fragFile,VkExtent2D extent,Uint32 descriptorCount)
-// {
-//     Pipeline *pipe;
-//     VkRect2D scissor = {0};
-//     VkViewport viewport = {0};
-//     VkGraphicsPipelineCreateInfo pipelineInfo = {0};
-//     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
-//     VkPipelineViewportStateCreateInfo viewportState = {0};
-//     VkPipelineRasterizationStateCreateInfo rasterizer = {0};
-//     VkPipelineShaderStageCreateInfo shaderStages[2];
-//     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {0};
-//     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {0};
-//     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {0};
-//     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {0};
-//     VkPipelineMultisampleStateCreateInfo multisampling = {0};
-//     VkPipelineColorBlendAttachmentState colorBlendAttachment = {0};
-//     VkPipelineColorBlendStateCreateInfo colorBlending = {0};
+Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,char *fragFile,VkExtent2D extent,Uint32 descriptorCount)
+{
+    Pipeline *pipe;
+    VkRect2D scissor = {0};
+    VkViewport viewport = {0};
+    VkGraphicsPipelineCreateInfo pipelineInfo = {0};
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
+    VkPipelineViewportStateCreateInfo viewportState = {0};
+    VkPipelineRasterizationStateCreateInfo rasterizer = {0};
+    VkPipelineShaderStageCreateInfo shaderStages[2];
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo = {0};
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo = {0};
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {0};
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly = {0};
+    VkPipelineMultisampleStateCreateInfo multisampling = {0};
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {0};
+    VkPipelineColorBlendStateCreateInfo colorBlending = {0};
+    // VkPipelineDepthStencilStateCreateInfo depthStencil = {0};
     
-//     pipe = gf3d_pipeline_new();
-//     if (!pipe)return NULL;
+    pipe = gf3d_pipeline_new();
+    if (!pipe)return NULL;
 
-//     pipe->vertShader = gf3d_shaders_load_data(vertFile,&pipe->vertSize);
-//     pipe->fragShader = gf3d_shaders_load_data(fragFile,&pipe->fragSize);
-    
-//     pipe->vertModule = gf3d_shaders_create_module(pipe->vertShader,pipe->vertSize,device);
-//     pipe->fragModule = gf3d_shaders_create_module(pipe->fragShader,pipe->fragSize,device);
+    pipe->vertShader = gf3d_shaders_load_data(vertFile, &pipe->vertSize);
+    pipe->fragShader = gf3d_shaders_load_data(fragFile, &pipe->fragSize);
 
-//     pipe->device = device;
-//     pipe->descriptorSetCount = descriptorCount;
-//     // slog("==================== 1 %d ==================", descriptorCount);
-    
-//     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-//     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-//     vertShaderStageInfo.module = pipe->vertModule;
-//     vertShaderStageInfo.pName = "main";
-    
-//     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-//     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-//     fragShaderStageInfo.module = pipe->fragModule;
-//     fragShaderStageInfo.pName = "main";
-    
-//     shaderStages[0] = vertShaderStageInfo;
-//     shaderStages[1] = fragShaderStageInfo;
-    
-//     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-//     vertexInputInfo.vertexBindingDescriptionCount = 1;
-//     vertexInputInfo.pVertexBindingDescriptions = gf3d_mesh_get_bind_description(); // Optional
-//     vertexInputInfo.pVertexAttributeDescriptions = gf3d_mesh_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount); // Optional    
+    pipe->vertModule = gf3d_shaders_create_module(pipe->vertShader, pipe->vertSize, device);
+    pipe->fragModule = gf3d_shaders_create_module(pipe->fragShader, pipe->fragSize, device);
 
-//     // TODO: pull all this information from config file
-//     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-//     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-//     inputAssembly.primitiveRestartEnable = VK_FALSE;
-    
-//     viewport.x = 0.0f;
-//     viewport.y = 0.0f;
-//     viewport.width = (float) extent.width;
-//     viewport.height = (float) extent.height;
-//     viewport.minDepth = 0.0f;
-//     viewport.maxDepth = 1.0f;
-    
-//     scissor.offset.x = 0;
-//     scissor.offset.y = 0;
-//     scissor.extent = extent;
-    
-//     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-//     viewportState.viewportCount = 1;
-//     viewportState.pViewports = &viewport;
-//     viewportState.scissorCount = 1;
-//     viewportState.pScissors = &scissor;
-    
-//     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-//     rasterizer.depthClampEnable = VK_FALSE;
-//     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-//     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-//     rasterizer.lineWidth = 1.0f;
-//     // rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-//     // rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-//     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-//     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-//     rasterizer.depthBiasEnable = VK_FALSE;
-//     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-//     rasterizer.depthBiasClamp = 0.0f; // Optional
-//     rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+    pipe->device = device;
+    pipe->descriptorSetCount = descriptorCount;
 
-//     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-//     multisampling.sampleShadingEnable = VK_FALSE;
-//     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-//     multisampling.minSampleShading = 1.0f; // Optional
-//     multisampling.pSampleMask = NULL; // Optional
-//     multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
-//     multisampling.alphaToOneEnable = VK_FALSE; // Optional
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = pipe->vertModule;
+    vertShaderStageInfo.pName = "main ui";
 
-//     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-//     colorBlendAttachment.blendEnable = VK_TRUE;
-//     colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-//     colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-//     colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-//     colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-//     colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-//     colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    
-//     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-//     colorBlending.logicOpEnable = VK_FALSE;
-//     colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
-//     colorBlending.attachmentCount = 1;
-//     colorBlending.pAttachments = &colorBlendAttachment;
-//     colorBlending.blendConstants[0] = 0.0f; // Optional
-//     colorBlending.blendConstants[1] = 0.0f; // Optional
-//     colorBlending.blendConstants[2] = 0.0f; // Optional
-//     colorBlending.blendConstants[3] = 0.0f; // Optional
-    
-//     gf3d_pipeline_create_basic_model_descriptor_pool(pipe);
-//     gf3d_pipeline_create_basic_model_descriptor_set_layout(pipe);
-//     gf3d_pipeline_create_descriptor_sets(pipe);
-    
-//     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-//     pipelineLayoutInfo.setLayoutCount = 1; // Optional
-//     pipelineLayoutInfo.pSetLayouts = &pipe->descriptorSetLayout; // Optional
-//     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-//     pipelineLayoutInfo.pPushConstantRanges = NULL; // Optional
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = pipe->fragModule;
+    fragShaderStageInfo.pName = "main ui";
 
-//     gf3d_pipeline_render_pass_setup(pipe);
+    shaderStages[0] = vertShaderStageInfo;
+    shaderStages[1] = fragShaderStageInfo;
+
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = gf3d_gui_get_bind_description();
+    vertexInputInfo.vertexAttributeDescriptionCount = 1;
+    vertexInputInfo.pVertexAttributeDescriptions = gf3d_gui_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount);
+
+    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float) extent.width;
+    viewport.height = (float) extent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent = extent;
+
+    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+
+    rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer.depthClampEnable = VK_FALSE;
+    rasterizer.rasterizerDiscardEnable = VK_FALSE;
+    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.lineWidth = 1.0f;
+    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.depthBiasEnable = VK_FALSE;
+
+    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sampleShadingEnable = VK_FALSE;
+    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampling.minSampleShading = 1.0f; // Optional
+    multisampling.pSampleMask = NULL; // Optional
+    multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+    multisampling.alphaToOneEnable = VK_FALSE; // Optional
+
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
     
-//     if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipe->pipelineLayout) != VK_SUCCESS)
-//     {
-//         slog("failed to create pipeline layout!");
-//         gf3d_pipeline_free(pipe);
-//         return NULL;
-//     }
+    colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlending.logicOpEnable = VK_FALSE;
+    colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
+    colorBlending.blendConstants[0] = 0.0f; // Optional
+    colorBlending.blendConstants[1] = 0.0f; // Optional
+    colorBlending.blendConstants[2] = 0.0f; // Optional
+    colorBlending.blendConstants[3] = 0.0f; // Optional
+
+    gf3d_pipeline_create_basic_model_descriptor_pool_2d(pipe);
+    gf3d_pipeline_create_basic_model_descriptor_set_layout_2d(pipe);
+    gf3d_pipeline_create_descriptor_sets_2d(pipe);
+
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1; // Optional
+    pipelineLayoutInfo.pSetLayouts = &pipe->descriptorSetLayout; // Optional
+    pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
+    pipelineLayoutInfo.pPushConstantRanges = NULL; // Optional
+
+    gf3d_pipeline_render_pass_setup(pipe);
+
+    if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipe->pipelineLayout) != VK_SUCCESS)
+    {
+        slog("failed to create pipeline layout!");
+        gf3d_pipeline_free(pipe);
+        return NULL;
+    }
     
-//     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-//     pipelineInfo.stageCount = 2;
-//     pipelineInfo.pStages = shaderStages;
-//     pipelineInfo.pVertexInputState = &vertexInputInfo;
-//     pipelineInfo.pInputAssemblyState = &inputAssembly;
-//     pipelineInfo.pViewportState = &viewportState;
-//     pipelineInfo.pRasterizationState = &rasterizer;
-//     pipelineInfo.pMultisampleState = &multisampling;
-//     pipelineInfo.pDepthStencilState = NULL; // Optional
-//     pipelineInfo.pColorBlendState = &colorBlending;
-//     pipelineInfo.pDynamicState = NULL; // Optional
-//     pipelineInfo.layout = pipe->pipelineLayout;
-//     pipelineInfo.renderPass = pipe->renderPass;
-//     pipelineInfo.subpass = 0;
-//     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-//     pipelineInfo.basePipelineIndex = -1; // Optional
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = NULL; // Optional
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = NULL; // Optional
+    pipelineInfo.layout = pipe->pipelineLayout;
+    pipelineInfo.renderPass = pipe->renderPass;
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+    pipelineInfo.basePipelineIndex = -1; // Optional
     
-//     if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &pipe->pipeline) != VK_SUCCESS)
-//     {   
-//         slog("failed to create graphics pipeline!");
-//         gf3d_pipeline_free(pipe);
-//         return NULL;
-//     }
-//     return pipe;
-// }
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &pipe->pipeline) != VK_SUCCESS)
+    {   
+        slog("failed to create graphics pipeline!");
+        gf3d_pipeline_free(pipe);
+        return NULL;
+    }
+
+    return pipe;
+}
 
 Pipeline *gf3d_pipeline_basic_model_create(VkDevice device,char *vertFile,char *fragFile,VkExtent2D extent,Uint32 descriptorCount)
 {
@@ -688,6 +689,90 @@ VkDescriptorSet * gf3d_pipeline_get_descriptor_set(Pipeline *pipe, Uint32 frame)
         return NULL;
     }
     return &pipe->descriptorSets[frame][pipe->descriptorCursor[frame]++];
+}
+
+void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe)
+{
+    // int i;
+    // VkDescriptorPoolSize poolSize[2] = {0};
+    // VkDescriptorPoolCreateInfo poolInfo = {0};
+
+    // if(!pipe)
+    // {
+    //     slog("no pipeline provided");
+    //     return;
+    // }
+    // slog("attempting to make %i descriptor pools of size &i", gf3d_pipeline.chainLength, pipe->descriptorSetCount);
+    // poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    // poolSize[0].descriptorCount = pipe->descriptorSetCount;
+    // poolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    // poolSize[1].descriptorCount = pipe->descriptorSetCount;
+
+    // poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    // poolInfo.poolSizeCount = 2;
+    // poolInfo.pPoolSizes = poolSize;
+    // poolInfo.maxSets = pipe->descriptorSetCount;
+    // pipe->descriptorPool = (VkDescriptorPool*)gfc_allocate_array(sizeof(VkDescriptorPool), gf3d_pipeline.chainLength);
+
+    // for(i = 0; i < gf3d_pipeline.chainLength; i++)
+    // {
+    //     if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[i]) != VK_SUCCESS )
+    //     {
+    //         slog("failed to create descriptor pool for 2d!");
+    //         return;
+    //     }
+    // }
+    // pipe->descriptorPoolCount = gf3d_pipeline.chainLength;
+
+    gf3d_pipeline_create_basic_model_descriptor_pool(pipe);
+}
+
+void gf3d_pipeline_create_basic_model_descriptor_set_layout_2d(Pipeline *pipe)
+{
+    VkDescriptorSetLayoutCreateInfo layoutInfo = {0};
+    VkDescriptorSetLayoutBinding uiBounding = {0};
+
+    VkDescriptorSetLayoutBinding bindings[1];
+
+    uiBounding.binding = 1;
+    uiBounding.descriptorCount = 1;
+    uiBounding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    uiBounding.pImmutableSamplers = NULL;
+    uiBounding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    memcpy(&bindings[0], &uiBounding, sizeof(VkDescriptorSetLayoutBinding));
+
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 2;
+    layoutInfo.pBindings = bindings;
+
+    if (vkCreateDescriptorSetLayout(pipe->device, &layoutInfo, NULL, &pipe->descriptorSetLayout) != VK_SUCCESS)
+    {
+        slog("failed to create descriptor set layout!");
+    }
+}
+
+void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
+{
+    // int i;
+    // int r;
+    // VkDescriptorSetLayout *layouts = NULL;
+    // VkDescriptorSetAllocateInfo allocInfo = {0};
+
+    // slog("making descriptor 2d");
+    // layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), pipe->descriptorSetCount);
+    // for(i = 0; i < pipe->descriptorSetCount; i++)
+    // {
+    //     memcpy(&layouts[i], &pipe->descriptorSetLayout, sizeof(VkDescriptorSetLayout));
+    // }
+
+    // allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    // allocInfo.descriptorSetCount = pipe->descriptorSetCount;
+    // allocInfo.pSetLayouts = layouts;
+
+    // pipe->descriptorCursor = (Uint32*)gfc_allocate_array(sizeof(Uint32), gf3d_pipeline.chainLength);
+    gf3d_pipeline_create_descriptor_sets(pipe);
+
 }
 
 /*eol@eof*/
