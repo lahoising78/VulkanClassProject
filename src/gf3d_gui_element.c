@@ -8,13 +8,15 @@ GuiElement gf3d_gui_element_create(Vector2D pos, Vector2D ext, Color color)
     element.position = pos;
     element.extents = ext;
     element.color = color;
+    element.tex = NULL;
     return element;
 }
 
 void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer)
 {
     SDL_Rect rect;
-    // slog("gui element draw");
+
+    slog("algun problema aqui?");
 
     if(!renderer) return;
 
@@ -25,6 +27,8 @@ void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer)
 
     SDL_SetRenderDrawColor(renderer, element.color.r * 255, element.color.g * 255, element.color.b * 255, element.color.a * 255);
     SDL_RenderFillRect(renderer, &rect);
+
+    slog("termina please");
 }
 
 /* ==========COLOR======== */

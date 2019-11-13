@@ -30,6 +30,7 @@
 #define CHAKRA_DOWN_OFFSET  -0.425f
 
 // extern float worldTime;
+Texture *ui_tex = NULL;
 float worldTime = 0.0f;
 
 int main(int argc,char *argv[])
@@ -51,6 +52,7 @@ int main(int argc,char *argv[])
     Player* p1;
     Entity* ent2;
     Entity* stage;
+    Entity *test;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -195,8 +197,14 @@ int main(int argc,char *argv[])
 
     gui = gf3d_gui_new(8, -1);
 
-    el = gf3d_gui_element_create(vector2d(50, 50), vector2d(10.0f, 10.0f), gfc_color(0.5, 0.5, 0.5, 1.0));
+    el = gf3d_gui_element_create(vector2d(0, 0), vector2d(1000.0f, 1000.0f), gfc_color(0.55f, 0.35, 0.8, 1.0));
     gf3d_gui_add_element(gui, &el);
+
+    test = gf3d_entity_new();
+    test->model = gf3d_model_load("cube", "cube");
+    test->position = vector3d(0, 0, 0);
+    test->scale = vector3d(1, 1, 1);
+    test->update = gf3d_entity_general_update;
 
     gf3d_timer_start(&timer);
     // gf3d_timer_start(&frameTimer);
@@ -235,7 +243,8 @@ int main(int argc,char *argv[])
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 // gf3d_gui_draw(element, bufferFrame, commandBuffer);
-                gf3d_gui_manager_draw(/* bufferFrame, commandBuffer */);
+                if(!ui_tex) gf3d_gui_manager_draw(/* bufferFrame, commandBuffer */);
+                // slog("draw end p");
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
@@ -272,6 +281,15 @@ int main(int argc,char *argv[])
 
         frame = gf3d_timer_get_ticks(&frameTimer);
         worldTime = frame;
+
+        if(!ui_tex) 
+        {
+            slog("getting texture");
+            ui_tex = gf3d_texture_from_surface(gui->surface);
+            test->model->texture = ui_tex;
+            slog("woop woop");
+        }
+        
     }    
     
     SDL_JoystickClose( controller );

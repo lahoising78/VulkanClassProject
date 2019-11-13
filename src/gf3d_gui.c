@@ -14,6 +14,8 @@
     static Uint32 amask = 0xff000000;
 #endif
 
+// extern Texture *ui_tex;
+
 typedef struct 
 {
     Uint32 count;
@@ -109,11 +111,6 @@ void gf3d_gui_free(Gui *gui)
     slog("gui free");
     if(!gui) return;
 
-    // for(i = 0; i < gui->elementCount; i++)
-    // {
-    //     element = gui->elements[i];
-    //     if(element) free(element);
-    // }
     if(gui->elements) free(gui->elements);
 
     memset(gui, 0, sizeof(Gui));
@@ -150,14 +147,22 @@ void gf3d_gui_draw(Gui *gui)
 {
     int i;
 
+    slog("draw sucia");
+
     if(!gui || !gui->renderer) return;
 
+    slog("render clear");
     SDL_RenderClear(gui->renderer);
 
+    slog("iterate elements");
     for(i = 0; i < gui->elementCount; i++)
     {
         if(gui->elements[i]) gf3d_gui_element_draw(*gui->elements[i], gui->renderer);
     }
 
     SDL_RenderPresent(gui->renderer);
+
+    // slog("getting texture");
+    // if(!ui_tex) ui_tex = gf3d_texture_from_surface(gui->surface);
+    // slog("woop woop");
 }
