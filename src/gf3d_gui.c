@@ -93,18 +93,34 @@ void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device)
     atexit(gf3d_gui_manager_close);
 }
 
-void gf3d_gui_manager_draw()
+void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 {
     int i;
     Gui *gui;
 
-    for(i = 0; i < gf3d_gui.count; i++)
-    {
-        gui = &gf3d_gui.gui_list[i];
-        if(!gui->_inuse) continue;
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_gui.pipe->pipeline);
 
-        gf3d_gui_draw(gui);
-    }
+        vkCmdBindDescriptorSets(
+            commandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            gf3d_gui.pipe->pipelineLayout,
+            0,
+            gf3d_gui.pipe->descriptorSetCount, 
+            gf3d_gui.pipe->descriptorSets[bufferFrame],
+            0, NULL
+        );
+
+        for(i = 0; i < gf3d_gui.count; i++)
+        {
+            gui = &gf3d_gui.gui_list[i];
+            if(!gui->_inuse) continue;
+
+            gf3d_gui_draw(gui, bufferFrame, commandBuffer);
+        }
+
+        vkCmdDraw(commandBuffer, 4, 1, 0, 0);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
 }
 
 Gui *gf3d_gui_new(Uint32 count, int depth)
@@ -173,7 +189,7 @@ void gf3d_gui_init(Gui *gui)
     gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
 }
 
-void gf3d_gui_draw(Gui *gui)
+void gf3d_gui_draw(Gui *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 {
     int i;
 
