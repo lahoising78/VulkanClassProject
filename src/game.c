@@ -231,15 +231,16 @@ int main(int argc,char *argv[])
         // for each mesh, get a command and configure it from the pool
         bufferFrame = gf3d_vgraphics_render_begin();
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
+        gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline2D(), bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
-                gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
-                // gf3d_gui_draw(element, bufferFrame, commandBuffer);
-                // slog("draw end p");
-                if ( drawShapes ) 
-                {
-                    gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
-                }
+                // gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
+                // // gf3d_gui_draw(element, bufferFrame, commandBuffer);
+                // // slog("draw end p");
+                // if ( drawShapes ) 
+                // {
+                //     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
+                // }
                 
                 gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 

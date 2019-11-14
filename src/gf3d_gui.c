@@ -98,6 +98,7 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
     int i;
     Gui *gui;
 
+    // slog("draw gui");
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_gui.pipe->pipeline);
 
         vkCmdBindDescriptorSets(
@@ -105,8 +106,8 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             gf3d_gui.pipe->pipelineLayout,
             0,
-            gf3d_gui.pipe->descriptorSetCount, 
-            gf3d_gui.pipe->descriptorSets[bufferFrame],
+            1, 
+            &gf3d_gui.pipe->descriptorSets[0][bufferFrame],
             0, NULL
         );
 
@@ -121,6 +122,7 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         vkCmdDraw(commandBuffer, 4, 1, 0, 0);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
+    // slog("draw end");
 }
 
 Gui *gf3d_gui_new(Uint32 count, int depth)

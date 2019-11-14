@@ -712,19 +712,19 @@ void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe)
         slog("no pipeline provided");
         return;
     }
-    slog("attempting to make descriptor pools of size %i", gf3d_swapchain_get_swap_image_count());
+    slog("attempting to make descriptor pools of size %i", pipe->descriptorSetCount);
     poolSize[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize[0].descriptorCount = gf3d_swapchain_get_swap_image_count();
+    poolSize[0].descriptorCount = pipe->descriptorSetCount;
     // poolSize[0].descriptorCount = pipe->descriptorSetCount;
 
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 1;
     poolInfo.pPoolSizes = poolSize;
-    poolInfo.maxSets = gf3d_swapchain_get_swap_image_count();
+    poolInfo.maxSets = pipe->descriptorSetCount;
     // poolInfo.maxSets = pipe->descriptorSetCount;
     pipe->descriptorPool = (VkDescriptorPool*)gfc_allocate_array(sizeof(VkDescriptorPool), 1);
 
-    if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, pipe->descriptorPool) != VK_SUCCESS )
+    if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[0]) != VK_SUCCESS )
     {
         slog("failed to create descriptor pool for 2d!");
         return;
@@ -771,7 +771,7 @@ void gf3d_pipeline_create_basic_model_descriptor_set_layout_2d(Pipeline *pipe)
 void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
 {
     int i;
-    // int r;
+    int r;
     VkDescriptorSetLayout *layouts = NULL;
     VkDescriptorSetAllocateInfo allocInfo = {0};
 
@@ -801,15 +801,25 @@ void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
     allocInfo.descriptorSetCount = pipe->descriptorSetCount;
     allocInfo.pSetLayouts = layouts;
 
-    if(!pipe->descriptorSets)
-        pipe->descriptorSets = (VkDescriptorSet**) gfc_allocate_array(sizeof(VkDescriptorSet*), 1);
-    
+    pipe->descriptorCursor = (Uint32 *)gfc_allocate_array(sizeof(Uint32),gf3d_pipeline.chainLength);
+    pipe->descriptorSets = (VkDescriptorSet **)gfc_allocate_array(sizeof(VkDescriptorSet*),1);
     pipe->descriptorSets[0] = (VkDescriptorSet*) gfc_allocate_array(sizeof(VkDescriptorSet), pipe->descriptorSetCount);
-    if( vkAllocateDescriptorSets( pipe->device, &allocInfo, pipe->descriptorSets[0] ) != VK_SUCCESS )
+    slog("allocating descriptor sets");
+    if ((r = vkAllocateDescriptorSets(pipe->device, &allocInfo, pipe->descriptorSets[0])) != VK_SUCCESS)
     {
-        slog("Failed to allocate descriptor sets 2d");
+        slog("failed to allocate descriptor sets!");
+        if (r == VK_ERROR_OUT_OF_POOL_MEMORY)slog("out of pool memory");
+        else if (r == VK_ERROR_FRAGMENTED_POOL)slog("fragmented pool");
+        else if (r == VK_ERROR_OUT_OF_DEVICE_MEMORY)slog("out of device memory");
+        else if (r == VK_ERROR_OUT_OF_HOST_MEMORY)slog("out of host memory");
+        free(layouts);
         return;
     }
+
+    // for (i = 0; i < gf3d_pipeline.chainLength; i++)
+    // {    
+    //     pipe->descriptorSets[i] = (VkDescriptorSet *)gfc_allocate_array(sizeof(VkDescriptorSet),1);
+    // }
 
     slog("completed allocation");
 
