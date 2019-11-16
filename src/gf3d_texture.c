@@ -294,7 +294,7 @@ Texture *gf3d_texture_load(char *filename)
     return tex;
 }
 
-Texture *gf3d_texture_from_surface(SDL_Surface *surface)
+Texture *gf3d_texture_from_surface(Texture *tex, SDL_Surface *surface)
 {
     void *data;
     VkDeviceSize imageSize;
@@ -304,14 +304,15 @@ Texture *gf3d_texture_from_surface(SDL_Surface *surface)
     VkMemoryRequirements memReqs;
     VkMemoryAllocateInfo allocInfo = {0};
 
-    Texture *tex = NULL;
-
     if(!surface) return NULL;
 
-    tex = gf3d_texture_new();
     if(!tex)
     {
-        return NULL;
+        tex = gf3d_texture_new();
+        if(!tex)
+        {
+            return NULL;
+        }
     }
     gfc_line_cpy(tex->filename, "placeholder");
     

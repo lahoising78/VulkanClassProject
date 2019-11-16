@@ -59,6 +59,12 @@ clean:
 count:
 	wc -l *.c $(foreach d, $(INC_PATHS), $d/*.h) makefile
 
+shaders:
+	glslc ../shaders/default.vert -o vert.spv
+	glslc ../shaders/default.frag -o frag.spv
+	glslc ../shaders/default_gui.vert -o vert_gui.spv
+	glslc ../shaders/default_gui.frag -o frag_gui.spv
+
 #
 # Dependencies.
 #

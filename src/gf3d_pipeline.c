@@ -107,6 +107,71 @@ VkFormat gf3d_pipeline_find_depth_format()
     );
 }
 
+void gf3d_pipeline_render_pass_setup_2D(Pipeline *pipe)
+{
+    VkAttachmentDescription colorAttachment = {0};
+    VkAttachmentReference colorAttachmentRef = {0};
+    VkSubpassDescription subpass = {0};
+    VkRenderPassCreateInfo renderPassInfo = {0};
+    VkSubpassDependency dependency = {0};
+    VkAttachmentDescription depthAttachment = {0};
+    VkAttachmentReference depthAttachmentRef = {0};
+    VkAttachmentDescription attachments[2];
+    
+    // depthAttachmentRef.attachment = 1;
+    // depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    
+    // depthAttachment.format = gf3d_pipeline_find_depth_format();
+    // depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    // depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    // depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    // depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    // depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    colorAttachment.format = gf3d_swapchain_get_format();
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+    // subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    
+    // memcpy(&attachments[0],&colorAttachment,sizeof(VkAttachmentDescription));
+    // memcpy(&attachments[1],&depthAttachment,sizeof(VkAttachmentDescription));
+    
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
+
+    if (vkCreateRenderPass(pipe->device, &renderPassInfo, NULL, &pipe->renderPass) != VK_SUCCESS)
+    {
+        slog("failed to create render pass!");
+        return;
+    }
+}
+
 void gf3d_pipeline_render_pass_setup(Pipeline *pipe)
 {
     VkAttachmentDescription colorAttachment = {0};
@@ -191,6 +256,8 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     VkPipelineColorBlendStateCreateInfo colorBlending = {0};
     VkPipelineDepthStencilStateCreateInfo depthStencil = {0};
     
+    slog("creating 2d pipeline");
+
     pipe = gf3d_pipeline_new();
     if (!pipe)return NULL;
 
@@ -204,13 +271,16 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     pipe->descriptorSetCount = descriptorCount;
 
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    // depthStencil.depthTestEnable = VK_FALSE;
     depthStencil.depthTestEnable = VK_TRUE;
+    // depthStencil.depthWriteEnable = VK_FALSE;
     depthStencil.depthWriteEnable = VK_TRUE;
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     depthStencil.depthBoundsTestEnable = VK_FALSE;
     depthStencil.minDepthBounds = 0.0f; // Optional
     depthStencil.maxDepthBounds = 1.0f; // Optional
     depthStencil.stencilTestEnable = VK_TRUE;
+    // depthStencil.stencilTestEnable = VK_FALSE;
 
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -226,10 +296,10 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     shaderStages[1] = fragShaderStageInfo;
 
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    // vertexInputInfo.pVertexBindingDescriptions = gf3d_gui_get_bind_description();
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    // vertexInputInfo.pVertexAttributeDescriptions = gf3d_gui_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount);
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = gf3d_gui_get_bind_description();
+    vertexInputInfo.vertexAttributeDescriptionCount = 1;
+    vertexInputInfo.pVertexAttributeDescriptions = gf3d_gui_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount);
 
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -257,9 +327,14 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
+//    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+//    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
+    rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+    rasterizer.depthBiasClamp = 0.0f; // Optional
+    rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
@@ -270,6 +345,7 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_FALSE;
     colorBlendAttachment.blendEnable = VK_TRUE;
     colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -293,6 +369,7 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     gf3d_pipeline_create_descriptor_sets_2d(pipe);
 
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0; // Optional
     pipelineLayoutInfo.setLayoutCount = 1; // Optional
     pipelineLayoutInfo.pSetLayouts = &pipe->descriptorSetLayout; // Optional
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
@@ -604,7 +681,7 @@ void gf3d_pipeline_reset_frame(Pipeline *pipe,Uint32 frame)
         slog("frame %i outside the range of supported descriptor Pools (%i)",frame,gf3d_pipeline.chainLength);
         return;
     }
-    pipe->descriptorCursor[frame] = 0;
+    if(pipe->descriptorCursor) pipe->descriptorCursor[frame] = 0;
 }
 
 void gf3d_pipeline_create_descriptor_sets(Pipeline *pipe)
@@ -703,7 +780,7 @@ VkDescriptorSet * gf3d_pipeline_get_descriptor_set(Pipeline *pipe, Uint32 frame)
 
 void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe)
 {
-    // int i;
+    int i;
     VkDescriptorPoolSize poolSize[1] = {0};
     VkDescriptorPoolCreateInfo poolInfo = {0};
 
@@ -715,30 +792,29 @@ void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe)
     slog("attempting to make descriptor pools of size %i", pipe->descriptorSetCount);
     poolSize[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSize[0].descriptorCount = pipe->descriptorSetCount;
-    // poolSize[0].descriptorCount = pipe->descriptorSetCount;
 
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 1;
     poolInfo.pPoolSizes = poolSize;
+    // poolInfo.maxSets = gf3d_pipeline.chainLength;
     poolInfo.maxSets = pipe->descriptorSetCount;
-    // poolInfo.maxSets = pipe->descriptorSetCount;
-    pipe->descriptorPool = (VkDescriptorPool*)gfc_allocate_array(sizeof(VkDescriptorPool), 1);
+    pipe->descriptorPool = (VkDescriptorPool*)gfc_allocate_array(sizeof(VkDescriptorPool), gf3d_pipeline.chainLength);
 
-    if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[0]) != VK_SUCCESS )
-    {
-        slog("failed to create descriptor pool for 2d!");
-        return;
-    }
-
-    // for(i = 0; i < gf3d_pipeline.chainLength; i++)
+    // if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, pipe->descriptorPool) != VK_SUCCESS )
     // {
-    //     if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[i]) != VK_SUCCESS )
-    //     {
-    //         slog("failed to create descriptor pool for 2d!");
-    //         return;
-    //     }
+    //     slog("failed to create descriptor pool for 2d!");
+    //     return;
     // }
-    // pipe->descriptorPoolCount = gf3d_pipeline.chainLength;
+
+    for(i = 0; i < gf3d_pipeline.chainLength; i++)
+    {
+        if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[i]) != VK_SUCCESS )
+        {
+            slog("failed to create descriptor pool for 2d!");
+            return;
+        }
+    }
+    pipe->descriptorPoolCount = gf3d_pipeline.chainLength;
 
     // gf3d_pipeline_create_basic_model_descriptor_pool(pipe);
 }
@@ -784,51 +860,55 @@ void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
     // VkWriteDescriptorSet descriptorWrite[1] = {0};
     // VkDescriptorImageInfo imageInfo = {0};
 
-    layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), pipe->descriptorSetCount);
+    layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), gf3d_swapchain_get_swap_image_count());
     if(!layouts)
     {
         slog("layouts not initialized");
         return;
     }
 
-    for(i = 0; i < pipe->descriptorSetCount; i++)
+    for(i = 0; i < gf3d_swapchain_get_swap_image_count(); i++)
     {
         memcpy(&layouts[i], &pipe->descriptorSetLayout, sizeof(VkDescriptorSetLayout));
     }
 
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = pipe->descriptorPool[0];
-    allocInfo.descriptorSetCount = pipe->descriptorSetCount;
+    // allocInfo.descriptorPool = pipe->descriptorPool;
+    allocInfo.descriptorSetCount = gf3d_swapchain_get_swap_image_count();
     allocInfo.pSetLayouts = layouts;
 
     pipe->descriptorCursor = (Uint32 *)gfc_allocate_array(sizeof(Uint32),gf3d_pipeline.chainLength);
-    pipe->descriptorSets = (VkDescriptorSet **)gfc_allocate_array(sizeof(VkDescriptorSet*),1);
-    pipe->descriptorSets[0] = (VkDescriptorSet*) gfc_allocate_array(sizeof(VkDescriptorSet), pipe->descriptorSetCount);
+    pipe->descriptorSets = (VkDescriptorSet **)gfc_allocate_array(sizeof(VkDescriptorSet*),gf3d_pipeline.chainLength);
     slog("allocating descriptor sets");
-    if ((r = vkAllocateDescriptorSets(pipe->device, &allocInfo, pipe->descriptorSets[0])) != VK_SUCCESS)
+
+    for(i = 0; i < gf3d_pipeline.chainLength; i++)
     {
-        slog("failed to allocate descriptor sets!");
-        if (r == VK_ERROR_OUT_OF_POOL_MEMORY)slog("out of pool memory");
-        else if (r == VK_ERROR_FRAGMENTED_POOL)slog("fragmented pool");
-        else if (r == VK_ERROR_OUT_OF_DEVICE_MEMORY)slog("out of device memory");
-        else if (r == VK_ERROR_OUT_OF_HOST_MEMORY)slog("out of host memory");
-        free(layouts);
-        return;
+        // slog("update descriptor sets 2d");
+        pipe->descriptorSets[i] = (VkDescriptorSet*)gfc_allocate_array(sizeof(VkDescriptorSet), 1);
+        allocInfo.descriptorPool = pipe->descriptorPool[i];
+        if ((r = vkAllocateDescriptorSets(pipe->device, &allocInfo, pipe->descriptorSets[i])) != VK_SUCCESS)
+        {
+            slog("failed to allocate descriptor sets!");
+            if (r == VK_ERROR_OUT_OF_POOL_MEMORY)slog("out of pool memory");
+            else if (r == VK_ERROR_FRAGMENTED_POOL)slog("fragmented pool");
+            else if (r == VK_ERROR_OUT_OF_DEVICE_MEMORY)slog("out of device memory");
+            else if (r == VK_ERROR_OUT_OF_HOST_MEMORY)slog("out of host memory");
+            free(layouts);
+            return;
+        }
+        
     }
+
+    pipe->descriptorSetCount = gf3d_pipeline.chainLength;
 
     // for (i = 0; i < gf3d_pipeline.chainLength; i++)
     // {    
     //     pipe->descriptorSets[i] = (VkDescriptorSet *)gfc_allocate_array(sizeof(VkDescriptorSet),1);
+        // imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     // }
 
     slog("completed allocation");
 
-    // for(i = 0; i < pipe->descriptorSetCount; i++)
-    // {
-    //     slog("update descriptor sets 2d");
-    //     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        
-    // }
 
     // pipe->descriptorCursor = (Uint32*)gfc_allocate_array(sizeof(Uint32), gf3d_pipeline.chainLength);
     // gf3d_pipeline_create_descriptor_sets(pipe);
