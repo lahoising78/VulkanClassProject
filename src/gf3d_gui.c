@@ -37,6 +37,11 @@ void gf3d_gui_create_vertex_buffer(Gui *gui);
 void gf3d_gui_create_index_buffer(Gui *gui);
 void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet);
 
+void gf3d_gui_manager_attach_pipe(Pipeline *pipe)
+{
+    gf3d_gui.pipe = pipe;
+}
+
 void gf3d_gui_manager_close()
 {
     int i;
@@ -61,7 +66,7 @@ void gf3d_gui_manager_close()
     gf3d_gui.count = 0;
 }
 
-void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device)
+void gf3d_gui_manager_init(Uint32 count, VkDevice device)
 {
     gf3d_gui.gui_list = (Gui*)gfc_allocate_array(sizeof(Gui), count);
     if(!gf3d_gui.gui_list)
@@ -73,7 +78,7 @@ void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device)
     gf3d_gui.count = count;
 
     gf3d_gui.device = device;
-    gf3d_gui.pipe = pipe;
+    // gf3d_gui.pipe = pipe;
 
     gf3d_gui.bindingDescription.binding = 1;
     gf3d_gui.bindingDescription.stride = sizeof(GuiVertex);
@@ -103,23 +108,13 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
     Gui *gui;
     VkDescriptorSet *descriptorSets = NULL;
     
-    if(gf3d_gui.pipe->descriptorSets) 
+    if(gf3d_gui.pipe && gf3d_gui.pipe->descriptorSets) 
     {
         descriptorSets = gf3d_gui.pipe->descriptorSets[bufferFrame];
     }
 
     // slog("draw gui");
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_gui.pipe->pipeline);
-
-
-        for(i = 0; i < gf3d_gui.count; i++)
-        {
-            gui = &gf3d_gui.gui_list[i];
-            if(!gui->_inuse) continue;
-
-            // if(gui->ui_tex) gf3d_gui_update_descriptor_set(gui, descriptorSets);
-            gf3d_gui_draw(gui, descriptorSets, commandBuffer);
-        }
 
         // vkCmdBindDescriptorSets(
         //     commandBuffer, 
@@ -131,7 +126,17 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         //     0, NULL
         // );
 
-        // vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        for(i = 0; i < gf3d_gui.count; i++)
+        {
+            gui = &gf3d_gui.gui_list[i];
+            if(!gui->_inuse) continue;
+
+            // if(gui->ui_tex) gf3d_gui_update_descriptor_set(gui, descriptorSets);
+            gf3d_gui_draw(gui, descriptorSets, commandBuffer);
+        }
+
+
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
     // slog("draw end");
@@ -157,22 +162,22 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         gui->elementCount = count;
 
         /* top left */
-        gui->vertices[0].color =    gfc_color(1.0f, 0.0f, 0.0f, 1.0f);
+        gui->vertices[0].color =    vector4d(1.0f, 0.0f, 0.0f, 1.0f);
         gui->vertices[0].pos =      vector2d(-1.0f, -1.0f);
         gui->vertices[0].texel =    vector2d(0.0f, 0.0f);
         
         /* top right */
-        gui->vertices[1].color =    gfc_color(0.0f, 1.0f, 0.0f, 1.0f);
+        gui->vertices[1].color =    vector4d(0.0f, 1.0f, 0.0f, 1.0f);
         gui->vertices[1].pos =      vector2d( 1.0f, -1.0f);
         gui->vertices[1].texel =    vector2d(1.0f, 0.0f);
 
         /* bottom right */
-        gui->vertices[2].color =    gfc_color(0.0f, 0.0f, 1.0f, 1.0f);
+        gui->vertices[2].color =    vector4d(0.0f, 0.0f, 1.0f, 1.0f);
         gui->vertices[2].pos =      vector2d( 1.0f,  1.0f);
         gui->vertices[2].texel =    vector2d(1.0f, 1.0f);
 
         /* bottom left */
-        gui->vertices[3].color =    gfc_color(1.0f, 1.0f, 1.0f, 1.0f);
+        gui->vertices[3].color =    vector4d(1.0f, 1.0f, 1.0f, 1.0f);
         gui->vertices[3].pos =      vector2d(-1.0f,  1.0f);
         gui->vertices[3].texel =    vector2d(0.0f, 1.0f);
 
@@ -238,6 +243,8 @@ void gf3d_gui_init(Gui *gui)
     );
 
     gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
+
+    // gf3d_texture_surface_init(gui->ui_tex, gui->surface);
 }
 
 void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer)
@@ -256,21 +263,21 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
 
     SDL_RenderPresent(gui->renderer);
 
-    gf3d_texture_from_surface(gui->ui_tex, gui->surface);
-    gf3d_gui_update_descriptor_set(gui, descriptorSet);
+    // gui->ui_tex = gf3d_texture_from_surface(gui->ui_tex, gui->surface);
+    // gf3d_gui_update_descriptor_set(gui, descriptorSet);
 
-    vkCmdBindVertexBuffers(commandBuffer, 1, 1, &gui->vertexBuffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, gui->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdBindDescriptorSets(
-        commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        gf3d_gui.pipe->pipelineLayout,
-        0,
-        1, 
-        descriptorSet,
-        0, NULL
-    );
-    vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
+    // vkCmdBindVertexBuffers(commandBuffer, 0, 1, &gui->vertexBuffer, offsets);
+    // vkCmdBindIndexBuffer(commandBuffer, gui->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    // vkCmdBindDescriptorSets(
+    //     commandBuffer, 
+    //     VK_PIPELINE_BIND_POINT_GRAPHICS,
+    //     gf3d_gui.pipe->pipelineLayout,
+    //     0,
+    //     1, 
+    //     descriptorSet,
+    //     0, NULL
+    // );
+    // vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 }
 
 void gf3d_gui_create_vertex_buffer(Gui *gui)
@@ -341,6 +348,8 @@ void gf3d_gui_create_index_buffer(Gui *gui)
 
     vkDestroyBuffer(gf3d_gui.device, stagingBuffer, NULL);
     vkFreeMemory(gf3d_gui.device, stagingBufferMemory, NULL);
+
+    slog("end buffers");
 }
 
 void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet)

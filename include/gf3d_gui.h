@@ -8,7 +8,7 @@
 typedef struct
 {
     Vector2D pos;
-    Color color;
+    Vector4D color;
     Vector2D texel;
 } GuiVertex;
 
@@ -31,7 +31,9 @@ typedef struct
     Uint8 _inuse;
 } Gui;
 
-void gf3d_gui_manager_init(Uint32 count, Pipeline *pipe, VkDevice device);
+void gf3d_gui_manager_init(Uint32 count, VkDevice device);
+
+void gf3d_gui_manager_attach_pipe(Pipeline *pipe);
 
 void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 

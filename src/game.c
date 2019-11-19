@@ -193,10 +193,10 @@ int main(int argc,char *argv[])
     // ent2->enemy = p1->entity;
     // p1->entity->enemy = ent2;
 
-    // gui = gf3d_gui_new(8, -1);
+    gui = gf3d_gui_new(8, -1);
 
-    // el = gf3d_gui_element_create(vector2d(0, 0), vector2d(1000.0f, 1000.0f), gfc_color(0.55f, 0.35, 0.8, 1.0));
-    // gf3d_gui_add_element(gui, &el);
+    el = gf3d_gui_element_create(vector2d(0, 0), vector2d(1000.0f, 1000.0f), gfc_color(0.55f, 0.35, 0.8, 1.0));
+    gf3d_gui_add_element(gui, &el);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
@@ -230,7 +230,7 @@ int main(int argc,char *argv[])
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
         bufferFrame = gf3d_vgraphics_render_begin();
-        gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
+        //gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline2D(), bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
@@ -241,7 +241,7 @@ int main(int argc,char *argv[])
                 //     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 // }
                 
-                // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 
             gf3d_command_rendering_end(commandBuffer);
             
