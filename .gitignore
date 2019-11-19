@@ -55,3 +55,4 @@ gf3d
 *.log
 .vscode
 application
+*.foz

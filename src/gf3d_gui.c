@@ -136,7 +136,7 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         }
 
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        // vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
     // slog("draw end");
@@ -251,6 +251,7 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
 {
     int i;
     VkDeviceSize offsets[] = {0};
+    VkBuffer vertexBuffers[] = {gui->vertexBuffer};
 
     if(!gui || !gui->renderer) return;
 
@@ -266,8 +267,8 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
     // gui->ui_tex = gf3d_texture_from_surface(gui->ui_tex, gui->surface);
     // gf3d_gui_update_descriptor_set(gui, descriptorSet);
 
-    // vkCmdBindVertexBuffers(commandBuffer, 0, 1, &gui->vertexBuffer, offsets);
-    // vkCmdBindIndexBuffer(commandBuffer, gui->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(commandBuffer, 1, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, gui->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
     // vkCmdBindDescriptorSets(
     //     commandBuffer, 
     //     VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -277,7 +278,7 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
     //     descriptorSet,
     //     0, NULL
     // );
-    // vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 }
 
 void gf3d_gui_create_vertex_buffer(Gui *gui)

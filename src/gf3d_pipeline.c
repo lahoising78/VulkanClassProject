@@ -296,12 +296,12 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     shaderStages[1] = fragShaderStageInfo;
 
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    // vertexInputInfo.vertexBindingDescriptionCount = 1;
-    // vertexInputInfo.pVertexBindingDescriptions = gf3d_gui_get_bind_description();
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = gf3d_gui_get_bind_description();
     // vertexInputInfo.vertexAttributeDescriptionCount = 1;
-    // vertexInputInfo.pVertexAttributeDescriptions = gf3d_gui_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount);
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.pVertexAttributeDescriptions = gf3d_gui_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount);
+    // vertexInputInfo.vertexBindingDescriptionCount = 0;
+    // vertexInputInfo.vertexAttributeDescriptionCount = 0;
 
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     // inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;

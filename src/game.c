@@ -195,7 +195,7 @@ int main(int argc,char *argv[])
 
     gui = gf3d_gui_new(8, -1);
 
-    el = gf3d_gui_element_create(vector2d(0, 0), vector2d(1000.0f, 1000.0f), gfc_color(0.55f, 0.35, 0.8, 1.0));
+    el = gf3d_gui_element_create(vector2d(10, 10), vector2d(500.0f, 500.0f), gfc_color(0.57f, 0.64, 0.32, 1.0));
     gf3d_gui_add_element(gui, &el);
 
     gf3d_timer_start(&timer);
@@ -232,7 +232,7 @@ int main(int argc,char *argv[])
         bufferFrame = gf3d_vgraphics_render_begin();
         //gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline2D(), bufferFrame);
-            commandBuffer = gf3d_command_rendering_begin(bufferFrame);
+            commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_pipeline());
 
                 // gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
                 // // slog("draw end p");
@@ -240,9 +240,10 @@ int main(int argc,char *argv[])
                 // {
                 //     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 // }
+            gf3d_command_rendering_end(commandBuffer);
                 
+            commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_pipeline2D());
                 gf3d_gui_manager_draw(bufferFrame, commandBuffer);
-                
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
