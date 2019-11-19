@@ -130,13 +130,6 @@ void gf3d_pipeline_render_pass_setup_2D(Pipeline *pipe)
     // depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     // depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
     colorAttachment.format = gf3d_swapchain_get_format();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -152,6 +145,13 @@ void gf3d_pipeline_render_pass_setup_2D(Pipeline *pipe)
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
+
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     // subpass.pDepthStencilAttachment = &depthAttachmentRef;
     
     // memcpy(&attachments[0],&colorAttachment,sizeof(VkAttachmentDescription));
@@ -268,18 +268,18 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     pipe->fragModule = gf3d_shaders_create_module(pipe->fragShader, pipe->fragSize, device);
 
     pipe->device = device;
-    pipe->descriptorSetCount = descriptorCount;
+    // pipe->descriptorSetCount = descriptorCount;
 
-    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    // depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     // depthStencil.depthTestEnable = VK_FALSE;
-    depthStencil.depthTestEnable = VK_TRUE;
+    // depthStencil.depthTestEnable = VK_TRUE;
     // depthStencil.depthWriteEnable = VK_FALSE;
-    depthStencil.depthWriteEnable = VK_TRUE;
-    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-    depthStencil.depthBoundsTestEnable = VK_FALSE;
-    depthStencil.minDepthBounds = 0.0f; // Optional
-    depthStencil.maxDepthBounds = 1.0f; // Optional
-    depthStencil.stencilTestEnable = VK_TRUE;
+    // depthStencil.depthWriteEnable = VK_TRUE;
+    // depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+    // depthStencil.depthBoundsTestEnable = VK_FALSE;
+    // depthStencil.minDepthBounds = 0.0f; // Optional
+    // depthStencil.maxDepthBounds = 1.0f; // Optional
+    // depthStencil.stencilTestEnable = VK_TRUE;
     // depthStencil.stencilTestEnable = VK_FALSE;
 
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -304,6 +304,7 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     vertexInputInfo.vertexAttributeDescriptionCount = 0;
 
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    // inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
@@ -329,11 +330,10 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-//    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-//    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
+    // rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     // rasterizer.depthBiasConstantFactor = 0.0f; // Optional
     // rasterizer.depthBiasClamp = 0.0f; // Optional
     // rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
@@ -377,7 +377,7 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     // pipelineLayoutInfo.pPushConstantRanges = NULL; // Optional
     pipelineLayoutInfo.setLayoutCount = 0; // Optional
 
-    gf3d_pipeline_render_pass_setup(pipe);
+    gf3d_pipeline_render_pass_setup_2D(pipe);
 
     if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipe->pipelineLayout) != VK_SUCCESS)
     {
@@ -394,15 +394,15 @@ Pipeline *gf3d_pipeline_basic_model_create_2D(VkDevice device,char *vertFile,cha
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pDepthStencilState = NULL; // Optional
+    // pipelineInfo.pDepthStencilState = NULL; // Optional
     pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.pDynamicState = NULL; // Optional
+    // pipelineInfo.pDynamicState = NULL; // Optional
     pipelineInfo.layout = pipe->pipelineLayout;
     pipelineInfo.renderPass = pipe->renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-    pipelineInfo.basePipelineIndex = -1; // Optional
-    pipelineInfo.pDepthStencilState = &depthStencil;
+    // pipelineInfo.basePipelineIndex = -1; // Optional
+    // pipelineInfo.pDepthStencilState = &depthStencil;
     
     if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &pipe->pipeline) != VK_SUCCESS)
     {   
@@ -444,18 +444,15 @@ Pipeline *gf3d_pipeline_basic_model_create(VkDevice device,char *vertFile,char *
 
     pipe->device = device;
     pipe->descriptorSetCount = descriptorCount;
-    // slog("==================== 1 %d ==================", descriptorCount);
     
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencil.depthTestEnable = VK_TRUE;
     depthStencil.depthWriteEnable = VK_TRUE;
-    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;    
-    // depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;    
+    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;    
     depthStencil.depthBoundsTestEnable = VK_FALSE;
     depthStencil.minDepthBounds = 0.0f; // Optional
     depthStencil.maxDepthBounds = 1.0f; // Optional
-    depthStencil.stencilTestEnable = VK_TRUE;
-    // depthStencil.stencilTestEnable = VK_FALSE;
+    depthStencil.stencilTestEnable = VK_FALSE;
 
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -477,8 +474,7 @@ Pipeline *gf3d_pipeline_basic_model_create(VkDevice device,char *vertFile,char *
 
     // TODO: pull all this information from config file
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    // inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
     
     viewport.x = 0.0f;
@@ -499,18 +495,18 @@ Pipeline *gf3d_pipeline_basic_model_create(VkDevice device,char *vertFile,char *
     viewportState.pScissors = &scissor;
     
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    // rasterizer.depthClampEnable = VK_FALSE;
-    // rasterizer.rasterizerDiscardEnable = VK_FALSE;
+    rasterizer.depthClampEnable = VK_FALSE;
+    rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    // rasterizer.lineWidth = 1.0f;
+    rasterizer.lineWidth = 1.0f;
 //    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 //    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    // rasterizer.depthBiasEnable = VK_FALSE;
-    // rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-    // rasterizer.depthBiasClamp = 0.0f; // Optional
-    // rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+    rasterizer.depthBiasEnable = VK_FALSE;
+    rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+    rasterizer.depthBiasClamp = 0.0f; // Optional
+    rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
