@@ -56,9 +56,11 @@ void gf3d_gui_manager_close()
         gui = &gf3d_gui.gui_list[i];
         gf3d_gui_free(gui);
         if(gui->surface) SDL_FreeSurface(gui->surface);
-        if(gui->renderer) SDL_DestroyRenderer(gui->renderer);
         gui->surface = NULL;
+        if(gui->renderer) SDL_DestroyRenderer(gui->renderer);
         gui->renderer = NULL;
+        if(gui->ui_tex) gf3d_texture_ui_free(gui->ui_tex);
+        gui->ui_tex = NULL;
         gui->_inuse = 0;
     }
 
@@ -162,22 +164,22 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         gui->elementCount = count;
 
         /* top left */
-        gui->vertices[0].color =    vector4d(1.0f, 0.0f, 0.0f, 1.0f);
+        gui->vertices[0].color =    vector4d(1.0f, 0.0f, 0.0f, 0.5f);
         gui->vertices[0].pos =      vector2d(-1.0f, -1.0f);
         gui->vertices[0].texel =    vector2d(0.0f, 0.0f);
         
         /* top right */
-        gui->vertices[1].color =    vector4d(0.0f, 1.0f, 0.0f, 1.0f);
+        gui->vertices[1].color =    vector4d(0.0f, 1.0f, 0.0f, 0.5f);
         gui->vertices[1].pos =      vector2d( 1.0f, -1.0f);
         gui->vertices[1].texel =    vector2d(1.0f, 0.0f);
 
         /* bottom right */
-        gui->vertices[2].color =    vector4d(0.0f, 0.0f, 1.0f, 1.0f);
+        gui->vertices[2].color =    vector4d(0.0f, 0.0f, 1.0f, 0.5f);
         gui->vertices[2].pos =      vector2d( 1.0f,  1.0f);
         gui->vertices[2].texel =    vector2d(1.0f, 1.0f);
 
         /* bottom left */
-        gui->vertices[3].color =    vector4d(1.0f, 1.0f, 1.0f, 1.0f);
+        gui->vertices[3].color =    vector4d(1.0f, 1.0f, 1.0f, 0.5f);
         gui->vertices[3].pos =      vector2d(-1.0f,  1.0f);
         gui->vertices[3].texel =    vector2d(0.0f, 1.0f);
 
@@ -234,17 +236,21 @@ void gf3d_gui_add_element(Gui *gui, GuiElement *element)
 
 void gf3d_gui_init(Gui *gui)
 {
+    VkExtent2D ext = gf3d_vgraphics_get_view_extent();
+
     gui->surface = SDL_CreateRGBSurface(
         0,
-        gf3d_vgraphics_get_view_extent().width,
-        gf3d_vgraphics_get_view_extent().height,
+        ext.width,
+        ext.height,
         32,
         rmask, gmask, bmask, amask
     );
 
+    slog("ext %f %f", gui->surface->w, gui->surface->h);
+
     gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
 
-    // gf3d_texture_surface_init(gui->ui_tex, gui->surface);
+    // gui->ui_tex = gf3d_texture_surface_init(gui->surface);
 }
 
 void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer)
@@ -264,6 +270,7 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
 
     SDL_RenderPresent(gui->renderer);
 
+    // gf3d_texture_surface_update(gui->ui_tex, gui->surface);
     // gui->ui_tex = gf3d_texture_from_surface(gui->ui_tex, gui->surface);
     // gf3d_gui_update_descriptor_set(gui, descriptorSet);
 
@@ -355,29 +362,29 @@ void gf3d_gui_create_index_buffer(Gui *gui)
 
 void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet)
 {
-    int i;
-    VkWriteDescriptorSet descriptorWrite[1] = {0};
-    VkDescriptorImageInfo imageInfo = {0};
+    // int i;
+    // VkWriteDescriptorSet descriptorWrite[1] = {0};
+    // VkDescriptorImageInfo imageInfo = {0};
 
-    slog("updating descriptor sets");
-    for(i = 0; i < gf3d_gui.pipe->descriptorSetCount; i++)
-    {
-        slog("%d", i);
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = gui->ui_tex->textureImageView;
-        imageInfo.sampler = gui->ui_tex->textureSampler;
+    // slog("updating descriptor sets");
+    // for(i = 0; i < gf3d_gui.pipe->descriptorSetCount; i++)
+    // {
+    //     slog("%d", i);
+    //     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    //     imageInfo.imageView = gui->ui_tex->textureImageView;
+    //     imageInfo.sampler = gui->ui_tex->textureSampler;
 
-        descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite[0].dstSet = *descriptorSet;
-        descriptorWrite[0].dstBinding = 1;
-        descriptorWrite[0].dstArrayElement = 0;
-        descriptorWrite[0].descriptorCount = 1;
-        descriptorWrite[0].pImageInfo = &imageInfo;
-        descriptorWrite[0].pTexelBufferView = NULL;
-        descriptorWrite[0].pNext = NULL;
+    //     descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    //     descriptorWrite[0].dstSet = *descriptorSet;
+    //     descriptorWrite[0].dstBinding = 1;
+    //     descriptorWrite[0].dstArrayElement = 0;
+    //     descriptorWrite[0].descriptorCount = 1;
+    //     descriptorWrite[0].pImageInfo = &imageInfo;
+    //     descriptorWrite[0].pTexelBufferView = NULL;
+    //     descriptorWrite[0].pNext = NULL;
 
-        vkUpdateDescriptorSets(gf3d_gui.device, 1, descriptorWrite, 0, NULL);
-    }
+    //     vkUpdateDescriptorSets(gf3d_gui.device, 1, descriptorWrite, 0, NULL);
+    // }
 }
 
 VkVertexInputBindingDescription *gf3d_gui_get_bind_description()

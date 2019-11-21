@@ -16,7 +16,7 @@ typedef struct
 {
     SDL_Surface *surface;
     SDL_Renderer *renderer;
-    Texture *ui_tex;
+    TextureUI *ui_tex;
     
     GuiVertex vertices[4];
 

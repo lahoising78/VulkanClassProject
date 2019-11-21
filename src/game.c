@@ -100,11 +100,9 @@ int main(int argc,char *argv[])
 
     // main game loop
     slog("gf3d main loop begin");
-    // gf3d_gui_manager_init(4);
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
-    // gf3d_animation_manager_all_init(8);
-    // gf3d_gui_manager_init(8);
+    gf3d_animation_manager_all_init(8);
 
     // /* Set up the stage */
     // stage = gf3d_entity_new();
@@ -154,6 +152,13 @@ int main(int argc,char *argv[])
     // p1->entity->hitboxes = gf3d_collision_armor_new(3);
 
     // /* Setup second player */
+    ent2 = gf3d_entity_new();
+    ent2->position = vector3d(0,0, 0);
+    ent2->scale = vector3d(1, 1, 1);
+    ent2->model = gf3d_model_load("dino", "dino");
+    gfc_matrix_identity(ent2->modelMat);
+    gfc_matrix_make_translation(ent2->modelMat, ent2->position);
+    gf3d_model_scale(ent2->modelMat, ent2->scale);
     // ent2 = app_gaara_new();
     // ent2->position = vector3d(-10, -10, 0);
     
@@ -213,8 +218,9 @@ int main(int argc,char *argv[])
             // slog("key: %d", e.key.keysym.scancode);
         }
         
-        app_player_manager_update(events); /* Give input to all players */
+        // app_player_manager_update(events); /* Give input to all players */
         gf3d_entity_manager_update(); /* Update all entities */
+        gf3d_vgraphics_rotate_camera(worldTime);
 
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)
@@ -230,20 +236,20 @@ int main(int argc,char *argv[])
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
         bufferFrame = gf3d_vgraphics_render_begin();
-        //gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
+        gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline(),bufferFrame);
         gf3d_pipeline_reset_frame(gf3d_vgraphics_get_graphics_pipeline2D(), bufferFrame);
             commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_pipeline());
 
-                // gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
-                // // slog("draw end p");
-                // if ( drawShapes ) 
-                // {
-                //     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
-                // }
-            gf3d_command_rendering_end(commandBuffer);
+                gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
+                if ( drawShapes ) 
+                {
+                    gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
+                }
+            // gf3d_command_rendering_end(commandBuffer);
                 
-            commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_pipeline2D());
+            // commandBuffer = gf3d_command_rendering_begin(bufferFrame, gf3d_vgraphics_get_graphics_pipeline2D());
                 gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+
             gf3d_command_rendering_end(commandBuffer);
             
         gf3d_vgraphics_render_end(bufferFrame);
