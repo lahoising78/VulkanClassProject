@@ -53,19 +53,29 @@ GuiElement gf3d_gui_element_create(Vector2D pos, Vector2D extents, ColorRGBA col
 void gf3d_gui_element_draw(GuiElement *e, VkCommandBuffer commandBuffer, VkImage *image)
 {
     VkImageBlit blit = {0};
+    VkImageSubresourceRange mipSubRange = {0};
+
     if(!e || !image) return;
 
-    blit.srcOffsets[0].x = 0;
-    blit.srcOffsets[0].y = 0;
-    blit.srcOffsets[0].z = 1;
+    blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blit.srcSubresource.layerCount = 1;
+    blit.srcSubresource.mipLevel = 1;
+
+    // blit.srcOffsets[0].x = 0;
+    // blit.srcOffsets[0].y = 0;
+    // blit.srcOffsets[0].z = 1;
 
     blit.srcOffsets[1].x = 1;
     blit.srcOffsets[1].y = 1;
     blit.srcOffsets[1].z = 1;
 
-    blit.dstOffsets[0].x = e->position.x;
-    blit.dstOffsets[0].y = e->position.y;
-    blit.dstOffsets[0].z = 1;
+    blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blit.dstSubresource.layerCount = 1;
+    blit.dstSubresource.mipLevel = 1;
+
+    // blit.dstOffsets[0].x = e->position.x;
+    // blit.dstOffsets[0].y = e->position.y;
+    // blit.dstOffsets[0].z = 1;
     
     blit.srcOffsets[1].x = e->extents.x;
     blit.srcOffsets[1].y = e->extents.y;

@@ -4,6 +4,7 @@
 #include "gfc_vector.h"
 #include <vulkan/vulkan.h>
 #include "gf3d_texture.h"
+#include "gf3d_swapchain.h"
 
 typedef struct 
 {

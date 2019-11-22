@@ -4,6 +4,7 @@
 #include "gf3d_texture.h"
 #include "gf3d_vgraphics.h"
 #include "gf3d_swapchain.h"
+// #include <stdlib.h>
 
 typedef struct
 {
@@ -340,6 +341,7 @@ Texture *gf3d_texture_from_surface(SDL_Surface *surface)
     imageInfo.extent.height = surface->h;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
+    // imageInfo.mipLevels = floor(log2(MAX(surface->w, surface->h))) + 1;
     imageInfo.arrayLayers = 1;
     imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;

@@ -2,7 +2,6 @@
 
 #include "simple_logger.h"
 #include "gf3d_texture.h"
-#include "gf3d_swapchain.h"
 
 #define MAX_ELEMENTS 64
 
