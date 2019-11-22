@@ -294,4 +294,95 @@ Texture *gf3d_texture_load(char *filename)
     return tex;
 }
 
+Texture *gf3d_texture_from_surface(SDL_Surface *surface)
+{
+    Texture *tex = NULL;
+
+    void *data;
+
+    VkDeviceSize imageSize;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    VkMemoryRequirements memReqs;
+    VkMemoryAllocateInfo allocInfo = {0};
+
+    VkImageCreateInfo imageInfo = {0};
+
+    if(!surface) return NULL;
+
+    tex = gf3d_texture_new();
+    if(!tex) 
+    {
+        slog("could not create a texture from surface");
+        return NULL;
+    }
+    gfc_line_cpy(tex->filename, "placeholder");
+
+    imageSize = surface->w * surface->h * 4;
+
+    gf3d_vgraphics_create_buffer(
+        imageSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+        &stagingBuffer, &stagingBufferMemory
+    );
+
+    SDL_LockSurface(surface);
+        vkMapMemory(gf3d_texture.device, stagingBufferMemory, 0, imageSize, 0, &data);
+            memcpy(data, surface->pixels, imageSize);
+        vkUnmapMemory(gf3d_texture.device, stagingBufferMemory);
+    SDL_UnlockSurface(surface);
+
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = surface->w;
+    imageInfo.extent.height = surface->h;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.flags = 0;
+
+    if(vkCreateImage(gf3d_texture.device, &imageInfo, 0, &tex->textureImage) != VK_SUCCESS)
+    {
+        slog("could not create VkImage");
+        gf3d_texture_delete(tex);
+        return NULL;
+    }
+
+    vkGetImageMemoryRequirements(gf3d_texture.device, tex->textureImage, &memReqs);
+
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memReqs.size;
+    allocInfo.memoryTypeIndex= gf3d_vgraphics_find_memory_type(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if( vkAllocateMemory(gf3d_texture.device, &allocInfo, NULL, &tex->textureImageMemory) != VK_SUCCESS )
+    {
+        slog("could not allocate image memory");
+        gf3d_texture_delete(tex);
+        return NULL;
+    }
+
+    vkBindImageMemory(gf3d_texture.device, tex->textureImage, tex->textureImageMemory, 0);
+
+    gf3d_swapchain_transition_image_layout(tex->textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    gf3d_texture_copy_buffer_to_image(stagingBuffer, tex->textureImage, surface->w, surface->h);
+    gf3d_swapchain_transition_image_layout(tex->textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    tex->textureImageView = gf3d_vgraphics_create_image_view(tex->textureImage, VK_FORMAT_R8G8B8A8_UNORM);
+
+    gf3d_texture_create_sampler(tex);
+
+    vkDestroyBuffer(gf3d_texture.device, stagingBuffer, NULL);
+    vkFreeMemory(gf3d_texture.device, stagingBufferMemory, NULL);
+    
+    slog("created texture from surface");
+
+    return tex;
+}
+
 /*eol@eof*/

@@ -25,7 +25,11 @@ void gf3d_validation_query_layer_properties()
     Uint32 found = 0;
     int displacement = 0;
     vValidation temp = {0};
-    char* ignoreLayers[] = {"VK_LAYER_LUNARG_vktrace", "VK_LAYER_LUNARG_api_dump", "VK_LAYER_LUNARG_demo_layer"};
+    char* ignoreLayers[] = {
+        "VK_LAYER_LUNARG_vktrace", "VK_LAYER_LUNARG_api_dump", "VK_LAYER_LUNARG_demo_layer",    //don't output extra stuff to console
+        "VK_LAYER_VALVE_steam_overlay_64", "VK_LAYER_VALVE_steam_overlay_32",                    //don't use steam overlay
+        "VK_LAYER_VALVE_steam_fossilize_64", "VK_LAYER_VALVE_steam_fossilize_32"                //don't use fossilize
+    };
     const unsigned int ignoreLayersCount = sizeof(ignoreLayers) / sizeof(char*);
 
     vkEnumerateInstanceLayerProperties(&temp.layerCount, NULL);

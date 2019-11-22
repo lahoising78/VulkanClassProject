@@ -1,120 +1,174 @@
 #include "gf3d_gui.h"
 
 #include "simple_logger.h"
-#include "gf3d_vgraphics.h"
-#include "gf3d_camera.h"
+#include "gf3d_texture.h"
+#include "gf3d_swapchain.h"
 
-void gf3d_gui_update(GuiElement *gui);
-void gf3d_gui_draw(GuiElement *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+#define MAX_ELEMENTS 64
 
-typedef struct GuiManager_S
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    static Uint32 rmask = 0xff000000;
+    static Uint32 gmask = 0x00ff0000;
+    static Uint32 bmask = 0x0000ff00;
+    static Uint32 amask = 0x000000ff;
+#else
+    static Uint32 rmask = 0x000000ff;
+    static Uint32 gmask = 0x0000ff00;
+    static Uint32 bmask = 0x00ff0000;
+    static Uint32 amask = 0xff000000;
+#endif
+
+typedef struct
 {
-    Uint32 max_count;
-    GuiElement *elements;
+    uint32_t max_layers;
+    GuiLayer *layer_list;
+
+    Texture *square_tex;
 } GuiManager;
 
 static GuiManager gf3d_gui_manager = {0};
 
+void gf3d_gui_layer_draw(GuiLayer *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
 void gf3d_gui_manager_close()
 {
     int i;
+    GuiLayer *gui = NULL;
 
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
+    slog("clean gui manager");
+
+    for(i = 0; i < gf3d_gui_manager.max_layers; i++)
     {
-        gf3d_gui_free( &gf3d_gui_manager.elements[i] );
+        gui = &gf3d_gui_manager.layer_list[i];
+        gf3d_gui_layer_free(gui);
+        if(gui->elements) free(gui->elements);
+        gui->elements = NULL;
     }
 
-    free(gf3d_gui_manager.elements);
-    memset(&gf3d_gui_manager, 0, sizeof(GuiManager));
+    if(gf3d_gui_manager.layer_list) free(gf3d_gui_manager.layer_list);
+    gf3d_gui_manager.max_layers = 0;
 }
 
-int gf3d_gui_manager_init(Uint32 count)
+void gf3d_gui_manager_init(uint32_t count)
 {
     int i;
-    GuiElement *gui = NULL;
+    SDL_Surface *surface = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Rect rect = {0};
 
-    gf3d_gui_manager.elements = (GuiElement*)gfc_allocate_array(sizeof(GuiElement), count);
-    if(!gf3d_gui_manager.elements)
+    gf3d_gui_manager.layer_list = (GuiLayer*)gfc_allocate_array(sizeof(GuiLayer), count);
+    if(!gf3d_gui_manager.layer_list)
     {
-        slog("failed to initialize gui manager");
-        return 1;
+        slog("could not allocate space for layer list");
+        return;
     }
 
     for(i = 0; i < count; i++)
     {
-        memset(&gf3d_gui_manager.elements[i], 0, sizeof(GuiElement));
-        // gui = &gf3d_gui_manager.elements[i];
+        gf3d_gui_manager.layer_list[i].elements = (GuiElement**)gfc_allocate_array(sizeof(GuiElement*), MAX_ELEMENTS);
     }
 
-    gf3d_gui_manager.max_count = count;
+    gf3d_gui_manager.max_layers = count;
+
     atexit(gf3d_gui_manager_close);
-    return 0;
+
+    surface = SDL_CreateRGBSurface(
+        0,
+        1, 1, 1,
+        rmask, gmask, bmask, amask
+    );
+    if(!surface) return;
+
+    renderer = SDL_CreateSoftwareRenderer(surface);
+    if(!renderer) return;
+
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    rect.x = rect.y = 0;
+    rect.w = rect.h = 1;
+    SDL_RenderFillRect(renderer, &rect);
+
+    gf3d_gui_manager.square_tex = gf3d_texture_from_surface(surface);
+    gf3d_gui_element_set_square_tex(gf3d_gui_manager.square_tex);
+
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(surface);
 }
 
-void gf3d_gui_manager_update()
+void gf3d_gui_manager_draw(uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     int i;
-    GuiElement *gui = NULL;
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gui = &gf3d_gui_manager.elements[i];
-        if( !gui->_inuse ) continue;
+    GuiLayer *gui = NULL;
 
-        gf3d_gui_update(gui);
+    for(i = 0; i < gf3d_gui_manager.max_layers; i++)
+    {
+        gui = &gf3d_gui_manager.layer_list[i];
+        if(!gui->_inuse) continue;
+        gf3d_gui_layer_draw(gui, bufferFrame, commandBuffer);
     }
 }
 
-void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
+void gf3d_gui_layer_free(GuiLayer *gui)
 {
-    int i;
-    GuiElement *gui = NULL;
+    slog("free gui layer");
 
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
-    {
-        gui = &gf3d_gui_manager.elements[i];
-        if( !gui->_inuse ) continue;
+    if(!gui) return;
 
-        gf3d_gui_draw(gui, bufferFrame, commandBuffer);
-    }
+    gui->_inuse = 0;
 }
 
-GuiElement *gf3d_gui_new()
+GuiLayer *gf3d_gui_layer_new()
 {
     int i;
-    GuiElement *gui = NULL;
+    GuiLayer *gui = NULL;
+    GuiElement **arr = NULL;
 
-    for(i = 0; i < gf3d_gui_manager.max_count; i++)
+    for(i = 0; i < gf3d_gui_manager.max_layers; i++)
     {
-        gui = &gf3d_gui_manager.elements[i];
-        if(gui->_inuse) continue;
+        gui = &gf3d_gui_manager.layer_list[i];
+        if(!gui || gui->_inuse) continue;
+
+        /* clear vals but preserve the array */
+        arr = gui->elements;
+        memset(gui, 0, sizeof(GuiLayer));
+        gui->elements = arr;
+
         gui->_inuse = 1;
+
         return gui;
     }
 
     return NULL;
 }
 
-void gf3d_gui_free(GuiElement *gui)
+int gf3d_gui_layer_add_element(GuiLayer *gui, GuiElement *element)
 {
-    if(!gui) return;
-    memset(gui, 0, sizeof(GuiElement));
-}
+    int i = 0;
 
-void gf3d_gui_update(GuiElement *gui)
-{
-    gf3d_camera_get_angles( &gui->shape.position, NULL, NULL);
-    vector3d_add(gui->shape.position, gui->shape.position, gf3d_camera_get_position());
-    vector3d_add(gui->shape.position, gui->shape.position, gui->offset);
-    if(gui->val && gui->max)
+    if(!gui || !element) return -1;
+    if(!gui->elements) return -1;
+
+    // for(i = 0; i < gui->elementCount; i++)
+    for(i = 0; i < MAX_ELEMENTS; i++)
     {
-        gui->shape.extents.x = gui->size.x * (*gui->val / *gui->max);
+        if(gui->elements[i]) continue;
+        gui->elements[i] = element;
+        return i;
     }
-    gf3d_shape_update_mat(&gui->shape);
+
+    return -1;
 }
 
-void gf3d_gui_draw(GuiElement *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer)
+void gf3d_gui_layer_draw(GuiLayer *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
-    if(!gui) return;
-    if(!gui->shape.model) return;
-    gf3d_model_draw(gui->shape.model, bufferFrame, commandBuffer, gui->shape.matrix, 0);
+    int i;
+    VkImage *image = NULL;
+    if(!gui || !gui->elements) return;
+
+    image = gf3d_swapchain_get_image(bufferFrame);
+
+    for(i = 0; i < MAX_ELEMENTS; i++)
+    {
+        gf3d_gui_element_draw(gui->elements[i], commandBuffer, image);
+    }
 }

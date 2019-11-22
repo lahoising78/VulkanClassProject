@@ -1,32 +1,30 @@
 #ifndef _GF3D_GUI_H_
 #define _GF3D_GUI_H_
 
-#include "gf3d_shape.h"
+#include "gf3d_gui_element.h"
 #include <vulkan/vulkan.h>
 
-typedef struct GuiElement_S
+typedef struct
 {
-    Shape shape;
-    Vector3D offset;
-    Vector3D size;
-    float *val;
-    float *max;
-    Uint8 _inuse;
-} GuiElement;
+    Vector2D pos;
+    Vector2D extents;
 
+    GuiElement **elements;
+    // uint32_t elementCount;
 
-int gf3d_gui_manager_init(Uint32 count);
+    uint8_t _inuse;
+} GuiLayer;
 
-void gf3d_gui_manager_update();
+void gf3d_gui_manager_init(uint32_t count);
 
-void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+void gf3d_gui_manager_draw(uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
-GuiElement *gf3d_gui_new();
+void gf3d_gui_layer_free(GuiLayer *gui);
+GuiLayer *gf3d_gui_layer_new();
 
-void gf3d_gui_free(GuiElement *gui);
-
-// void gf3d_gui_update(GuiElement *gui);
-
-// void gf3d_gui_draw(GuiElement *gui, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+/* 
+    @return -1 if there is no more space, or the index it was allocated on
+ */
+int gf3d_gui_layer_add_element(GuiLayer *gui, GuiElement *element);
 
 #endif

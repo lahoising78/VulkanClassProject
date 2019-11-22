@@ -68,5 +68,7 @@ void gf3d_swapchain_transition_image_layout(VkImage image, VkFormat format, VkIm
 
 void gf3d_swapchain_create_depth_image();
 
+VkImage *gf3d_swapchain_get_image(uint32_t bufferFrame);
+
 
 #endif

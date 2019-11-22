@@ -44,14 +44,15 @@ int main(int argc,char *argv[])
     Timer timer = gf3d_timer_new(), drawShapesDelay = gf3d_timer_new();
     float fps = 0;
 
-    const Uint32 entity_max = 16;
-    const Uint32 player_max = 2;
+    // const Uint32 entity_max = 16;
+    // const Uint32 player_max = 2;
     
-    Player* p1;
-    Entity* ent2;
-    Entity* stage;
+    // Player* p1;
+    // Entity* ent2;
+    // Entity* stage;
     
-    GuiElement *element = NULL;
+    GuiLayer *gui = NULL;
+    GuiElement box = {0};
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -82,149 +83,115 @@ int main(int argc,char *argv[])
 
     // main game loop
     slog("gf3d main loop begin");
-    gf3d_entity_manager_init( entity_max );
-    app_player_manager_init( player_max );
-    gf3d_animation_manager_all_init(8);
-    gf3d_gui_manager_init(8);
+    // gf3d_entity_manager_init( entity_max );
+    // app_player_manager_init( player_max );
+    // gf3d_animation_manager_all_init(8);
+    gf3d_gui_manager_init(4);
 
     /* Set up the stage */
-    stage = gf3d_entity_new();
-    stage->position = vector3d(0, 0, MAX_STAGE_Z);
-    stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
-    stage->model = gf3d_model_load("stage", NULL);
-    gfc_matrix_identity(stage->modelMat);
-    gfc_matrix_make_translation(stage->modelMat, stage->position);
-    gf3d_model_scale(stage->modelMat, stage->scale);
+    // stage = gf3d_entity_new();
+    // stage->position = vector3d(0, 0, MAX_STAGE_Z);
+    // stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
+    // stage->model = gf3d_model_load("stage", NULL);
+    // gfc_matrix_identity(stage->modelMat);
+    // gfc_matrix_make_translation(stage->modelMat, stage->position);
+    // gf3d_model_scale(stage->modelMat, stage->scale);
 
     /* Setup first player */
-    p1 = app_player_new();
-    p1->input_handler = app_naruto_input_handler;
-    p1->entity = app_naruto_new();
-    p1->entity->position = vector3d(10, 10, 0);
-    p1->entity->rotation = vector3d(0, 0, 0);
+    // p1 = app_player_new();
+    // p1->input_handler = app_naruto_input_handler;
+    // p1->entity = app_naruto_new();
+    // p1->entity->position = vector3d(10, 10, 0);
+    // p1->entity->rotation = vector3d(0, 0, 0);
     
-    p1->entity->modelBox = gf3d_collision_armor_new(2);
-    gf3d_collision_armor_add_shape( 
-        p1->entity->modelBox,
-        gf3d_shape( p1->entity->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
-        // vector3d(0, 0, 0)
-        vector3d(0, 0, -0.3),
-        "entire body"
-    );
+    // p1->entity->modelBox = gf3d_collision_armor_new(2);
+    // gf3d_collision_armor_add_shape( 
+    //     p1->entity->modelBox,
+    //     gf3d_shape( p1->entity->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
+    //     // vector3d(0, 0, 0)
+    //     vector3d(0, 0, -0.3),
+    //     "entire body"
+    // );
     
-    p1->entity->hurtboxes = gf3d_collision_armor_new(3);
-    gf3d_collision_armor_add_shape(
-        p1->entity->hurtboxes,
-        gf3d_shape(p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, 1.2),
-        "head"
-    );
-    gf3d_collision_armor_add_shape(
-        p1->entity->hurtboxes,
-        gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, 0),
-        "torso"
-    );
-    gf3d_collision_armor_add_shape(
-        p1->entity->hurtboxes,
-        gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, -3.0f),
-        "legs"
-    );
+    // p1->entity->hurtboxes = gf3d_collision_armor_new(3);
+    // gf3d_collision_armor_add_shape(
+    //     p1->entity->hurtboxes,
+    //     gf3d_shape(p1->entity->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, 1.2),
+    //     "head"
+    // );
+    // gf3d_collision_armor_add_shape(
+    //     p1->entity->hurtboxes,
+    //     gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, 0),
+    //     "torso"
+    // );
+    // gf3d_collision_armor_add_shape(
+    //     p1->entity->hurtboxes,
+    //     gf3d_shape(p1->entity->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, -3.0f),
+    //     "legs"
+    // );
     
-    p1->entity->hitboxes = gf3d_collision_armor_new(3);
+    // p1->entity->hitboxes = gf3d_collision_armor_new(3);
 
     /* Setup second player */
-    ent2 = app_gaara_new();
-    ent2->position = vector3d(-10, -10, 0);
+    // ent2 = app_gaara_new();
+    // ent2->position = vector3d(-10, -10, 0);
     
-    ent2->modelBox = gf3d_collision_armor_new(1);
-    gf3d_collision_armor_add_shape(
-        ent2->modelBox, 
-        gf3d_shape( ent2->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
-        vector3d(0, 0, -0.3),
-        "entire body"
-    );
+    // ent2->modelBox = gf3d_collision_armor_new(1);
+    // gf3d_collision_armor_add_shape(
+    //     ent2->modelBox, 
+    //     gf3d_shape( ent2->position, vector3d(1, 1, 4), gf3d_model_load("cube", NULL) ),
+    //     vector3d(0, 0, -0.3),
+    //     "entire body"
+    // );
 
-    ent2->hurtboxes = gf3d_collision_armor_new(3);
-    gf3d_collision_armor_add_shape(
-        ent2->hurtboxes,
-        gf3d_shape(ent2->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, 1.2),
-        "head"
-    );
-    gf3d_collision_armor_add_shape(
-        ent2->hurtboxes,
-        gf3d_shape(ent2->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, 0),
-        "torso"
-    );
-    gf3d_collision_armor_add_shape(
-        ent2->hurtboxes,
-        gf3d_shape(ent2->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
-        vector3d(0, 0, -3.0f),
-        "legs"
-    );
+    // ent2->hurtboxes = gf3d_collision_armor_new(3);
+    // gf3d_collision_armor_add_shape(
+    //     ent2->hurtboxes,
+    //     gf3d_shape(ent2->position, vector3d(1, 1, 1), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, 1.2),
+    //     "head"
+    // );
+    // gf3d_collision_armor_add_shape(
+    //     ent2->hurtboxes,
+    //     gf3d_shape(ent2->position, vector3d(1, 1, 1.5), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, 0),
+    //     "torso"
+    // );
+    // gf3d_collision_armor_add_shape(
+    //     ent2->hurtboxes,
+    //     gf3d_shape(ent2->position, vector3d(1, 1, 1.5f), gf3d_model_load("cube", NULL)),
+    //     vector3d(0, 0, -3.0f),
+    //     "legs"
+    // );
 
     // just in case we need it later
-    gf3d_model_load("dino", "dino");
-    gf3d_model_load("sand", "sand");
-    gf3d_model_load("shuriken", "shuriken");
+    // gf3d_model_load("dino", "dino");
+    // gf3d_model_load("sand", "sand");
+    // gf3d_model_load("shuriken", "shuriken");
 
-    /* health 1 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(0.5, 0, HEALTH_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &p1->entity->health;
-        element->max = &p1->entity->healthmax;
-    }
-    
-    /* health 2 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, HEALTH_HEIGHT), gf3d_model_load("gui2", "red"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(-0.5, 0, HEALTH_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &ent2->health;
-        element->max = &ent2->healthmax;
-    }
-    
-    /* chakra 1 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(0.5, 0, CHAKRA_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &p1->entity->chakra;
-        element->max = &p1->entity->chakraMax;
-    }
-    
-    /* chakra 2 */
-    element = gf3d_gui_new();
-    if(element)
-    {
-        slog("element created");
-        element->shape = gf3d_shape(vector3d(0, 0, 0), vector3d(0.25, 0, CHAKRA_HEIGHT), gf3d_model_load("gui2", "blue"));
-        vector3d_copy(element->size, element->shape.extents);
-        element->offset = vector3d(-0.5, 0, CHAKRA_DOWN_OFFSET);
-        gfc_matrix_identity(element->shape.matrix);
-        element->val = &ent2->chakra;
-        element->max = &ent2->chakraMax;
-    }
+    // ent2->enemy = p1->entity;
+    // p1->entity->enemy = ent2;
 
-    ent2->enemy = p1->entity;
-    p1->entity->enemy = ent2;
+    gui = gf3d_gui_layer_new();
+    gui->pos = vector2d(0.0f, 0.0f);
+    gui->extents = vector2d(gf3d_vgraphics_get_view_extent().width, gf3d_vgraphics_get_view_extent().height);
+    // gui->elements = (GuiElement**)gfc_allocate_array(sizeof(GuiElement*), 8);
+    // if(gui->elements) 
+    // {
+    //     memset(gui->elements, 0, sizeof(GuiElement*) * 8);
+    //     gui->elementCount = 8;
+    // }
+
+    box = gf3d_gui_element_create(
+        vector2d(50, 50),
+        vector2d(500, 500),
+        colorRGBA(180, 200, 120, 255)
+    );
+    gf3d_gui_layer_add_element(gui, &box);
+    // gf3d_gui_layer_free(gui);
 
     gf3d_timer_start(&timer);
     // gf3d_timer_start(&frameTimer);
@@ -241,8 +208,8 @@ int main(int argc,char *argv[])
             // slog("key: %d", e.key.keysym.scancode);
         }
         
-        app_player_manager_update(events); /* Give input to all players */
-        gf3d_entity_manager_update(); /* Update all entities */
+        // app_player_manager_update(events); /* Give input to all players */
+        // gf3d_entity_manager_update(); /* Update all entities */
 
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)
@@ -252,8 +219,8 @@ int main(int argc,char *argv[])
             gf3d_timer_start(&timer);
         }
 
-        gf3d_camera_look_at_center( p1->entity->position, ent2->position );
-        gf3d_gui_manager_update();
+        // gf3d_camera_look_at_center( p1->entity->position, ent2->position );
+        // gf3d_gui_manager_update();
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -262,12 +229,11 @@ int main(int argc,char *argv[])
             commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, frame);
-                // gf3d_gui_draw(element, bufferFrame, commandBuffer);
-                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 if ( drawShapes ) 
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
+                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
                 
             gf3d_command_rendering_end(commandBuffer);
             
@@ -280,23 +246,23 @@ int main(int argc,char *argv[])
             gf3d_timer_start(&drawShapesDelay);
             drawShapes = !drawShapes; /* toggle drawing shapes */
         }
-        if(events[SDL_SCANCODE_TAB].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused) )
-        {
-            slog("switch character");
-            gf3d_timer_start(&drawShapesDelay);
-            if(p1->input_handler == app_naruto_input_handler)
-            {
-                p1->input_handler = app_gaara_input_handler;
-            }
-            else if (p1->input_handler == app_gaara_input_handler)
-            {
-                p1->input_handler = app_naruto_input_handler;
-            }
-            ent2->data = p1->entity;
-            p1->entity = ent2;
-            ent2 = (Entity*)ent2->data;
-            p1->entity->data = NULL;
-        }
+        // if(events[SDL_SCANCODE_TAB].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused) )
+        // {
+        //     slog("switch character");
+        //     gf3d_timer_start(&drawShapesDelay);
+        //     if(p1->input_handler == app_naruto_input_handler)
+        //     {
+        //         p1->input_handler = app_gaara_input_handler;
+        //     }
+        //     else if (p1->input_handler == app_gaara_input_handler)
+        //     {
+        //         p1->input_handler = app_naruto_input_handler;
+        //     }
+        //     ent2->data = p1->entity;
+        //     p1->entity = ent2;
+        //     ent2 = (Entity*)ent2->data;
+        //     p1->entity->data = NULL;
+        // }
 
         frame = gf3d_timer_get_ticks(&frameTimer);
         worldTime = frame;
