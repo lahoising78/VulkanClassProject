@@ -57,8 +57,6 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 
     gf3d_gui_element_create_index_buffer(element);
 
-    element->draw = gf3d_gui_element_draw;
-
     return element;
 }
 

@@ -4,23 +4,18 @@
 #include <SDL2/SDL.h>
 #include "gf3d_vgraphics.h"
 #include "gf3d_gui_element.h"
+#include "gf3d_hud.h"
 
 typedef struct
 {
     SDL_Surface *surface;
     SDL_Renderer *renderer;
     TextureUI *ui_tex;
-    
-    // GuiVertex vertices[4];
 
-    // VkBuffer vertexBuffer;
-    // VkDeviceMemory vertexBufferMemory;
-    // VkBuffer indexBuffer;
-    // VkDeviceMemory indexBufferMemory;
+    GuiElement *bg;
 
-    GuiElement *main;
-
-    GuiElement **elements;
+    // GuiElement **elements;
+    HudElement *elements;
     Uint32 elementCount;
     
     Uint8 _inuse;
@@ -46,7 +41,8 @@ Gui *gf3d_gui_new(Uint32 count, int depth);
  */
 void gf3d_gui_free(Gui *gui);
 
-void gf3d_gui_add_element(Gui *gui, GuiElement *element);
+// void gf3d_gui_add_element(Gui *gui, GuiElement *element);
+void gf3d_hud_add_element(Gui *gui, HudElement element);
 
 void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
 

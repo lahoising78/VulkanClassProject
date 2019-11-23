@@ -3,18 +3,38 @@
 
 #include "gf3d_gui_element.h"
 
+typedef enum
+{
+    GF3D_HUD_TYPE_NONE =            0,
+    GF3D_HUD_TYPE_GUI_ELEMENT =     1,
+    GF3D_HUD_TYPE_PROGRESS_BAR =    2
+} HudType;
+
 typedef struct hud_pb_t
 {
     GuiElement *back;
     GuiElement *fore;
-    void (*draw) (struct hud_pb_t *bar, VkCommandBuffer commandBuffer);
     float *max;
     float *val;
 } ProgressBar;
 
-ProgressBar *gf3d_hud_pb_create(float *max, float *val);
+ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val);
 
-void gf3d_hud_pb_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
-void gf3d_hud_pb_set_foreground(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
+
+typedef struct hud_element_t
+{
+    union
+    {
+        GuiElement  *guiElement;
+        ProgressBar *pBar;
+    } element;
+
+    HudType type;
+} HudElement;
+
+void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer);
+void gf3d_hud_element_free(HudElement *e);
 
 #endif

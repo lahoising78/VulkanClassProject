@@ -32,8 +32,6 @@ typedef struct gui_element_t
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    void (*draw) (struct gui_element_t *element, VkCommandBuffer commandBuffer);
-
     GuiVertex vertices[4];
 } GuiElement;
 

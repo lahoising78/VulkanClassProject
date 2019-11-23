@@ -45,7 +45,7 @@ int main(int argc,char *argv[])
     Timer timer = gf3d_timer_new(), drawShapesDelay = gf3d_timer_new();
     float fps = 0;
 
-    // const Uint32 entity_max = 16;
+    const Uint32 entity_max = 16;
     // const Uint32 player_max = 2;
     
     // Player* p1;
@@ -56,8 +56,8 @@ int main(int argc,char *argv[])
     Timer frameTimer = gf3d_timer_new();
 
     Gui *gui;
-    GuiElement *el;
-    GuiElement *pBar;
+    HudElement el;
+    HudElement pBar;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -101,7 +101,7 @@ int main(int argc,char *argv[])
 
     // main game loop
     slog("gf3d main loop begin");
-    // gf3d_entity_manager_init( entity_max );
+    gf3d_entity_manager_init( entity_max );
     // app_player_manager_init( player_max );
     // gf3d_animation_manager_all_init(8);
 
@@ -201,7 +201,8 @@ int main(int argc,char *argv[])
 
     gui = gf3d_gui_new(8, -1);
 
-    el = gf3d_gui_element_create(
+    el.type = GF3D_HUD_TYPE_GUI_ELEMENT;
+    el.element.guiElement = gf3d_gui_element_create(
         vector2d(0.0f, 0.0f), 
         vector2d(400.0f, 25.0f), 
         vector4d(225.0f, 100.0f, 100.0f, 255.0f)
@@ -211,10 +212,23 @@ int main(int argc,char *argv[])
     //     vector2d(0.5f, 0.12f), 
     //     vector4d(0.80f, 0.32, 0.32, 1.0)
     // );
-    gf3d_gui_add_element(gui, el);
+    gf3d_hud_add_element(gui, el);
 
-    // pBar = (GuiElement*)gf3d_hud_pb_create(&stage->healthmax, &stage->health);
-    // gf3d_gui_add_element(gui, pBar);
+    pBar.type = GF3D_HUD_TYPE_PROGRESS_BAR;
+    pBar.element.pBar = gf3d_hud_progress_bar_create(&stage->healthmax, &stage->health);
+    gf3d_hud_progress_bar_set_background(
+        pBar.element.pBar,
+        vector2d(0.0f, 50.0f),
+        vector2d(410.0f, 35.0f),
+        vector4d(0.0f, 0.0f, 0.0f, 255.0f)
+    );
+    gf3d_hud_progress_bar_set_foreground(
+        pBar.element.pBar,
+        vector2d(5.0f, 55.0f),
+        vector2d(400.0f, 25.0f),
+        vector4d(200.0f, 200.0f, 200.0f, 255.0f)
+    );
+    gf3d_hud_add_element(gui, pBar);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();

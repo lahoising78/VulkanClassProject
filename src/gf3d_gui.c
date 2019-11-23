@@ -63,7 +63,7 @@ void gf3d_gui_manager_close()
         gui->ui_tex = NULL;
         gui->_inuse = 0;
 
-        gf3d_gui_element_free(gui->main);
+        gf3d_gui_element_free(gui->bg);
     }
 
     free(gf3d_gui.gui_list);
@@ -118,7 +118,6 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         descriptorSets = gf3d_gui.pipe->descriptorSets[bufferFrame];
     }
 
-    // slog("draw gui");
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_gui.pipe->pipeline);
 
         for(i = 0; i < gf3d_gui.count; i++)
@@ -130,7 +129,6 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         }
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
-    // slog("draw end");
 }
 
 Gui *gf3d_gui_new(Uint32 count, int depth)
@@ -144,7 +142,7 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         if(gui->_inuse) continue;
 
         gf3d_gui_init(gui);
-        gui->elements = (GuiElement**)gfc_allocate_array(sizeof(GuiElement*), count);
+        gui->elements = (HudElement*)gfc_allocate_array(sizeof(HudElement), count);
         if(!gui->elements)
         {
             slog("unable to allocate enough elements");
@@ -152,7 +150,7 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         }
         gui->elementCount = count;
 
-        if(!gui->main) gui->main = gf3d_gui_element_create(
+        if(!gui->bg) gui->bg = gf3d_gui_element_create(
             vector2d(0.0f, 0.0f),
             vector2d(gf3d_vgraphics_get_view_extent().width, gf3d_vgraphics_get_view_extent().height),
             vector4d(50.0f, 50.0f, 50.0f, 255.0f)
@@ -168,36 +166,36 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
 void gf3d_gui_free(Gui *gui)
 {
     int i;
-    GuiElement *element = NULL;
+    HudElement *element = NULL;
     SDL_Surface *surface;
     SDL_Renderer *renderer;
+    GuiElement *bg;
 
     slog("gui free");
     if(!gui) return;
 
     for(i = 0; i < gui->elementCount; i++)
     {
-        element = gui->elements[i];
-        gf3d_gui_element_free(element);
-        // if(element) free(element);
-        gui->elements[i] = NULL;
+        element = &gui->elements[i];
+        gf3d_hud_element_free(element);
+        memset(element, 0, sizeof(HudElement));
     }
 
     if(gui->elements) free(gui->elements);
 
-    element = gui->main;
+    bg = gui->bg;
     surface = gui->surface;
     renderer = gui->renderer;
 
     memset(gui, 0, sizeof(Gui));
 
     /* Do this to save the surface and renderer */
-    gui->main = element;
+    gui->bg = bg;
     gui->surface = surface;
     gui->renderer = renderer;
 }
 
-void gf3d_gui_add_element(Gui *gui, GuiElement *element)
+void gf3d_hud_add_element(Gui *gui, HudElement element)
 {
     int i;
 
@@ -205,8 +203,9 @@ void gf3d_gui_add_element(Gui *gui, GuiElement *element)
 
     for(i = 0; i < gui->elementCount; i++)
     {
-        if(gui->elements[i]) continue;
+        if(gui->elements[i].type) continue;
         gui->elements[i] = element;
+        slog("hud type: %d", gui->elements[i].type);
         return;
     }
 }
@@ -234,14 +233,13 @@ void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer com
 
     if(!gui || !gui->renderer) return;
 
-    gf3d_gui_element_draw(gui->main, commandBuffer);
+    gf3d_gui_element_draw(gui->bg, commandBuffer);
 
     for(i = 0; i < gui->elementCount; i++)
     {
-        if(gui->elements[i]) 
+        if(gui->elements[i].type) 
         {
-            // gf3d_gui_element_draw(gui->elements[i], commandBuffer);
-            gui->elements[i]->draw( gui->elements[i], commandBuffer );
+            gf3d_hud_element_draw(&gui->elements[i], commandBuffer);
         }
     }
 }
