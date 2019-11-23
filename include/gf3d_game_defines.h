@@ -20,8 +20,12 @@
 #define MAX_STAGE_Z -10.f
 #define STAGE_SCALE_Z 1
 
-/* Slog vector */
+/* vector */
 #define vector3d_slog(vec) (slog("x: %.3f, y: %.3f, z: %.3f", vec.x, vec.y, vec.z))
+
+#define vector2d_mul(dst, src, mul) (dst.x = src.x * mul, dst.y = src.y * mul)
+#define vector3d_mul(dst, src, mul) (dst.x = src.x * mul, dst.y = src.y * mul, dst.z = src.z * mul)
+#define vector4d_mul(dst, src, mul) (dst.x = src.x * mul, dst.y = src.y * mul, dst.z = src.z * mul, dst.w = src.w * mul)
 
 #define distance_to_floor(feetHeight) (feetHeight - (MAX_STAGE_Z + STAGE_SCALE_Z))
 #define on_floor(distanceToFloor) (distanceToFloor < 0.5f)

@@ -114,9 +114,9 @@ void gf3d_pipeline_render_pass_setup_2D(Pipeline *pipe)
     VkSubpassDescription subpass = {0};
     VkRenderPassCreateInfo renderPassInfo = {0};
     VkSubpassDependency dependency = {0};
-    VkAttachmentDescription depthAttachment = {0};
-    VkAttachmentReference depthAttachmentRef = {0};
-    VkAttachmentDescription attachments[2];
+    // VkAttachmentDescription depthAttachment = {0};
+    // VkAttachmentReference depthAttachmentRef = {0};
+    // VkAttachmentDescription attachments[2];
     
     // depthAttachmentRef.attachment = 1;
     // depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

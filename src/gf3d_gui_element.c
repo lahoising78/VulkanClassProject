@@ -2,10 +2,13 @@
 
 #include "simple_logger.h"
 #include "gf3d_vgraphics.h"
+#include "gf3d_game_defines.h"
 
 static VkDevice gf3d_gui_element_device;
 static VkDeviceSize bufferSize = sizeof(GuiVertex) * 4;
 static const uint16_t indices[] = {0, 1, 2, 2, 3, 0};
+static float screenWidth = 0.0f;
+static float screenHeight = 0.0f;
 
 void gf3d_gui_element_update_vertex_buffer(GuiElement *e);
 void gf3d_gui_element_create_index_buffer(GuiElement *e);
@@ -15,6 +18,10 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
     int i;
 
     GuiElement *element;
+
+    if(screenWidth <= 0)  screenWidth =  (float)gf3d_vgraphics_get_view_extent().width;
+    if(screenHeight <= 0) screenHeight = (float)gf3d_vgraphics_get_view_extent().height;
+
     element = (GuiElement*) malloc(sizeof(GuiElement));
     if(!element) 
     {
@@ -50,6 +57,8 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 
     gf3d_gui_element_create_index_buffer(element);
 
+    element->draw = gf3d_gui_element_draw;
+
     return element;
 }
 
@@ -80,18 +89,6 @@ void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer)
     vkCmdBindVertexBuffers(commandBuffer, 1, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, element->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
     vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
-
-    // SDL_Rect rect;
-
-    // if(!renderer) return;
-
-    // rect.x = element.position.x;
-    // rect.y = element.position.y;
-    // rect.w = element.extents.x;
-    // rect.h = element.extents.y;
-
-    // SDL_SetRenderDrawColor(renderer, element.color.r * 255, element.color.g * 255, element.color.b * 255, element.color.a * 255);
-    // SDL_RenderFillRect(renderer, &rect);
 }
 
 /* ======VULKAN STUFF===== */
@@ -106,17 +103,33 @@ void gf3d_gui_element_update_vertex_buffer(GuiElement *e)
 
     if(!e) return;
 
-    vector4d_copy(e->vertices[0].color, e->color);
-    vector2d_copy(e->vertices[0].pos, e->position);
+    // vector4d_copy(e->vertices[0].color, e->color);
+    // vector2d_copy(e->vertices[0].pos, e->position);
 
-    vector4d_copy(e->vertices[1].color, e->color);
-    e->vertices[1].pos = vector2d(e->position.x + e->extents.x, e->position.y);
+    // vector4d_copy(e->vertices[1].color, e->color);
+    // e->vertices[1].pos = vector2d(e->position.x + e->extents.x, e->position.y);
     
-    vector4d_copy(e->vertices[2].color, e->color);
-    e->vertices[2].pos = vector2d(e->position.x + e->extents.x, e->position.y + e->extents.y);
+    // vector4d_copy(e->vertices[2].color, e->color);
+    // e->vertices[2].pos = vector2d(e->position.x + e->extents.x, e->position.y + e->extents.y);
     
-    vector4d_copy(e->vertices[3].color, e->color);
-    e->vertices[3].pos = vector2d(e->position.x, e->position.y + e->extents.y);
+    // vector4d_copy(e->vertices[3].color, e->color);
+    // e->vertices[3].pos = vector2d(e->position.x, e->position.y + e->extents.y);
+
+    vector4d_mul(e->vertices[0].color, e->color, (1/255.0f));
+    e->vertices[0].pos.x = e->position.x * 2 / screenWidth - 1.0f;
+    e->vertices[0].pos.y = e->position.y * 2 / screenHeight - 1.0f;
+
+    vector4d_mul(e->vertices[1].color, e->color, (1/255.0f));
+    e->vertices[1].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
+    e->vertices[1].pos.y = e->position.y * 2 / screenHeight - 1.0f;
+    
+    vector4d_mul(e->vertices[2].color, e->color, (1/255.0f));
+    e->vertices[2].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
+    e->vertices[2].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
+    
+    vector4d_mul(e->vertices[3].color, e->color, (1/255.0f));
+    e->vertices[3].pos.x = e->position.x * 2 / screenWidth - 1.0f;
+    e->vertices[3].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
 
     vkMapMemory(gf3d_gui_element_device, e->stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, e->vertices, bufferSize);

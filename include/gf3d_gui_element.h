@@ -18,7 +18,7 @@ typedef struct
     Vector2D texel;
 } GuiVertex;
 
-typedef struct
+typedef struct gui_element_t
 {
     Vector2D position;
     Vector2D extents;
@@ -31,6 +31,8 @@ typedef struct
     VkDeviceMemory indexBufferMemory;
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
+
+    void (*draw) (struct gui_element_t *element, VkCommandBuffer commandBuffer);
 
     GuiVertex vertices[4];
 } GuiElement;
