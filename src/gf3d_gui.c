@@ -225,6 +225,14 @@ void gf3d_gui_free(Gui *gui)
     slog("gui free");
     if(!gui) return;
 
+    for(i = 0; i < gui->elementCount; i++)
+    {
+        element = gui->elements[i];
+        gf3d_gui_element_free(element);
+        // if(element) free(element);
+        gui->elements[i] = NULL;
+    }
+
     if(gui->elements) free(gui->elements);
 
     surface = gui->surface;
@@ -234,14 +242,6 @@ void gf3d_gui_free(Gui *gui)
     vkFreeMemory(gf3d_gui.device, gui->vertexBufferMemory, NULL);
     vkDestroyBuffer(gf3d_gui.device, gui->indexBuffer, NULL);
     vkFreeMemory(gf3d_gui.device, gui->indexBufferMemory, NULL);
-
-    for(i = 0; i < gui->elementCount; i++)
-    {
-        element = gui->elements[i];
-        gf3d_gui_element_free(element);
-        // if(element) free(element);
-        gui->elements[i] = NULL;
-    }
 
     memset(gui, 0, sizeof(Gui));
 

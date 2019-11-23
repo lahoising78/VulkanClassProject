@@ -294,16 +294,6 @@ int main(int argc,char *argv[])
     
     SDL_JoystickClose( controller );
     controller = NULL;
-    if(el)
-    {
-        gf3d_gui_element_free(el);
-        free(el);
-    }
-    if(pBar)
-    {
-        gf3d_gui_element_free(pBar);
-        free(pBar);
-    }
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
     //cleanup
     slog("gf3d program end");
