@@ -7,13 +7,6 @@
 
 typedef struct
 {
-    Vector2D pos;
-    Vector4D color;
-    Vector2D texel;
-} GuiVertex;
-
-typedef struct
-{
     SDL_Surface *surface;
     SDL_Renderer *renderer;
     TextureUI *ui_tex;

@@ -56,7 +56,8 @@ int main(int argc,char *argv[])
     Timer frameTimer = gf3d_timer_new();
 
     Gui *gui;
-    GuiElement el;
+    GuiElement *el;
+    GuiElement *pBar;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -200,8 +201,15 @@ int main(int argc,char *argv[])
 
     gui = gf3d_gui_new(8, -1);
 
-    el = gf3d_gui_element_create(vector2d(10, 10), vector2d(500.0f, 500.0f), gfc_color(0.57f, 0.64, 0.32, 1.0));
-    gf3d_gui_add_element(gui, &el);
+    el = gf3d_gui_element_create(vector2d(-1.0f, -1.0f), vector2d(0.5f, 0.12f), vector4d(0.80f, 0.32, 0.24, 1.0));
+    gf3d_gui_add_element(gui, el);
+
+    pBar = gf3d_gui_element_create(
+        vector2d( 1.0f - 0.5f, -1.0f),
+        vector2d(0.5f, 0.12f),
+        vector4d(0.80f, 0.32f, 0.32f, 1.0f)
+    );
+    gf3d_gui_add_element(gui, pBar);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
@@ -286,6 +294,16 @@ int main(int argc,char *argv[])
     
     SDL_JoystickClose( controller );
     controller = NULL;
+    if(el)
+    {
+        gf3d_gui_element_free(el);
+        free(el);
+    }
+    if(pBar)
+    {
+        gf3d_gui_element_free(pBar);
+        free(pBar);
+    }
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
     //cleanup
     slog("gf3d program end");

@@ -13,14 +13,34 @@ enum GuiElementType
 
 typedef struct
 {
+    Vector2D pos;
+    Vector4D color;
+    Vector2D texel;
+} GuiVertex;
+
+typedef struct
+{
     Vector2D position;
     Vector2D extents;
-    Color color;
+    Vector4D color;
     Texture *tex;
+
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    GuiVertex vertices[4];
 } GuiElement;
 
-GuiElement gf3d_gui_element_create(Vector2D pos, Vector2D ext, Color color);
+void gf3d_gui_element_set_vk_device(VkDevice device);
 
-void gf3d_gui_element_draw(GuiElement element, SDL_Renderer *renderer);
+GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_gui_element_free(GuiElement *e);
+
+void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer);
+// void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer);
 
 #endif

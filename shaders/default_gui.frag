@@ -10,9 +10,9 @@ layout(location = 0) out vec4 outColor;
 void main()
 {
     // outColor = vec4( fragColor.rgb * texture(texSampler, fragTexCord).rgb, 1.0 );
-    // if( fragColor.w < 1 )
-    // {
-    //     discard;
-    // }
+    if( fragColor.w < 1 )
+    {
+        discard;
+    }
     outColor = fragColor;
 }
