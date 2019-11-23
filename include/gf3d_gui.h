@@ -11,12 +11,14 @@ typedef struct
     SDL_Renderer *renderer;
     TextureUI *ui_tex;
     
-    GuiVertex vertices[4];
+    // GuiVertex vertices[4];
 
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
+    // VkBuffer vertexBuffer;
+    // VkDeviceMemory vertexBufferMemory;
+    // VkBuffer indexBuffer;
+    // VkDeviceMemory indexBufferMemory;
+
+    GuiElement *main;
 
     GuiElement **elements;
     Uint32 elementCount;
