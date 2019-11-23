@@ -32,10 +32,11 @@ typedef struct
 static GuiManager gf3d_gui = {0};
 
 void gf3d_gui_init(Gui *gui);
-void gf3d_gui_create_vertex_buffer(Gui *gui);
-void gf3d_gui_create_index_buffer(Gui *gui);
-void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet);
-void gf3d_gui_update_vertices(Gui *gui);
+void gf3d_gui_update(Gui *gui);
+// void gf3d_gui_create_vertex_buffer(Gui *gui);
+// void gf3d_gui_create_index_buffer(Gui *gui);
+// void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet);
+// void gf3d_gui_update_vertices(Gui *gui);
 
 void gf3d_gui_manager_attach_pipe(Pipeline *pipe)
 {
@@ -105,6 +106,19 @@ void gf3d_gui_manager_init(Uint32 count, VkDevice device)
     atexit(gf3d_gui_manager_close);
 
     gf3d_gui_element_set_vk_device(gf3d_gui.device);
+}
+
+void gf3d_gui_manager_update()
+{
+    int i;
+    Gui *gui = NULL;
+
+    for(i = 0; i < gf3d_gui.count; i++)
+    {
+        gui = &gf3d_gui.gui_list[i];
+        if(!gui->_inuse) continue;
+        gf3d_gui_update(gui);
+    }
 }
 
 void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
@@ -225,6 +239,22 @@ void gf3d_gui_init(Gui *gui)
     slog("ext %f %f", gui->surface->w, gui->surface->h);
 
     if(!gui->renderer) gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
+}
+
+void gf3d_gui_update(Gui *gui)
+{
+    int i;
+    HudElement *e = NULL;
+
+    if(!gui) return;
+    gf3d_gui_element_update(gui->bg);
+
+    for(i = 0; i < gui->elementCount; i++)
+    {
+        e = &gui->elements[i];
+        if(!e->type) continue;
+        gf3d_hud_element_update(e);
+    }
 }
 
 void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer)

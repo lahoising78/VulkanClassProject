@@ -36,5 +36,6 @@ typedef struct hud_element_t
 
 void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
+void gf3d_hud_element_update(HudElement *e);
 
 #endif

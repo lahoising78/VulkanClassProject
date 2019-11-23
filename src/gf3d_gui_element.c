@@ -74,6 +74,27 @@ void gf3d_gui_element_free(GuiElement *e)
     // free(e);
 }
 
+void gf3d_gui_element_update(GuiElement *e)
+{
+    if(!e) return;
+
+    vector4d_mul(e->vertices[0].color, e->color, (1/255.0f));
+    e->vertices[0].pos.x = e->position.x * 2 / screenWidth - 1.0f;
+    e->vertices[0].pos.y = e->position.y * 2 / screenHeight - 1.0f;
+
+    vector4d_mul(e->vertices[1].color, e->color, (1/255.0f));
+    e->vertices[1].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
+    e->vertices[1].pos.y = e->position.y * 2 / screenHeight - 1.0f;
+    
+    vector4d_mul(e->vertices[2].color, e->color, (1/255.0f));
+    e->vertices[2].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
+    e->vertices[2].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
+    
+    vector4d_mul(e->vertices[3].color, e->color, (1/255.0f));
+    e->vertices[3].pos.x = e->position.x * 2 / screenWidth - 1.0f;
+    e->vertices[3].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
+}
+
 // void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer)
 void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer)
 {
@@ -112,22 +133,6 @@ void gf3d_gui_element_update_vertex_buffer(GuiElement *e)
     
     // vector4d_copy(e->vertices[3].color, e->color);
     // e->vertices[3].pos = vector2d(e->position.x, e->position.y + e->extents.y);
-
-    vector4d_mul(e->vertices[0].color, e->color, (1/255.0f));
-    e->vertices[0].pos.x = e->position.x * 2 / screenWidth - 1.0f;
-    e->vertices[0].pos.y = e->position.y * 2 / screenHeight - 1.0f;
-
-    vector4d_mul(e->vertices[1].color, e->color, (1/255.0f));
-    e->vertices[1].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
-    e->vertices[1].pos.y = e->position.y * 2 / screenHeight - 1.0f;
-    
-    vector4d_mul(e->vertices[2].color, e->color, (1/255.0f));
-    e->vertices[2].pos.x = (e->position.x + e->extents.x) * 2 / screenWidth - 1.0f;
-    e->vertices[2].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
-    
-    vector4d_mul(e->vertices[3].color, e->color, (1/255.0f));
-    e->vertices[3].pos.x = e->position.x * 2 / screenWidth - 1.0f;
-    e->vertices[3].pos.y = (e->position.y + e->extents.y) * 2 / screenHeight - 1.0f;
 
     vkMapMemory(gf3d_gui_element_device, e->stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, e->vertices, bufferSize);

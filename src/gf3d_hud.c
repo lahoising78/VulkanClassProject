@@ -3,6 +3,7 @@
 #include "simple_logger.h"
 
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
+void gf3d_hud_progress_bar_update(ProgressBar *bar);
 void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer);
 
 /* ====PROGRESS BAR SPECIFIC==== */
@@ -34,6 +35,13 @@ void gf3d_hud_progress_bar_free(ProgressBar *bar)
     bar->val = NULL;
 }
 
+void gf3d_hud_progress_bar_update(ProgressBar *bar)
+{
+    if(!bar) return;
+    gf3d_gui_element_update(bar->back);
+    gf3d_gui_element_update(bar->fore);
+}
+
 void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color)
 {
     if(!bar) return;
@@ -53,7 +61,7 @@ void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer)
     gf3d_gui_element_draw(bar->fore, commandBuffer);
 }
 
-/* ========HUD GENERAL======== */
+/* ==========HUD GENERAL========== */
 void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer)
 {
     if(!e) return;
@@ -92,4 +100,24 @@ void gf3d_hud_element_free(HudElement *e)
     }
 
     e->type = GF3D_HUD_TYPE_NONE;
+}
+
+void gf3d_hud_element_update(HudElement *e)
+{
+    if(!e) return;
+
+    switch (e->type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        gf3d_gui_element_update(e->element.guiElement);
+        break;
+
+    case GF3D_HUD_TYPE_PROGRESS_BAR:
+        gf3d_hud_progress_bar_update(e->element.pBar);
+        break;
+    
+    default:
+        slog("unrecognized hud type");
+        break;
+    }
 }

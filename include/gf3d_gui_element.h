@@ -39,6 +39,7 @@ void gf3d_gui_element_set_vk_device(VkDevice device);
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
 void gf3d_gui_element_free(GuiElement *e);
+void gf3d_gui_element_update(GuiElement *e);
 
 void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer);
 // void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer);

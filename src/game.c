@@ -207,11 +207,6 @@ int main(int argc,char *argv[])
         vector2d(400.0f, 25.0f), 
         vector4d(225.0f, 100.0f, 100.0f, 255.0f)
     );
-    // el = gf3d_gui_element_create(
-    //     vector2d(-1.0f, -1.0f), 
-    //     vector2d(0.5f, 0.12f), 
-    //     vector4d(0.80f, 0.32, 0.32, 1.0)
-    // );
     gf3d_hud_add_element(gui, el);
 
     pBar.type = GF3D_HUD_TYPE_PROGRESS_BAR;
@@ -220,7 +215,7 @@ int main(int argc,char *argv[])
         pBar.element.pBar,
         vector2d(0.0f, 50.0f),
         vector2d(410.0f, 35.0f),
-        vector4d(0.0f, 0.0f, 0.0f, 255.0f)
+        vector4d(225.0f, 100.0f, 100.0f, 255.0f)
     );
     gf3d_hud_progress_bar_set_foreground(
         pBar.element.pBar,
@@ -248,6 +243,7 @@ int main(int argc,char *argv[])
         // app_player_manager_update(events); /* Give input to all players */
         // gf3d_entity_manager_update(); /* Update all entities */
         // gf3d_vgraphics_rotate_camera(worldTime);
+        gf3d_gui_manager_update();
 
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)
@@ -258,7 +254,6 @@ int main(int argc,char *argv[])
         }
 
         // gf3d_camera_look_at_center( p1->entity->position, ent2->position );
-        // gf3d_gui_manager_update();
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
