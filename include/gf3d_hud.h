@@ -8,7 +8,8 @@ typedef enum
     GF3D_HUD_TYPE_NONE =            0,
     GF3D_HUD_TYPE_GUI_ELEMENT =     1,
     GF3D_HUD_TYPE_PROGRESS_BAR =    2,
-    GF3D_HUD_TYPE_BUTTON =          3
+    GF3D_HUD_TYPE_BUTTON =          3,
+    GF3D_HUD_TYPE_LABEL =           4
 } HudType;
 
 /* ==========PROGRESS BAR======== */
@@ -42,10 +43,12 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color);
 typedef struct
 {
     GuiElement *display;
+    Vector4D textColor;
     char *text;
 } Label;
 
-Label *gf3d_hud_label_create(char *text);
+Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, char *text);
+void gf3d_hud_label_set_text(Label *label, char *text);
 
 /* =========HUD ELEMENT======= */
 
@@ -56,6 +59,7 @@ typedef struct hud_element_t
         GuiElement  *guiElement;
         ProgressBar *pBar;
         Button *button;
+        Label *label;
     } element;
 
     HudType type;

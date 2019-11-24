@@ -40,7 +40,7 @@ float worldTime = 0.0f;
 
 void click(Button *button)
 {
-    slog("stop poking me senpai");
+    slog("stop poking me senpai >.<");
 }
 
 int main(int argc,char *argv[])
@@ -72,6 +72,7 @@ int main(int argc,char *argv[])
     HudElement pBar;
     HudElement button;
     HudElement picture;
+    HudElement label;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -251,10 +252,20 @@ int main(int argc,char *argv[])
     picture.element.guiElement = gf3d_gui_element_create(
         vector2d(500.0f, 500.0f),
         vector2d(400.0f, 150.0f),
-        vector4d(255.0f, 255.0f, 255.0f, 255.0f)
+        vector4d(100.0f, 200.0f, 150.0f, 255.0f)
     );
     gf3d_gui_element_attach_texture(picture.element.guiElement, "images/bg_flat.png");
     gf3d_hud_add_element(gui, picture);
+
+    label.type = GF3D_HUD_TYPE_LABEL;
+    label.element.label = gf3d_hud_label_create(
+        vector2d(50.0f, 400.0f),
+        vector2d(80.0f, 50.0f),
+        vector4d(180.0f, 150.0f, 165.0f, 255.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f),
+        "hola mundo!"
+    );
+    gf3d_hud_add_element(gui, label);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();

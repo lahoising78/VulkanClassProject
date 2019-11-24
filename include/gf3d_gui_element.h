@@ -5,6 +5,7 @@
 #include "gfc_color.h"
 #include "gf3d_texture.h"
 #include "gf3d_pipeline.h"
+#include <SDL2/SDL_ttf.h>
 
 enum GuiElementType
 {
@@ -40,10 +41,13 @@ void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe);
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
 void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName);
+void gf3d_gui_element_attach_texture_from_surface(GuiElement *gui, SDL_Surface *surface);
+
 void gf3d_gui_element_free(GuiElement *e);
 void gf3d_gui_element_update(GuiElement *e);
-
 void gf3d_gui_element_draw(GuiElement *element, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
+TTF_Font *gf3d_gui_element_get_font();
 // void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer);
 
 #endif

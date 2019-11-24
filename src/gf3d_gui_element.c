@@ -22,6 +22,9 @@ typedef struct
     Pipeline *pipe;
     VkDeviceSize bufferSize;
     uint16_t indices[6];
+    
+    TTF_Font *font;
+
     float screenWidth;
     float screenHeight;
 } GuiElementManager;
@@ -31,6 +34,12 @@ static GuiElementManager gf3d_gui_element_manager = {0};
 void gf3d_gui_element_update_vertex_buffer(GuiElement *e);
 void gf3d_gui_element_create_index_buffer(GuiElement *e);
 void gf3d_gui_element_update_descriptor_sets(GuiElement *e, const VkDescriptorSet *descriptorSet);
+
+void gf3d_gui_element_manager_close()
+{
+    if(gf3d_gui_element_manager.font) TTF_CloseFont(gf3d_gui_element_manager.font);
+    gf3d_gui_element_manager.font = NULL;
+}
 
 void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe){
     gf3d_gui_element_manager.device = device;
@@ -46,6 +55,14 @@ void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe){
 
     gf3d_gui_element_manager.screenWidth = (float)gf3d_vgraphics_get_view_extent().width;
     gf3d_gui_element_manager.screenHeight = (float)gf3d_vgraphics_get_view_extent().height;
+
+    gf3d_gui_element_manager.font = TTF_OpenFont( "fonts/RobotoMono-Light.ttf", 28 );
+    if(!gf3d_gui_element_manager.font)
+    {
+        slog("\033[0;33mWARNING:\033[0m font was not found");
+    }
+
+    atexit(gf3d_gui_element_manager_close);
 }
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
@@ -69,10 +86,10 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
     element->color = color;
     element->tex = NULL;
 
-    element->vertices[0].texel = vector2d(0.0f, 1.0f);
-    element->vertices[1].texel = vector2d(1.0f, 1.0f);
-    element->vertices[2].texel = vector2d(1.0f, 0.0f);
-    element->vertices[3].texel = vector2d(0.0f, 0.0f);
+    element->vertices[0].texel = vector2d(1.0f, 0.0f);
+    element->vertices[1].texel = vector2d(0.0f, 0.0f);
+    element->vertices[2].texel = vector2d(0.0f, 1.0f);
+    element->vertices[3].texel = vector2d(1.0f, 1.0f);
 
     gf3d_vgraphics_create_buffer(
         gf3d_gui_element_manager.bufferSize, 
@@ -126,6 +143,28 @@ void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName)
 
     tex = gui->tex;
     gui->tex = gf3d_texture_load(textureName);
+    if(tex != gui->tex)
+    {
+        gf3d_texture_free(tex);
+    }
+}
+
+void gf3d_gui_element_attach_texture_from_surface(GuiElement *gui, SDL_Surface *surface)
+{
+    Texture *tex = NULL;
+    if(!gui) 
+    {
+        slog("no gui to attach surface");
+        return;
+    }
+    if(!surface)
+    {
+        slog("no surface to attach to gui");
+        return;
+    }
+
+    tex = gui->tex;
+    gui->tex = gf3d_texture_from_surface(NULL, surface);
     if(tex != gui->tex)
     {
         gf3d_texture_free(tex);
@@ -295,4 +334,9 @@ Color gfc_color(float r,float g,float b,float a)
     c.b = b;
     c.a = a;
     return c;
+}
+
+TTF_Font *gf3d_gui_element_get_font()
+{
+    return gf3d_gui_element_manager.font;
 }

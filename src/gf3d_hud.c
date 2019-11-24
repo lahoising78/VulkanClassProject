@@ -11,6 +11,10 @@ void gf3d_hud_button_free(Button *button);
 void gf3d_hud_button_update(Button *button, SDL_Event *events);
 void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
+void gf3d_hud_label_free(Label *label);
+void gf3d_hud_label_update(Label *label, SDL_Event *events);
+void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
 {
@@ -136,6 +140,77 @@ void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer 
     gf3d_gui_element_draw(button->bg, bufferFrame, commandBuffer);
 }
 
+Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, char *text)
+{
+    Label *label = NULL;
+
+    label = (Label*)malloc(sizeof(Label));
+    if(!label)
+    {
+        slog("not enough space for label");
+        return NULL;
+    }
+
+    label->display = gf3d_gui_element_create(pos, ext, color);
+    vector4d_copy(label->textColor, textColor);
+    label->text = (char*)gfc_allocate_array(sizeof(char), 256);
+
+    gf3d_hud_label_set_text(label, text);
+
+    return label;
+}
+
+void gf3d_hud_label_free(Label *label)
+{
+    if(!label) return;
+
+    gf3d_gui_element_free(label->display);
+    if(label->text) free(label->text);
+}
+
+void gf3d_hud_label_update(Label *label, SDL_Event *events)
+{
+    if(!label) return;
+
+    gf3d_gui_element_update(label->display);
+}
+
+void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
+{
+    if(!label) return;
+
+    gf3d_gui_element_draw(label->display, bufferFrame, commandBuffer);
+}
+
+void gf3d_hud_label_set_text(Label *label, char *text)
+{
+    SDL_Surface *surface = NULL;
+    SDL_Color color;
+    TTF_Font *font = NULL;
+
+    if(!label || !label->text) return;
+
+    if(label->text) gfc_line_cpy(label->text, text);
+
+    font = gf3d_gui_element_get_font();
+    if(!font) 
+    {
+        slog("no font found");
+        return;
+    }
+
+    color.r = (int)label->textColor.x;
+    color.g = (int)label->textColor.y;
+    color.b = (int)label->textColor.z;
+    color.a = (int)label->textColor.w;
+    surface = TTF_RenderText_Solid(font, text, color);
+
+    gf3d_gui_element_attach_texture_from_surface(label->display, surface);
+    gfc_line_cpy(label->display->tex->filename, text);
+
+    SDL_FreeSurface(surface);
+}
+
 /* ==========HUD GENERAL========== */
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
@@ -152,6 +227,10 @@ void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer 
 
         case GF3D_HUD_TYPE_BUTTON:
             gf3d_hud_button_draw(e->element.button, bufferFrame, commandBuffer);
+            break;
+
+        case GF3D_HUD_TYPE_LABEL:
+            gf3d_hud_label_draw(e->element.label, bufferFrame, commandBuffer);
             break;
 
         default:
@@ -175,6 +254,10 @@ void gf3d_hud_element_free(HudElement *e)
 
     case GF3D_HUD_TYPE_BUTTON:
         gf3d_hud_button_free(e->element.button);
+        break;
+
+    case GF3D_HUD_TYPE_LABEL:
+        gf3d_hud_label_free(e->element.label);
         break;
 
     default:
@@ -201,6 +284,10 @@ void gf3d_hud_element_update(HudElement *e, SDL_Event *events)
 
     case GF3D_HUD_TYPE_BUTTON:
         gf3d_hud_button_update(e->element.button, events);
+        break;
+
+    case GF3D_HUD_TYPE_LABEL:
+        gf3d_hud_label_update(e->element.label, events);
         break;
     
     default:
