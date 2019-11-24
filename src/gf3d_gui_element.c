@@ -4,18 +4,6 @@
 #include "gf3d_vgraphics.h"
 #include "gf3d_game_defines.h"
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    static Uint32 rmask = 0xff000000;
-    static Uint32 gmask = 0x00ff0000;
-    static Uint32 bmask = 0x0000ff00;
-    static Uint32 amask = 0x000000ff;
-#else
-    static Uint32 rmask = 0x000000ff;
-    static Uint32 gmask = 0x0000ff00;
-    static Uint32 bmask = 0x00ff0000;
-    static Uint32 amask = 0xff000000;
-#endif
-
 typedef struct 
 {
     VkDevice device;
@@ -56,7 +44,8 @@ void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe){
     gf3d_gui_element_manager.screenWidth = (float)gf3d_vgraphics_get_view_extent().width;
     gf3d_gui_element_manager.screenHeight = (float)gf3d_vgraphics_get_view_extent().height;
 
-    gf3d_gui_element_manager.font = TTF_OpenFont( "fonts/RobotoMono-Light.ttf", 28 );
+    gf3d_gui_element_manager.font = TTF_OpenFont( "fonts/RobotoMono-Light.ttf", 32 );
+    // gf3d_gui_element_manager.font = TTF_OpenFont( "fonts/lazy.ttf", 28);
     if(!gf3d_gui_element_manager.font)
     {
         slog("\033[0;33mWARNING:\033[0m font was not found");
@@ -67,10 +56,8 @@ void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe){
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 {
-    int i;
     SDL_Surface *surface = NULL;
     SDL_Renderer *renderer = NULL;
-    SDL_Rect r;
 
     GuiElement *element;
 
@@ -120,13 +107,8 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 
     renderer = SDL_CreateSoftwareRenderer(surface);
 
-    SDL_RenderClear(renderer);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-    r.x = r.y = 0;
-    r.w = gf3d_gui_element_manager.screenWidth;
-    r.h = gf3d_gui_element_manager.screenHeight;
-    SDL_RenderFillRect(renderer, &r);
+    SDL_RenderClear(renderer);
 
     element->tex = gf3d_texture_from_surface(NULL, surface);
 

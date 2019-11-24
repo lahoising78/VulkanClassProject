@@ -25,7 +25,7 @@ void gf3d_gui_manager_init(Uint32 count, VkDevice device);
 
 void gf3d_gui_manager_attach_pipe(Pipeline *pipe);
 
-void gf3d_gui_manager_update(SDL_Event *events);
+void gf3d_gui_manager_update(SDL_Event *keys, SDL_Event *mouse);
 void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
 /* 

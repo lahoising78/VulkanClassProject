@@ -73,6 +73,7 @@ int main(int argc,char *argv[])
     HudElement button;
     HudElement picture;
     HudElement label;
+    HudElement textInput;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -226,12 +227,12 @@ int main(int argc,char *argv[])
     gf3d_hud_add_element(gui, el);
 
     pBar.type = GF3D_HUD_TYPE_PROGRESS_BAR;
-    pBar.element.pBar = gf3d_hud_progress_bar_create(&stage->healthmax, &stage->health, vector2d(5.0f, 5.0f));
+    pBar.element.pBar = gf3d_hud_progress_bar_create(&stage->healthmax, &stage->health, vector2d(2.0f, 2.0f));
     gf3d_hud_progress_bar_set_background(
         pBar.element.pBar,
         vector2d(0.0f, 50.0f),
         vector2d(410.0f, 35.0f),
-        vector4d(225.0f, 100.0f, 100.0f, 255.0f)
+        vector4d(80.0f, 60.0f, 70.0f, 255.0f)
     );
     gf3d_hud_progress_bar_set_foreground(
         pBar.element.pBar,
@@ -260,12 +261,22 @@ int main(int argc,char *argv[])
     label.type = GF3D_HUD_TYPE_LABEL;
     label.element.label = gf3d_hud_label_create(
         vector2d(50.0f, 400.0f),
-        vector2d(80.0f, 50.0f),
-        vector4d(180.0f, 150.0f, 165.0f, 255.0f),
+        vector2d(400.0f, 100.0f),
         vector4d(255.0f, 255.0f, 255.0f, 255.0f),
+        vector4d(0.0f, 0.0f, 0.0f, 255.0f),
         "hola mundo!"
     );
     gf3d_hud_add_element(gui, label);
+
+    textInput.type = GF3D_HUD_TYPE_TEXT_INPUT;
+    textInput.element.textInput = gf3d_hud_text_input_create(
+        vector2d(700.0f, 100.0f),
+        vector2d(250.0f, 80.0f),
+        vector4d(0.0f, 0.0f, 0.0f, 255.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f),
+        "text input"
+    );
+    gf3d_hud_add_element(gui, textInput);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
@@ -276,6 +287,7 @@ int main(int argc,char *argv[])
         gf3d_timer_start(&frameTimer);
 
         memset(mouse, 0, sizeof(mouse));
+        memset(mouse, 0, sizeof(events));
 
         while( SDL_PollEvent(&e) )
         {
@@ -287,10 +299,10 @@ int main(int argc,char *argv[])
         }
         
         // app_player_manager_update(events); /* Give input to all players */
-        stage->health--;
+        stage->health -= worldTime * 50;
         // gf3d_entity_manager_update(); /* Update all entities */
         // gf3d_vgraphics_rotate_camera(worldTime);
-        gf3d_gui_manager_update(mouse);
+        gf3d_gui_manager_update(events, mouse);
 
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)

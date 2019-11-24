@@ -198,7 +198,7 @@ void gf3d_texture_create_sampler(Texture *tex)
         slog("failed to create texture sampler!");
         return;
     }
-    slog("created texture sampler");
+    // slog("created texture sampler");
 }
 
 Texture *gf3d_texture_load(char *filename)
@@ -397,7 +397,7 @@ Texture *gf3d_texture_from_surface(Texture *tex, SDL_Surface *surface)
     // slog("cleanup");
     vkDestroyBuffer(gf3d_texture.device, stagingBuffer, NULL);
     vkFreeMemory(gf3d_texture.device, stagingBufferMemory, NULL);
-    slog("created texture");
+    // slog("created texture");
 
     return tex;
 }

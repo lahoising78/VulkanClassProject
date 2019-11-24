@@ -2,17 +2,17 @@
 
 #include "simple_logger.h"
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    static Uint32 rmask = 0xff000000;
-    static Uint32 gmask = 0x00ff0000;
-    static Uint32 bmask = 0x0000ff00;
-    static Uint32 amask = 0x000000ff;
-#else
-    static Uint32 rmask = 0x000000ff;
-    static Uint32 gmask = 0x0000ff00;
-    static Uint32 bmask = 0x00ff0000;
-    static Uint32 amask = 0xff000000;
-#endif
+// #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+//     static Uint32 rmask = 0xff000000;
+//     static Uint32 gmask = 0x00ff0000;
+//     static Uint32 bmask = 0x0000ff00;
+//     static Uint32 amask = 0x000000ff;
+// #else
+//     static Uint32 rmask = 0x000000ff;
+//     static Uint32 gmask = 0x0000ff00;
+//     static Uint32 bmask = 0x00ff0000;
+//     static Uint32 amask = 0xff000000;
+// #endif
 
 // extern Texture *ui_tex;
 #define _UI_ATTRIBUTE_COUNT_ 3
@@ -32,7 +32,7 @@ typedef struct
 static GuiManager gf3d_gui = {0};
 
 void gf3d_gui_init(Gui *gui);
-void gf3d_gui_update(Gui *gui, SDL_Event *events);
+void gf3d_gui_update(Gui *gui, SDL_Event *keys, SDL_Event *mouse);
 void gf3d_gui_draw(Gui *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 // void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
 // void gf3d_gui_create_vertex_buffer(Gui *gui);
@@ -108,7 +108,7 @@ void gf3d_gui_manager_init(Uint32 count, VkDevice device)
     atexit(gf3d_gui_manager_close);
 }
 
-void gf3d_gui_manager_update(SDL_Event *events)
+void gf3d_gui_manager_update(SDL_Event *keys, SDL_Event *mouse)
 {
     int i;
     Gui *gui = NULL;
@@ -117,7 +117,7 @@ void gf3d_gui_manager_update(SDL_Event *events)
     {
         gui = &gf3d_gui.gui_list[i];
         if(!gui->_inuse) continue;
-        gf3d_gui_update(gui, events);
+        gf3d_gui_update(gui, keys, mouse);
     }
 }
 
@@ -239,7 +239,7 @@ void gf3d_gui_init(Gui *gui)
     if(!gui->renderer) gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
 }
 
-void gf3d_gui_update(Gui *gui, SDL_Event *events)
+void gf3d_gui_update(Gui *gui, SDL_Event *keys, SDL_Event *mouse)
 {
     int i;
     HudElement *e = NULL;
@@ -251,7 +251,7 @@ void gf3d_gui_update(Gui *gui, SDL_Event *events)
     {
         e = &gui->elements[i];
         if(!e->type) continue;
-        gf3d_hud_element_update(e, events);
+        gf3d_hud_element_update(e, keys, mouse);
     }
 }
 

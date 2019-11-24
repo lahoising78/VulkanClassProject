@@ -12,8 +12,12 @@ void gf3d_hud_button_update(Button *button, SDL_Event *events);
 void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 void gf3d_hud_label_free(Label *label);
-void gf3d_hud_label_update(Label *label, SDL_Event *events);
+void gf3d_hud_label_update(Label *label);
 void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
+void gf3d_hud_text_input_free(TextInput *textInput);
+void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event *mouse);
+void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
@@ -107,8 +111,6 @@ void gf3d_hud_button_update(Button *button, SDL_Event *events)
     SDL_Event e;
     SDL_Rect a;
     SDL_Point p;
-    int x, y;
-    x = y = 0;
 
     if(!button) return;
     
@@ -151,9 +153,20 @@ Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4
         return NULL;
     }
 
-    label->display = gf3d_gui_element_create(pos, ext, color);
     vector4d_copy(label->textColor, textColor);
-    label->text = (char*)gfc_allocate_array(sizeof(char), 256);
+    label->display = gf3d_gui_element_create(pos, ext, color);
+
+    ext.x = strlen(text) * 16.0f;
+    ext.y = 32.0f;
+    
+    label->textDisp = gf3d_gui_element_create(pos, ext, textColor);
+    
+    label->textDisp->vertices[0].texel = vector2d(0.0f, 0.0f);
+    label->textDisp->vertices[1].texel = vector2d(1.0f, 0.0f);
+    label->textDisp->vertices[2].texel = vector2d(1.0f, 1.0f);
+    label->textDisp->vertices[3].texel = vector2d(0.0f, 1.0f);
+
+    label->text = (char*)gfc_allocate_array(sizeof(char), LABEL_MAX_CHARACTERS);
 
     gf3d_hud_label_set_text(label, text);
 
@@ -165,14 +178,16 @@ void gf3d_hud_label_free(Label *label)
     if(!label) return;
 
     gf3d_gui_element_free(label->display);
+    gf3d_gui_element_free(label->textDisp);
     if(label->text) free(label->text);
 }
 
-void gf3d_hud_label_update(Label *label, SDL_Event *events)
+void gf3d_hud_label_update(Label *label)
 {
     if(!label) return;
 
     gf3d_gui_element_update(label->display);
+    gf3d_gui_element_update(label->textDisp);
 }
 
 void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
@@ -180,17 +195,28 @@ void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer com
     if(!label) return;
 
     gf3d_gui_element_draw(label->display, bufferFrame, commandBuffer);
+    gf3d_gui_element_draw(label->textDisp, bufferFrame, commandBuffer);
 }
 
 void gf3d_hud_label_set_text(Label *label, char *text)
 {
     SDL_Surface *surface = NULL;
-    SDL_Color color;
+    // SDL_Renderer *renderer = NULL;
     TTF_Font *font = NULL;
+    SDL_Color color;
 
     if(!label || !label->text) return;
 
     if(label->text) gfc_line_cpy(label->text, text);
+    slog("new tex: %s", label->text);
+
+    if(strlen(text) <= 0)
+    {
+        surface = SDL_CreateRGBSurface(0, 1, 1, 32, rmask, gmask, bmask, amask);
+        gf3d_gui_element_attach_texture_from_surface(label->textDisp, surface);
+        SDL_FreeSurface(surface);
+        return;
+    }
 
     font = gf3d_gui_element_get_font();
     if(!font) 
@@ -199,16 +225,115 @@ void gf3d_hud_label_set_text(Label *label, char *text)
         return;
     }
 
-    color.r = (int)label->textColor.x;
-    color.g = (int)label->textColor.y;
-    color.b = (int)label->textColor.z;
-    color.a = (int)label->textColor.w;
-    surface = TTF_RenderText_Solid(font, text, color);
+    color.r = (uint8_t)label->textColor.x;
+    color.g = (uint8_t)label->textColor.y;
+    color.b = (uint8_t)label->textColor.z;
+    color.a = (uint8_t)label->textColor.w;
 
-    gf3d_gui_element_attach_texture_from_surface(label->display, surface);
+    surface = TTF_RenderText_Solid(font, text, color);
+    if( surface->format->format != SDL_PIXELFORMAT_ARGB8888 )
+    {
+        surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ARGB8888, 0);
+    }
+
+    gf3d_gui_element_attach_texture_from_surface(label->textDisp, surface);
     gfc_line_cpy(label->display->tex->filename, text);
 
     SDL_FreeSurface(surface);
+}
+
+/* =========HUD TEXT INPUT======== */
+TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, char *text)
+{
+    TextInput *textInput = NULL;
+
+    textInput = (TextInput*)malloc(sizeof(textInput));
+    if(!textInput)
+    {
+        slog("unable to allocate a new text input");
+        return NULL;
+    }
+
+    textInput->textDisplay = gf3d_hud_label_create(pos, ext, bgColor, textColor, text);
+    textInput->selected = 0;
+
+    return textInput;
+}
+
+void gf3d_hud_text_input_free(TextInput *textInput)
+{
+    if(!textInput) return;
+
+    gf3d_hud_label_free(textInput->textDisplay);
+    textInput->selected = 0;
+}
+
+void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event *mouse)
+{
+    SDL_Event e;
+    SDL_Point p;
+    SDL_Rect r;
+    int i;
+
+    Vector2D pos, ext;
+
+    if(!textInput) return;
+
+    e = mouse[SDL_BUTTON_LEFT];
+    switch (e.button.type)
+    {
+    case SDL_MOUSEBUTTONUP:
+        vector2d_copy(p, e.button);
+
+        pos = textInput->textDisplay->display->position;
+        vector2d_copy(r, pos);
+
+        ext = textInput->textDisplay->display->extents;
+        r.w = ext.x;
+        r.h = ext.y;
+
+        if(SDL_PointInRect(&p, &r) == SDL_TRUE)
+        {
+            slog("i have been selected");
+            textInput->selected = 1;
+        }
+        break;
+    }
+
+    if(textInput->selected)
+    {
+        for(i = 0; i < SDL_NUM_SCANCODES; i++)
+        {
+            e = keys[i];
+            switch(e.key.type)
+            {
+            case SDL_KEYDOWN:
+                if( e.key.keysym.sym != SDLK_BACKSPACE || strlen(textInput->textDisplay->text) <= 0 ) break;
+                textInput->textDisplay->text[ strlen(textInput->textDisplay->text) - 1 ] = 0;
+                textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * 16.0f;
+                gf3d_hud_label_set_text(textInput->textDisplay, textInput->textDisplay->text);
+                break;
+
+            case SDL_TEXTINPUT:
+                if( strlen(textInput->textDisplay->text) < LABEL_MAX_CHARACTERS - 1 )
+                {
+                    strcat(textInput->textDisplay->text, e.text.text);
+                    textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * 16.0f;
+                    gf3d_hud_label_set_text(textInput->textDisplay, textInput->textDisplay->text);
+                }
+                break;
+            }
+        }
+    }
+    
+    gf3d_hud_label_update(textInput->textDisplay);
+}
+
+void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
+{
+    if(!textInput) return;
+
+    gf3d_hud_label_draw(textInput->textDisplay, bufferFrame, commandBuffer);
 }
 
 /* ==========HUD GENERAL========== */
@@ -231,6 +356,10 @@ void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer 
 
         case GF3D_HUD_TYPE_LABEL:
             gf3d_hud_label_draw(e->element.label, bufferFrame, commandBuffer);
+            break;
+
+        case GF3D_HUD_TYPE_TEXT_INPUT:
+            gf3d_hud_text_input_draw(e->element.textInput, bufferFrame, commandBuffer);
             break;
 
         default:
@@ -260,6 +389,10 @@ void gf3d_hud_element_free(HudElement *e)
         gf3d_hud_label_free(e->element.label);
         break;
 
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        gf3d_hud_text_input_free(e->element.textInput);
+        break;
+
     default:
         slog("unrecognized hud type");
         break;
@@ -268,7 +401,7 @@ void gf3d_hud_element_free(HudElement *e)
     e->type = GF3D_HUD_TYPE_NONE;
 }
 
-void gf3d_hud_element_update(HudElement *e, SDL_Event *events)
+void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse)
 {
     if(!e) return;
 
@@ -283,11 +416,15 @@ void gf3d_hud_element_update(HudElement *e, SDL_Event *events)
         break;
 
     case GF3D_HUD_TYPE_BUTTON:
-        gf3d_hud_button_update(e->element.button, events);
+        gf3d_hud_button_update(e->element.button, mouse);
         break;
 
     case GF3D_HUD_TYPE_LABEL:
-        gf3d_hud_label_update(e->element.label, events);
+        gf3d_hud_label_update(e->element.label);
+        break;
+
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        gf3d_hud_text_input_update(e->element.textInput, keys, mouse);
         break;
     
     default:

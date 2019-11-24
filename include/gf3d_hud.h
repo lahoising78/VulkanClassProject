@@ -3,13 +3,16 @@
 
 #include "gf3d_gui_element.h"
 
+#define LABEL_MAX_CHARACTERS 256
+
 typedef enum
 {
     GF3D_HUD_TYPE_NONE =            0,
     GF3D_HUD_TYPE_GUI_ELEMENT =     1,
     GF3D_HUD_TYPE_PROGRESS_BAR =    2,
     GF3D_HUD_TYPE_BUTTON =          3,
-    GF3D_HUD_TYPE_LABEL =           4
+    GF3D_HUD_TYPE_LABEL =           4,
+    GF3D_HUD_TYPE_TEXT_INPUT =      5
 } HudType;
 
 /* ==========PROGRESS BAR======== */
@@ -43,12 +46,23 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color);
 typedef struct
 {
     GuiElement *display;
+    GuiElement *textDisp;
     Vector4D textColor;
     char *text;
 } Label;
 
 Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, char *text);
 void gf3d_hud_label_set_text(Label *label, char *text);
+
+/* ===========HUD TEXT INPUT=========== */
+
+typedef struct
+{
+    Label *textDisplay;
+    uint8_t selected;
+} TextInput;
+
+TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, char *text);
 
 /* =========HUD ELEMENT======= */
 
@@ -60,6 +74,7 @@ typedef struct hud_element_t
         ProgressBar *pBar;
         Button *button;
         Label *label;
+        TextInput *textInput;
     } element;
 
     HudType type;
@@ -67,6 +82,6 @@ typedef struct hud_element_t
 
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
-void gf3d_hud_element_update(HudElement *e, SDL_Event *events);
+void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse);
 
 #endif

@@ -186,6 +186,11 @@ void gf3d_vgraphics_setup(
         return;
     }
     atexit(SDL_Quit);
+    if ( TTF_Init() == -1 )
+    {
+        slog("\033[0;31mSDL TTF COULD NOT BE INITIALIZED\033[0m");
+    }
+    atexit(TTF_Quit);
     if (fullscreen)
     {
         if (renderWidth == 0)
