@@ -32,7 +32,7 @@ typedef struct
 static GuiManager gf3d_gui = {0};
 
 void gf3d_gui_init(Gui *gui);
-void gf3d_gui_update(Gui *gui);
+void gf3d_gui_update(Gui *gui, SDL_Event *events);
 // void gf3d_gui_create_vertex_buffer(Gui *gui);
 // void gf3d_gui_create_index_buffer(Gui *gui);
 // void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet);
@@ -108,7 +108,7 @@ void gf3d_gui_manager_init(Uint32 count, VkDevice device)
     gf3d_gui_element_set_vk_device(gf3d_gui.device);
 }
 
-void gf3d_gui_manager_update()
+void gf3d_gui_manager_update(SDL_Event *events)
 {
     int i;
     Gui *gui = NULL;
@@ -117,7 +117,7 @@ void gf3d_gui_manager_update()
     {
         gui = &gf3d_gui.gui_list[i];
         if(!gui->_inuse) continue;
-        gf3d_gui_update(gui);
+        gf3d_gui_update(gui, events);
     }
 }
 
@@ -241,7 +241,7 @@ void gf3d_gui_init(Gui *gui)
     if(!gui->renderer) gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
 }
 
-void gf3d_gui_update(Gui *gui)
+void gf3d_gui_update(Gui *gui, SDL_Event *events)
 {
     int i;
     HudElement *e = NULL;
@@ -253,7 +253,7 @@ void gf3d_gui_update(Gui *gui)
     {
         e = &gui->elements[i];
         if(!e->type) continue;
-        gf3d_hud_element_update(e);
+        gf3d_hud_element_update(e, events);
     }
 }
 

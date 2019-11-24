@@ -30,7 +30,18 @@
 #define CHAKRA_HEIGHT       0.0125f
 #define CHAKRA_DOWN_OFFSET  -0.425f
 
+#if SDL_BUTTON_X2 < 8
+    #define MOUSE_EVENT_MAX 8
+#else
+    #define MOUSE_EVENT_MAX SDL_BUTTON_X2
+#endif
+
 float worldTime = 0.0f;
+
+void click(Button *button)
+{
+    slog("stop poking me senpai");
+}
 
 int main(int argc,char *argv[])
 {
@@ -39,6 +50,7 @@ int main(int argc,char *argv[])
     Uint8 validate = 1;
     Uint8 drawShapes = 0;
     SDL_Event events[ SDL_NUM_SCANCODES ];
+    SDL_Event mouse[ MOUSE_EVENT_MAX ];
     SDL_Event e;
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
@@ -58,6 +70,7 @@ int main(int argc,char *argv[])
     Gui *gui;
     HudElement el;
     HudElement pBar;
+    HudElement button;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -225,6 +238,15 @@ int main(int argc,char *argv[])
     );
     gf3d_hud_add_element(gui, pBar);
 
+    button.type = GF3D_HUD_TYPE_BUTTON;
+    button.element.button = gf3d_hud_button_create(
+        vector2d(0.0f, 90.0f),
+        vector2d(50.0f, 30.0f),
+        vector4d(128.0f, 64.0f, 32.0f, 255.0f)
+    );
+    button.element.button->on_click = click;
+    gf3d_hud_add_element(gui, button);
+
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
     
@@ -233,17 +255,21 @@ int main(int argc,char *argv[])
         //update game things here
         gf3d_timer_start(&frameTimer);
 
+        memset(mouse, 0, sizeof(mouse));
+
         while( SDL_PollEvent(&e) )
         {
             if ( e.key.keysym.scancode < SDL_NUM_SCANCODES )
                 events[ e.key.keysym.scancode ] = e;
+            else if ( e.button.button < 128 )
+                mouse[e.button.button] = e;
             // slog("key: %d", e.key.keysym.scancode);
         }
         
         // app_player_manager_update(events); /* Give input to all players */
         // gf3d_entity_manager_update(); /* Update all entities */
         // gf3d_vgraphics_rotate_camera(worldTime);
-        gf3d_gui_manager_update();
+        gf3d_gui_manager_update(mouse);
 
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)

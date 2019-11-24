@@ -1,10 +1,15 @@
 #include "gf3d_hud.h"
 
 #include "simple_logger.h"
+#include "gf3d_shape.h"
 
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
 void gf3d_hud_progress_bar_update(ProgressBar *bar);
 void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer);
+
+void gf3d_hud_button_free(Button *button);
+void gf3d_hud_button_update(Button *button, SDL_Event *events);
+void gf3d_hud_button_draw(Button *button, VkCommandBuffer commandBuffer);
 
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val)
@@ -42,6 +47,13 @@ void gf3d_hud_progress_bar_update(ProgressBar *bar)
     gf3d_gui_element_update(bar->fore);
 }
 
+void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer)
+{
+    if(!bar) return;
+    gf3d_gui_element_draw(bar->back, commandBuffer);
+    gf3d_gui_element_draw(bar->fore, commandBuffer);
+}
+
 void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color)
 {
     if(!bar) return;
@@ -54,11 +66,65 @@ void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector2D pos, Vector
     bar->fore = gf3d_gui_element_create(pos, ext, color);
 }
 
-void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer)
+/* ==========HUD BUTTON========= */
+Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color)
 {
-    if(!bar) return;
-    gf3d_gui_element_draw(bar->back, commandBuffer);
-    gf3d_gui_element_draw(bar->fore, commandBuffer);
+    Button *button;
+
+    button = (Button*)malloc(sizeof(Button));
+    button->bg = gf3d_gui_element_create(pos, ext, color);
+
+    return button;
+}
+
+void gf3d_hud_button_free(Button *button)
+{
+    if(!button) return;
+
+    gf3d_gui_element_free(button->bg);
+    button->bg = NULL;
+}
+
+void gf3d_hud_button_update(Button *button, SDL_Event *events)
+{
+    SDL_Event e;
+    SDL_Rect a;
+    SDL_Point p;
+    int x, y;
+    x = y = 0;
+
+    if(!button) return;
+    
+    gf3d_gui_element_update(button->bg);
+
+    if(!button->on_click) return;
+    
+    e = events[SDL_BUTTON_LEFT];
+    if( e.button.type == SDL_MOUSEBUTTONUP )
+    {
+        vector2d_copy(a, button->bg->position);
+        a.w = button->bg->extents.x;
+        a.h = button->bg->extents.y;
+
+        p.x = e.button.x; 
+        p.y = e.button.y;
+
+        if( SDL_PointInRect(&p, &a) == SDL_TRUE )
+        {
+            button->on_click(button);
+        }
+        else
+        {
+            slog("click: %d %d", p.x, p.y);
+        }
+    }
+}
+
+void gf3d_hud_button_draw(Button *button, VkCommandBuffer commandBuffer)
+{
+    if(!button) return;
+    
+    gf3d_gui_element_draw(button->bg, commandBuffer);
 }
 
 /* ==========HUD GENERAL========== */
@@ -73,6 +139,10 @@ void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer)
 
         case GF3D_HUD_TYPE_PROGRESS_BAR:
             gf3d_hud_progress_bar_draw(e->element.pBar, commandBuffer);
+            break;
+
+        case GF3D_HUD_TYPE_BUTTON:
+            gf3d_hud_button_draw(e->element.button, commandBuffer);
             break;
 
         default:
@@ -94,6 +164,10 @@ void gf3d_hud_element_free(HudElement *e)
         gf3d_hud_progress_bar_free(e->element.pBar);
         break;
 
+    case GF3D_HUD_TYPE_BUTTON:
+        gf3d_hud_button_free(e->element.button);
+        break;
+
     default:
         slog("unrecognized hud type");
         break;
@@ -102,7 +176,7 @@ void gf3d_hud_element_free(HudElement *e)
     e->type = GF3D_HUD_TYPE_NONE;
 }
 
-void gf3d_hud_element_update(HudElement *e)
+void gf3d_hud_element_update(HudElement *e, SDL_Event *events)
 {
     if(!e) return;
 
@@ -114,6 +188,10 @@ void gf3d_hud_element_update(HudElement *e)
 
     case GF3D_HUD_TYPE_PROGRESS_BAR:
         gf3d_hud_progress_bar_update(e->element.pBar);
+        break;
+
+    case GF3D_HUD_TYPE_BUTTON:
+        gf3d_hud_button_update(e->element.button, events);
         break;
     
     default:
