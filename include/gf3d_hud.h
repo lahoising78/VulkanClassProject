@@ -37,6 +37,16 @@ typedef struct hud_button_t
 
 Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color);
 
+/* ========HUD LABELS======= */
+
+typedef struct
+{
+    GuiElement *display;
+    char *text;
+} Label;
+
+Label *gf3d_hud_label_create(char *text);
+
 /* =========HUD ELEMENT======= */
 
 typedef struct hud_element_t
@@ -51,7 +61,7 @@ typedef struct hud_element_t
     HudType type;
 } HudElement;
 
-void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer);
+void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
 void gf3d_hud_element_update(HudElement *e, SDL_Event *events);
 

@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 1) uniform sampler2D texSampler;
 layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCord;
 
@@ -9,10 +9,10 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    // outColor = vec4( fragColor.rgb * texture(texSampler, fragTexCord).rgb, 1.0 );
+    outColor = vec4( fragColor * texture(texSampler, fragTexCord).rgba );
     // if( fragColor.w < 1 )
     // {
     //     discard;
     // }
-    outColor = fragColor;
+    // outColor = fragColor;
 }

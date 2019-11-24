@@ -71,6 +71,7 @@ int main(int argc,char *argv[])
     HudElement el;
     HudElement pBar;
     HudElement button;
+    HudElement picture;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -245,6 +246,15 @@ int main(int argc,char *argv[])
     );
     button.element.button->on_click = click;
     gf3d_hud_add_element(gui, button);
+
+    picture.type = GF3D_HUD_TYPE_GUI_ELEMENT;
+    picture.element.guiElement = gf3d_gui_element_create(
+        vector2d(500.0f, 500.0f),
+        vector2d(400.0f, 150.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f)
+    );
+    gf3d_gui_element_attach_texture(picture.element.guiElement, "images/bg_flat.png");
+    gf3d_hud_add_element(gui, picture);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();

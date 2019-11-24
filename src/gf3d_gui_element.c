@@ -4,23 +4,58 @@
 #include "gf3d_vgraphics.h"
 #include "gf3d_game_defines.h"
 
-static VkDevice gf3d_gui_element_device;
-static VkDeviceSize bufferSize = sizeof(GuiVertex) * 4;
-static const uint16_t indices[] = {0, 1, 2, 2, 3, 0};
-static float screenWidth = 0.0f;
-static float screenHeight = 0.0f;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    static Uint32 rmask = 0xff000000;
+    static Uint32 gmask = 0x00ff0000;
+    static Uint32 bmask = 0x0000ff00;
+    static Uint32 amask = 0x000000ff;
+#else
+    static Uint32 rmask = 0x000000ff;
+    static Uint32 gmask = 0x0000ff00;
+    static Uint32 bmask = 0x00ff0000;
+    static Uint32 amask = 0xff000000;
+#endif
+
+typedef struct 
+{
+    VkDevice device;
+    Pipeline *pipe;
+    VkDeviceSize bufferSize;
+    uint16_t indices[6];
+    float screenWidth;
+    float screenHeight;
+} GuiElementManager;
+
+static GuiElementManager gf3d_gui_element_manager = {0};
 
 void gf3d_gui_element_update_vertex_buffer(GuiElement *e);
 void gf3d_gui_element_create_index_buffer(GuiElement *e);
+void gf3d_gui_element_update_descriptor_sets(GuiElement *e, const VkDescriptorSet *descriptorSet);
+
+void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe){
+    gf3d_gui_element_manager.device = device;
+    gf3d_gui_element_manager.pipe = pipe;
+    gf3d_gui_element_manager.bufferSize = sizeof(GuiVertex) * 4;
+
+    gf3d_gui_element_manager.indices[0] = 0;
+    gf3d_gui_element_manager.indices[1] = 1;
+    gf3d_gui_element_manager.indices[2] = 2;
+    gf3d_gui_element_manager.indices[3] = 2;
+    gf3d_gui_element_manager.indices[4] = 3;
+    gf3d_gui_element_manager.indices[5] = 0;
+
+    gf3d_gui_element_manager.screenWidth = (float)gf3d_vgraphics_get_view_extent().width;
+    gf3d_gui_element_manager.screenHeight = (float)gf3d_vgraphics_get_view_extent().height;
+}
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 {
     int i;
+    SDL_Surface *surface = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Rect r;
 
     GuiElement *element;
-
-    if(screenWidth <= 0)  screenWidth =  (float)gf3d_vgraphics_get_view_extent().width;
-    if(screenHeight <= 0) screenHeight = (float)gf3d_vgraphics_get_view_extent().height;
 
     element = (GuiElement*) malloc(sizeof(GuiElement));
     if(!element) 
@@ -34,20 +69,20 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
     element->color = color;
     element->tex = NULL;
 
-    for(i = 0; i < 4; i++)
-    {
-        vector2d_clear(element->vertices[i].texel);
-    }
+    element->vertices[0].texel = vector2d(0.0f, 1.0f);
+    element->vertices[1].texel = vector2d(1.0f, 1.0f);
+    element->vertices[2].texel = vector2d(1.0f, 0.0f);
+    element->vertices[3].texel = vector2d(0.0f, 0.0f);
 
     gf3d_vgraphics_create_buffer(
-        bufferSize, 
+        gf3d_gui_element_manager.bufferSize, 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &element->stagingBuffer, &element->stagingBufferMemory
     );
 
     gf3d_vgraphics_create_buffer(
-        bufferSize,
+        gf3d_gui_element_manager.bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         &element->vertexBuffer, &element->vertexBufferMemory
@@ -57,25 +92,65 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
 
     gf3d_gui_element_create_index_buffer(element);
 
+    /* initialize blank texture so it is not empty */
+    surface = SDL_CreateRGBSurface(
+        0,
+        gf3d_gui_element_manager.screenWidth,
+        gf3d_gui_element_manager.screenHeight,
+        32,
+        rmask, gmask, bmask, amask
+    );
+
+    renderer = SDL_CreateSoftwareRenderer(surface);
+
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    r.x = r.y = 0;
+    r.w = gf3d_gui_element_manager.screenWidth;
+    r.h = gf3d_gui_element_manager.screenHeight;
+    SDL_RenderFillRect(renderer, &r);
+
+    element->tex = gf3d_texture_from_surface(NULL, surface);
+
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(surface);
+
     return element;
+}
+
+void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName)
+{
+    Texture *tex = NULL;
+    if(!gui) return;
+
+    tex = gui->tex;
+    gui->tex = gf3d_texture_load(textureName);
+    if(tex != gui->tex)
+    {
+        gf3d_texture_free(tex);
+    }
 }
 
 void gf3d_gui_element_free(GuiElement *e)
 {
     if(!e) return;
     slog("free element");
-    vkDestroyBuffer (gf3d_gui_element_device, e->stagingBuffer, NULL);
-    vkFreeMemory    (gf3d_gui_element_device, e->stagingBufferMemory, NULL);
-    vkDestroyBuffer (gf3d_gui_element_device, e->vertexBuffer, NULL);
-    vkFreeMemory    (gf3d_gui_element_device, e->vertexBufferMemory, NULL);
-    vkDestroyBuffer (gf3d_gui_element_device, e->indexBuffer, NULL);
-    vkFreeMemory    (gf3d_gui_element_device, e->indexBufferMemory, NULL);
+    vkDestroyBuffer (gf3d_gui_element_manager.device, e->stagingBuffer, NULL);
+    vkFreeMemory    (gf3d_gui_element_manager.device, e->stagingBufferMemory, NULL);
+    vkDestroyBuffer (gf3d_gui_element_manager.device, e->vertexBuffer, NULL);
+    vkFreeMemory    (gf3d_gui_element_manager.device, e->vertexBufferMemory, NULL);
+    vkDestroyBuffer (gf3d_gui_element_manager.device, e->indexBuffer, NULL);
+    vkFreeMemory    (gf3d_gui_element_manager.device, e->indexBufferMemory, NULL);
     if(e->tex) gf3d_texture_free(e->tex);
     // free(e);
 }
 
 void gf3d_gui_element_update(GuiElement *e)
 {
+    float screenWidth = gf3d_gui_element_manager.screenWidth;
+    float screenHeight = gf3d_gui_element_manager.screenHeight;
+
     if(!e) return;
 
     vector4d_mul(e->vertices[0].color, e->color, (1/255.0f));
@@ -96,26 +171,31 @@ void gf3d_gui_element_update(GuiElement *e)
 }
 
 // void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer)
-void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer)
+void gf3d_gui_element_draw(GuiElement *element, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     VkBuffer vertexBuffers[] = {element->vertexBuffer};
     VkDeviceSize offsets[] = {0};
+    const VkDescriptorSet *descriptorSet = gf3d_pipeline_get_descriptor_set(gf3d_gui_element_manager.pipe, bufferFrame);
 
     if(!element) return;
+
+    gf3d_gui_element_update_descriptor_sets(element, descriptorSet);
 
     gf3d_gui_element_update_vertex_buffer(element);
 
     vkCmdBindVertexBuffers(commandBuffer, 1, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, element->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindDescriptorSets(
+        commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        gf3d_gui_element_manager.pipe->pipelineLayout,
+        0, 1, descriptorSet,
+        0, NULL
+    );
     vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 }
 
 /* ======VULKAN STUFF===== */
-void gf3d_gui_element_set_vk_device(VkDevice device)
-{
-    gf3d_gui_element_device = device;
-}
-
 void gf3d_gui_element_update_vertex_buffer(GuiElement *e)
 {
     void *data;
@@ -134,11 +214,11 @@ void gf3d_gui_element_update_vertex_buffer(GuiElement *e)
     // vector4d_copy(e->vertices[3].color, e->color);
     // e->vertices[3].pos = vector2d(e->position.x, e->position.y + e->extents.y);
 
-    vkMapMemory(gf3d_gui_element_device, e->stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, e->vertices, bufferSize);
-    vkUnmapMemory(gf3d_gui_element_device, e->stagingBufferMemory);
+    vkMapMemory(gf3d_gui_element_manager.device, e->stagingBufferMemory, 0, gf3d_gui_element_manager.bufferSize, 0, &data);
+        memcpy(data, e->vertices, gf3d_gui_element_manager.bufferSize);
+    vkUnmapMemory(gf3d_gui_element_manager.device, e->stagingBufferMemory);
 
-    gf3d_vgraphics_copy_buffer(e->stagingBuffer, e->vertexBuffer, bufferSize);
+    gf3d_vgraphics_copy_buffer(e->stagingBuffer, e->vertexBuffer, gf3d_gui_element_manager.bufferSize);
 }
 
 void gf3d_gui_element_create_index_buffer(GuiElement *e)
@@ -157,9 +237,9 @@ void gf3d_gui_element_create_index_buffer(GuiElement *e)
         &stagingBuffer, &stagingBufferMemory
     );
 
-    vkMapMemory(gf3d_gui_element_device, stagingBufferMemory, 0, buffsize, 0, &data);
-        memcpy(data, indices, buffsize);
-    vkUnmapMemory(gf3d_gui_element_device, stagingBufferMemory);
+    vkMapMemory(gf3d_gui_element_manager.device, stagingBufferMemory, 0, buffsize, 0, &data);
+        memcpy(data, gf3d_gui_element_manager.indices, buffsize);
+    vkUnmapMemory(gf3d_gui_element_manager.device, stagingBufferMemory);
 
     gf3d_vgraphics_create_buffer(
         buffsize,
@@ -170,8 +250,40 @@ void gf3d_gui_element_create_index_buffer(GuiElement *e)
 
     gf3d_vgraphics_copy_buffer(stagingBuffer, e->indexBuffer, buffsize);
 
-    vkDestroyBuffer(gf3d_gui_element_device, stagingBuffer, NULL);
-    vkFreeMemory(gf3d_gui_element_device, stagingBufferMemory, NULL);
+    vkDestroyBuffer(gf3d_gui_element_manager.device, stagingBuffer, NULL);
+    vkFreeMemory(gf3d_gui_element_manager.device, stagingBufferMemory, NULL);
+}
+
+void gf3d_gui_element_update_descriptor_sets(GuiElement *e, const VkDescriptorSet *descriptorSet)
+{
+    VkDescriptorImageInfo imageInfo = {0};
+    VkWriteDescriptorSet descriptorWrite[1] = {0};
+    // const VkDescriptorSet *descriptorSet = gf3d_pipeline_get_descriptor_set(gf3d_gui_element_manager.pipe, bufferFrame);
+
+    if(!e)
+    {
+        slog("element is null");
+        return;
+    }
+    if(!e->tex)
+    {
+        slog("texture is null");
+        return;
+    }
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = e->tex->textureImageView;
+    imageInfo.sampler = e->tex->textureSampler;
+
+    descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite[0].dstSet = *descriptorSet;
+    descriptorWrite[0].dstBinding = 1;
+    descriptorWrite[0].dstArrayElement = 0;
+    descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite[0].descriptorCount = 1;
+    descriptorWrite[0].pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(gf3d_gui_element_manager.device, 1, descriptorWrite, 0, NULL);
 }
 
 /* ==========COLOR======== */

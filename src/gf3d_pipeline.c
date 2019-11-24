@@ -792,13 +792,15 @@ void gf3d_pipeline_create_basic_model_descriptor_pool_2d(Pipeline *pipe)
     }
     slog("attempting to make descriptor pools of size %i", pipe->descriptorSetCount);
     poolSize[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize[0].descriptorCount = gf3d_swapchain_get_swap_image_count();
+    poolSize[0].descriptorCount = pipe->descriptorSetCount;
+    // poolSize[0].descriptorCount = gf3d_swapchain_get_swap_image_count();
 
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 1;
     poolInfo.pPoolSizes = poolSize;
     // poolInfo.maxSets = gf3d_pipeline.chainLength;
-    poolInfo.maxSets = gf3d_swapchain_get_swap_image_count();
+    poolInfo.maxSets = pipe->descriptorSetCount;
+    // poolInfo.maxSets = gf3d_swapchain_get_swap_image_count();
     pipe->descriptorPool = (VkDescriptorPool*)gfc_allocate_array(sizeof(VkDescriptorPool), gf3d_pipeline.chainLength);
 
     // if( vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, pipe->descriptorPool) != VK_SUCCESS )
@@ -861,21 +863,24 @@ void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
     // VkWriteDescriptorSet descriptorWrite[1] = {0};
     // VkDescriptorImageInfo imageInfo = {0};
 
-    layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), gf3d_swapchain_get_swap_image_count());
+    // layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), gf3d_swapchain_get_swap_image_count());
+    layouts = (VkDescriptorSetLayout*) gfc_allocate_array(sizeof(VkDescriptorSetLayout), pipe->descriptorSetCount);
     if(!layouts)
     {
         slog("layouts not initialized");
         return;
     }
 
-    for(i = 0; i < gf3d_swapchain_get_swap_image_count(); i++)
+    // for(i = 0; i < gf3d_swapchain_get_swap_image_count(); i++)
+    for(i = 0; i < pipe->descriptorSetCount; i++)
     {
         memcpy(&layouts[i], &pipe->descriptorSetLayout, sizeof(VkDescriptorSetLayout));
     }
 
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     // allocInfo.descriptorPool = pipe->descriptorPool;
-    allocInfo.descriptorSetCount = gf3d_swapchain_get_swap_image_count();
+    // allocInfo.descriptorSetCount = gf3d_swapchain_get_swap_image_count();
+    allocInfo.descriptorSetCount = pipe->descriptorSetCount;
     allocInfo.pSetLayouts = layouts;
 
     pipe->descriptorCursor = (Uint32 *)gfc_allocate_array(sizeof(Uint32),gf3d_pipeline.chainLength);
@@ -885,7 +890,7 @@ void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
     for(i = 0; i < gf3d_pipeline.chainLength; i++)
     {
         // slog("update descriptor sets 2d");
-        pipe->descriptorSets[i] = (VkDescriptorSet*)gfc_allocate_array(sizeof(VkDescriptorSet), 1);
+        pipe->descriptorSets[i] = (VkDescriptorSet*)gfc_allocate_array(sizeof(VkDescriptorSet), pipe->descriptorSetCount);
         allocInfo.descriptorPool = pipe->descriptorPool[i];
         if ((r = vkAllocateDescriptorSets(pipe->device, &allocInfo, pipe->descriptorSets[i])) != VK_SUCCESS)
         {
@@ -900,7 +905,7 @@ void gf3d_pipeline_create_descriptor_sets_2d(Pipeline *pipe)
         
     }
 
-    pipe->descriptorSetCount = gf3d_pipeline.chainLength;
+    // pipe->descriptorSetCount = gf3d_pipeline.chainLength;
 
     // for (i = 0; i < gf3d_pipeline.chainLength; i++)
     // {    

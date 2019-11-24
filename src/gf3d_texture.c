@@ -308,7 +308,11 @@ Texture *gf3d_texture_from_surface(Texture *tex, SDL_Surface *surface)
     VkMemoryRequirements memReqs;
     VkMemoryAllocateInfo allocInfo = {0};
 
-    if(!surface) return NULL;
+    if(!surface) 
+    {
+        slog("no surface");
+        return NULL;
+    }
 
     if(!tex)
     {
@@ -393,7 +397,6 @@ Texture *gf3d_texture_from_surface(Texture *tex, SDL_Surface *surface)
     slog("cleanup");
     vkDestroyBuffer(gf3d_texture.device, stagingBuffer, NULL);
     vkFreeMemory(gf3d_texture.device, stagingBufferMemory, NULL);
-    SDL_FreeSurface(surface);
     slog("created texture");
 
     return tex;

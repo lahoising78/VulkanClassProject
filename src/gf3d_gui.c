@@ -33,6 +33,8 @@ static GuiManager gf3d_gui = {0};
 
 void gf3d_gui_init(Gui *gui);
 void gf3d_gui_update(Gui *gui, SDL_Event *events);
+void gf3d_gui_draw(Gui *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+// void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
 // void gf3d_gui_create_vertex_buffer(Gui *gui);
 // void gf3d_gui_create_index_buffer(Gui *gui);
 // void gf3d_gui_update_descriptor_set(Gui* gui, VkDescriptorSet *descriptorSet);
@@ -104,8 +106,6 @@ void gf3d_gui_manager_init(Uint32 count, VkDevice device)
     gf3d_gui.attributeDescriptions[2].offset = offsetof(GuiVertex, texel);
 
     atexit(gf3d_gui_manager_close);
-
-    gf3d_gui_element_set_vk_device(gf3d_gui.device);
 }
 
 void gf3d_gui_manager_update(SDL_Event *events)
@@ -125,12 +125,12 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 {
     int i;
     Gui *gui;
-    VkDescriptorSet *descriptorSets = NULL;
+    // VkDescriptorSet *descriptorSets = NULL;
     
-    if(gf3d_gui.pipe && gf3d_gui.pipe->descriptorSets) 
-    {
-        descriptorSets = gf3d_gui.pipe->descriptorSets[bufferFrame];
-    }
+    // if(gf3d_gui.pipe && gf3d_gui.pipe->descriptorSets) 
+    // {
+    //     descriptorSets = gf3d_gui.pipe->descriptorSets[bufferFrame];
+    // }
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_gui.pipe->pipeline);
 
@@ -139,7 +139,7 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
             gui = &gf3d_gui.gui_list[i];
             if(!gui->_inuse) continue;
 
-            gf3d_gui_draw(gui, descriptorSets, commandBuffer);
+            gf3d_gui_draw(gui, bufferFrame, commandBuffer);
         }
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
@@ -236,8 +236,6 @@ void gf3d_gui_init(Gui *gui)
         rmask, gmask, bmask, amask
     );
 
-    slog("ext %f %f", gui->surface->w, gui->surface->h);
-
     if(!gui->renderer) gui->renderer = SDL_CreateSoftwareRenderer(gui->surface);
 }
 
@@ -257,19 +255,20 @@ void gf3d_gui_update(Gui *gui, SDL_Event *events)
     }
 }
 
-void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer)
+// void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer)
+void gf3d_gui_draw(Gui *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     int i;
 
     if(!gui || !gui->renderer) return;
 
-    gf3d_gui_element_draw(gui->bg, commandBuffer);
+    gf3d_gui_element_draw(gui->bg, bufferFrame, commandBuffer);
 
     for(i = 0; i < gui->elementCount; i++)
     {
         if(gui->elements[i].type) 
         {
-            gf3d_hud_element_draw(&gui->elements[i], commandBuffer);
+            gf3d_hud_element_draw(&gui->elements[i], bufferFrame, commandBuffer);
         }
     }
 }

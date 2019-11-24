@@ -5,11 +5,11 @@
 
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
 void gf3d_hud_progress_bar_update(ProgressBar *bar);
-void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer);
+void gf3d_hud_progress_bar_draw(ProgressBar *bar, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 void gf3d_hud_button_free(Button *button);
 void gf3d_hud_button_update(Button *button, SDL_Event *events);
-void gf3d_hud_button_draw(Button *button, VkCommandBuffer commandBuffer);
+void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
@@ -51,11 +51,11 @@ void gf3d_hud_progress_bar_update(ProgressBar *bar)
     gf3d_gui_element_update(bar->fore);
 }
 
-void gf3d_hud_progress_bar_draw(ProgressBar *bar, VkCommandBuffer commandBuffer)
+void gf3d_hud_progress_bar_draw(ProgressBar *bar, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     if(!bar) return;
-    gf3d_gui_element_draw(bar->back, commandBuffer);
-    gf3d_gui_element_draw(bar->fore, commandBuffer);
+    gf3d_gui_element_draw(bar->back, bufferFrame, commandBuffer);
+    gf3d_gui_element_draw(bar->fore, bufferFrame, commandBuffer);
 }
 
 void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color)
@@ -126,36 +126,32 @@ void gf3d_hud_button_update(Button *button, SDL_Event *events)
         {
             button->on_click(button);
         }
-        else
-        {
-            slog("click: %d %d", p.x, p.y);
-        }
     }
 }
 
-void gf3d_hud_button_draw(Button *button, VkCommandBuffer commandBuffer)
+void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     if(!button) return;
     
-    gf3d_gui_element_draw(button->bg, commandBuffer);
+    gf3d_gui_element_draw(button->bg, bufferFrame, commandBuffer);
 }
 
 /* ==========HUD GENERAL========== */
-void gf3d_hud_element_draw(HudElement *e, VkCommandBuffer commandBuffer)
+void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     if(!e) return;
     switch(e->type)
     {
         case GF3D_HUD_TYPE_GUI_ELEMENT:
-            gf3d_gui_element_draw(e->element.guiElement, commandBuffer);
+            gf3d_gui_element_draw(e->element.guiElement, bufferFrame, commandBuffer);
             break;
 
         case GF3D_HUD_TYPE_PROGRESS_BAR:
-            gf3d_hud_progress_bar_draw(e->element.pBar, commandBuffer);
+            gf3d_hud_progress_bar_draw(e->element.pBar, bufferFrame, commandBuffer);
             break;
 
         case GF3D_HUD_TYPE_BUTTON:
-            gf3d_hud_button_draw(e->element.button, commandBuffer);
+            gf3d_hud_button_draw(e->element.button, bufferFrame, commandBuffer);
             break;
 
         default:

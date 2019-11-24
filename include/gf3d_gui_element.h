@@ -4,11 +4,12 @@
 #include "gfc_vector.h"
 #include "gfc_color.h"
 #include "gf3d_texture.h"
+#include "gf3d_pipeline.h"
 
 enum GuiElementType
 {
-    GF3D_GUI_IMAGE = 0,
-    GF3D_GUI_RECT = 1
+    GF3D_GUI_RECT = 0,
+    GF3D_GUI_IMAGE = 1
 };
 
 typedef struct
@@ -35,13 +36,14 @@ typedef struct gui_element_t
     GuiVertex vertices[4];
 } GuiElement;
 
-void gf3d_gui_element_set_vk_device(VkDevice device);
+void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe);
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName);
 void gf3d_gui_element_free(GuiElement *e);
 void gf3d_gui_element_update(GuiElement *e);
 
-void gf3d_gui_element_draw(GuiElement *element, VkCommandBuffer commandBuffer);
+void gf3d_gui_element_draw(GuiElement *element, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 // void gf3d_gui_element_draw(GuiElement *element, SDL_Renderer *renderer);
 
 #endif

@@ -45,7 +45,7 @@ void gf3d_gui_free(Gui *gui);
 // void gf3d_gui_add_element(Gui *gui, GuiElement *element);
 void gf3d_hud_add_element(Gui *gui, HudElement element);
 
-void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
+// void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
 
 VkVertexInputBindingDescription *gf3d_gui_get_bind_description();
 VkVertexInputAttributeDescription *gf3d_gui_get_attribute_descriptions(Uint32 *count);
