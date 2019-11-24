@@ -1,7 +1,7 @@
 #include "gf3d_hud.h"
 
 #include "simple_logger.h"
-#include "gf3d_shape.h"
+#include "gf3d_game_defines.h"
 
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
 void gf3d_hud_progress_bar_update(ProgressBar *bar);
@@ -12,7 +12,7 @@ void gf3d_hud_button_update(Button *button, SDL_Event *events);
 void gf3d_hud_button_draw(Button *button, VkCommandBuffer commandBuffer);
 
 /* ====PROGRESS BAR SPECIFIC==== */
-ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val)
+ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
 {
     ProgressBar *bar = NULL;
 
@@ -25,6 +25,7 @@ ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val)
 
     bar->max = max;
     bar->val = val;
+    vector2d_copy(bar->bgWidth, bgWidth);
     bar->back = NULL;
     bar->fore = NULL;
 
@@ -44,6 +45,9 @@ void gf3d_hud_progress_bar_update(ProgressBar *bar)
 {
     if(!bar) return;
     gf3d_gui_element_update(bar->back);
+    
+    bar->fore->extents.x = bar->foreMaxWidth * (*bar->val / *bar->max);
+
     gf3d_gui_element_update(bar->fore);
 }
 
@@ -60,9 +64,18 @@ void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector
     bar->back = gf3d_gui_element_create(pos, ext, color);
 }
 
-void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color)
+void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector4D color)
 {
+    Vector2D pos;
+    Vector2D ext;
+
     if(!bar) return;
+    
+    vector2d_add(pos, bar->back->position, bar->bgWidth);
+    vector2d_mul(ext, bar->bgWidth, 2);
+    vector2d_sub(ext, bar->back->extents, ext);
+    bar->foreMaxWidth = ext.x;
+
     bar->fore = gf3d_gui_element_create(pos, ext, color);
 }
 

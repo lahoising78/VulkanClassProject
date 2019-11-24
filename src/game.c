@@ -120,6 +120,7 @@ int main(int argc,char *argv[])
 
     // /* Set up the stage */
     stage = gf3d_entity_new();
+    stage->healthmax = stage->health = 5000.0f;
     // stage->position = vector3d(0, 0, MAX_STAGE_Z);
     // stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
     // stage->model = gf3d_model_load("stage", NULL);
@@ -223,7 +224,7 @@ int main(int argc,char *argv[])
     gf3d_hud_add_element(gui, el);
 
     pBar.type = GF3D_HUD_TYPE_PROGRESS_BAR;
-    pBar.element.pBar = gf3d_hud_progress_bar_create(&stage->healthmax, &stage->health);
+    pBar.element.pBar = gf3d_hud_progress_bar_create(&stage->healthmax, &stage->health, vector2d(5.0f, 5.0f));
     gf3d_hud_progress_bar_set_background(
         pBar.element.pBar,
         vector2d(0.0f, 50.0f),
@@ -232,8 +233,6 @@ int main(int argc,char *argv[])
     );
     gf3d_hud_progress_bar_set_foreground(
         pBar.element.pBar,
-        vector2d(5.0f, 55.0f),
-        vector2d(400.0f, 25.0f),
         vector4d(200.0f, 200.0f, 200.0f, 255.0f)
     );
     gf3d_hud_add_element(gui, pBar);
@@ -267,6 +266,7 @@ int main(int argc,char *argv[])
         }
         
         // app_player_manager_update(events); /* Give input to all players */
+        stage->health--;
         // gf3d_entity_manager_update(); /* Update all entities */
         // gf3d_vgraphics_rotate_camera(worldTime);
         gf3d_gui_manager_update(mouse);

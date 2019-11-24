@@ -17,14 +17,16 @@ typedef struct hud_pb_t
 {
     GuiElement *back;
     GuiElement *fore;
+    Vector2D bgWidth;
+    float foreMaxWidth;
     float *max;
     float *val;
 } ProgressBar;
 
-ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val);
+ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth);
 
 void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
-void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector4D color);
 
 /* =========BUTTON======== */
 typedef struct hud_button_t
