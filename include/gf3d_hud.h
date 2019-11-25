@@ -2,6 +2,7 @@
 #define _GF3D_HUD_H_
 
 #include "gf3d_gui_element.h"
+#include "gf3d_game_defines.h"
 
 #define LABEL_MAX_CHARACTERS 256
 
@@ -40,6 +41,7 @@ typedef struct hud_button_t
 } Button;
 
 Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color);
+extern OnClickCallback on_clicks[32];
 
 /* ========HUD LABELS======= */
 

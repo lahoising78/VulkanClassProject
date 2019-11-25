@@ -1,7 +1,6 @@
 #include "gf3d_hud.h"
 
 #include "simple_logger.h"
-#include "gf3d_game_defines.h"
 #include "gf3d_vec.h"
 
 ProgressBar *gf3d_hud_progress_bar_load(SJson *json);
@@ -133,6 +132,7 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color)
 
     button = (Button*)malloc(sizeof(Button));
     button->bg = gf3d_gui_element_create(pos, ext, color);
+    button->on_click = NULL;
 
     return button;
 }
@@ -140,7 +140,30 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color)
 Button *gf3d_hud_button_load(SJson *json)
 {
     Button *button = NULL;
+    Vector2D pos, ext;
+    Vector4D color;
+    int func;
+
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+
     slog("button load");
+
+    arr = sj_object_get_value(json, "position");
+    pos = gf3d_vec2_load(arr);
+    arr = sj_object_get_value(json, "extents");
+    ext = gf3d_vec2_load(arr);
+    arr = sj_object_get_value(json, "color");
+    color = gf3d_vec4_load(arr);
+
+    button = gf3d_hud_button_create(pos, ext, color);
+
+    /* onClick field in json will be the index in on_click OnClickCallback array */
+    obj = sj_object_get_value(json, "onClick");
+    sj_get_integer_value(obj, &func);
+
+    button->on_click = on_clicks[func];
+
     return button;
 }
 

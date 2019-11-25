@@ -25,6 +25,15 @@ int screenHeight = 700;
 uint8_t lctrl = 0;
 uint8_t rctrl = 0;
 
+void hola(Button *btn);
+
+OnClickCallback on_clicks[32] = {hola};
+
+void hola(Button *btn)
+{
+    slog("hola");
+}
+
 int app_editor_main(int argc, char *argv[])
 {
     int i;
