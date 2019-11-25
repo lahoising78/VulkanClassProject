@@ -2,6 +2,7 @@
 
 #include "simple_logger.h"
 #include "gf3d_game_defines.h"
+#include "gf3d_vec.h"
 
 ProgressBar *gf3d_hud_progress_bar_load(SJson *json);
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
@@ -47,7 +48,33 @@ ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWid
 ProgressBar *gf3d_hud_progress_bar_load(SJson *json)
 {
     ProgressBar *bar = NULL;
+    Vector2D bgWidth;
+    Vector2D backPos, backExt;
+    Vector4D backColor, foreColor;
+
+    SJson *arr = NULL;
+    SJson *obj = NULL;
+
     slog("progress bar load");
+
+    arr = sj_object_get_value(json, "bgWidth");
+    bgWidth = gf3d_vec2_load(arr);
+
+    bar = gf3d_hud_progress_bar_create(NULL, NULL, bgWidth);
+
+    obj = sj_object_get_value(json, "back");
+    arr = sj_object_get_value(obj, "position");
+    backPos = gf3d_vec2_load(arr);
+    arr = sj_object_get_value(obj, "extents");
+    backExt = gf3d_vec2_load(arr);
+    arr = sj_object_get_value(obj, "color");
+    backColor = gf3d_vec4_load(arr);
+    gf3d_hud_progress_bar_set_background(bar, backPos, backExt, backColor);
+
+    arr = sj_object_get_value(json, "foreColor");
+    foreColor = gf3d_vec4_load(arr);
+    gf3d_hud_progress_bar_set_foreground(bar, foreColor);
+
     return bar;
 }
 
@@ -65,7 +92,8 @@ void gf3d_hud_progress_bar_update(ProgressBar *bar)
     if(!bar) return;
     gf3d_gui_element_update(bar->back);
     
-    bar->fore->extents.x = bar->foreMaxWidth * (*bar->val / *bar->max);
+    if(bar->val && bar->max)
+        bar->fore->extents.x = bar->foreMaxWidth * (*bar->val / *bar->max);
 
     gf3d_gui_element_update(bar->fore);
 }
