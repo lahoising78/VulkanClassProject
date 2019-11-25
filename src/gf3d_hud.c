@@ -384,7 +384,22 @@ TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgCol
 TextInput *gf3d_hud_text_input_load(SJson *json)
 {
     TextInput *textInput = NULL;
+
+    SJson *obj = NULL;
+
     slog("text input load");
+    
+    textInput = (TextInput*)malloc(sizeof(TextInput));
+    if(!textInput)
+    {
+        slog("unable to allocate a new text input");
+        return;
+    }
+
+    obj = sj_object_get_value(json, "label");
+    textInput->textDisplay = gf3d_hud_label_load(obj);
+    textInput->selected = 0;
+
     return textInput;
 }
 
