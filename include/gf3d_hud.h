@@ -80,6 +80,8 @@ typedef struct hud_element_t
     HudType type;
 } HudElement;
 
+HudElement gf3d_hud_element_load(SJson *json);
+
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
 void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse);

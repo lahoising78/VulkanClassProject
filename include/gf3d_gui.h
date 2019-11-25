@@ -36,6 +36,8 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
  */
 Gui *gf3d_gui_new(Uint32 count, int depth);
 
+Gui *gf3d_gui_load(char *filename);
+
 /* 
     @brief free the gui layer
     @param gui : the layer to free

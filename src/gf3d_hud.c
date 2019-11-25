@@ -3,18 +3,22 @@
 #include "simple_logger.h"
 #include "gf3d_game_defines.h"
 
+ProgressBar *gf3d_hud_progress_bar_load(SJson *json);
 void gf3d_hud_progress_bar_free(ProgressBar *bar);
 void gf3d_hud_progress_bar_update(ProgressBar *bar);
 void gf3d_hud_progress_bar_draw(ProgressBar *bar, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
+Button *gf3d_hud_button_load(SJson *json);
 void gf3d_hud_button_free(Button *button);
 void gf3d_hud_button_update(Button *button, SDL_Event *events);
 void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
+Label *gf3d_hud_label_load(SJson *json);
 void gf3d_hud_label_free(Label *label);
 void gf3d_hud_label_update(Label *label);
 void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
+TextInput *gf3d_hud_text_input_load(SJson *json);
 void gf3d_hud_text_input_free(TextInput *textInput);
 void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event *mouse);
 void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
@@ -37,6 +41,13 @@ ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWid
     bar->back = NULL;
     bar->fore = NULL;
 
+    return bar;
+}
+
+ProgressBar *gf3d_hud_progress_bar_load(SJson *json)
+{
+    ProgressBar *bar = NULL;
+    slog("progress bar load");
     return bar;
 }
 
@@ -95,6 +106,13 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color)
     button = (Button*)malloc(sizeof(Button));
     button->bg = gf3d_gui_element_create(pos, ext, color);
 
+    return button;
+}
+
+Button *gf3d_hud_button_load(SJson *json)
+{
+    Button *button = NULL;
+    slog("button load");
     return button;
 }
 
@@ -169,6 +187,58 @@ Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4
     label->text = (char*)gfc_allocate_array(sizeof(char), LABEL_MAX_CHARACTERS);
 
     gf3d_hud_label_set_text(label, text);
+
+    return label;
+}
+
+Label *gf3d_hud_label_load(SJson *json)
+{
+    Label *label = NULL;
+    Vector2D pos, ext;
+    Vector4D color, textColor;
+    char *text;
+
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+
+    slog("label load");
+
+    arr = sj_object_get_value(json, "position");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &pos.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &pos.y);
+
+    arr = sj_object_get_value(json, "extents");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &ext.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &ext.y);
+
+    arr = sj_object_get_value(json, "color");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &color.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &color.y);
+    obj = sj_array_get_nth(arr, 2);
+    sj_get_float_value(obj, &color.z);
+    obj = sj_array_get_nth(arr, 3);
+    sj_get_float_value(obj, &color.w);
+
+    arr = sj_object_get_value(json, "textColor");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &textColor.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &textColor.y);
+    obj = sj_array_get_nth(arr, 2);
+    sj_get_float_value(obj, &textColor.z);
+    obj = sj_array_get_nth(arr, 3);
+    sj_get_float_value(obj, &textColor.w);
+
+    arr = sj_object_get_value(json, "text");
+    text = sj_get_string_value(arr);
+
+    label = gf3d_hud_label_create(pos, ext, color, textColor, text);
 
     return label;
 }
@@ -260,6 +330,13 @@ TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgCol
     return textInput;
 }
 
+TextInput *gf3d_hud_text_input_load(SJson *json)
+{
+    TextInput *textInput = NULL;
+    slog("text input load");
+    return textInput;
+}
+
 void gf3d_hud_text_input_free(TextInput *textInput)
 {
     if(!textInput) return;
@@ -340,6 +417,52 @@ void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkComm
 }
 
 /* ==========HUD GENERAL========== */
+HudElement gf3d_hud_element_load(SJson *json)
+{
+    SJson *obj = NULL;
+
+    HudElement e = {0};
+    int type = GF3D_HUD_TYPE_NONE;
+
+    obj = sj_object_get_value(json, "type");
+    sj_get_integer_value(obj, &type);
+
+    switch (type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        e.type = GF3D_HUD_TYPE_GUI_ELEMENT;
+        e.element.guiElement = gf3d_gui_element_load(json);
+        break;
+    
+    case GF3D_HUD_TYPE_PROGRESS_BAR:
+        e.type = GF3D_HUD_TYPE_PROGRESS_BAR;
+        e.element.pBar = gf3d_hud_progress_bar_load(json);
+        break;
+
+    case GF3D_HUD_TYPE_BUTTON:
+        e.type = GF3D_HUD_TYPE_BUTTON;
+        e.element.button = gf3d_hud_button_load(json);
+        break;
+
+    case GF3D_HUD_TYPE_LABEL:
+        e.type = GF3D_HUD_TYPE_LABEL;
+        e.element.label = gf3d_hud_label_load(json);
+        break;
+
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        e.type = GF3D_HUD_TYPE_TEXT_INPUT;
+        e.element.textInput = gf3d_hud_text_input_load(json);
+        break;
+
+    default:
+        e.type = GF3D_HUD_TYPE_NONE;
+        e.element.guiElement = NULL;
+        break;
+    }
+
+    return e;
+}
+
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     if(!e) return;

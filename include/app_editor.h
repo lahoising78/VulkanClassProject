@@ -5,4 +5,6 @@
 
 int app_editor_main(int argc, char *argv[]);
 
+extern float worldTime;
+
 #endif

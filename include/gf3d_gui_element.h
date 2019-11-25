@@ -5,6 +5,7 @@
 #include "gfc_color.h"
 #include "gf3d_texture.h"
 #include "gf3d_pipeline.h"
+#include "simple_json.h"
 #include <SDL2/SDL_ttf.h>
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -60,6 +61,7 @@ typedef struct gui_element_t
 void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe);
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
+GuiElement *gf3d_gui_element_load(SJson *json);
 void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName);
 void gf3d_gui_element_attach_texture_from_surface(GuiElement *gui, SDL_Surface *surface);
 

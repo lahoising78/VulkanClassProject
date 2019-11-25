@@ -1,6 +1,7 @@
 #include "gf3d_gui.h"
 
 #include "simple_logger.h"
+#include "simple_json.h"
 
 // #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 //     static Uint32 rmask = 0xff000000;
@@ -175,6 +176,68 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
     }
 
     return NULL;
+}
+
+Gui *gf3d_gui_load(char *filename)
+{
+    int i;
+
+    TextLine assetname;
+    SJson *json = NULL;
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+
+    Gui *gui = NULL;
+    int elementCount = 0;
+    HudElement e;
+
+    snprintf(assetname, GFCLINELEN, "guis/%s.json", filename);
+    json = sj_load( assetname );
+    if( !json )
+    {
+        slog("unable to %s", assetname);
+        return NULL;
+    }
+
+    obj = sj_object_get_value(json, "elementCount");
+    if( !obj )
+    {
+        slog("object gui was not found in %s", assetname);
+        sj_free(json);
+        return NULL;
+    }
+
+    // sj_get_integer_value(obj, &elementCount);
+
+    if(!sj_get_integer_value(obj, &elementCount))
+    {
+        slog("could not find an integer");
+        sj_free(json);
+        return NULL;
+    }
+
+    gui = gf3d_gui_new( elementCount, -1 );
+    if(!gui) 
+    {
+        sj_free(json);
+        return NULL;
+    }
+
+    obj = sj_object_get_value(json, "bg");
+    gui->bg = gf3d_gui_element_load( obj );
+
+    arr = sj_object_get_value(json, "elements");
+    for(i = 0; i < elementCount; i++)
+    {
+        obj = sj_array_get_nth(arr, i);
+        e = gf3d_hud_element_load(obj);
+        if(e.type == GF3D_HUD_TYPE_NONE)
+            break;
+        gf3d_hud_add_element(gui, e);
+    }
+
+    sj_free(json);
+    return gui;
 }
 
 void gf3d_gui_free(Gui *gui)

@@ -1,0 +1,21 @@
+{
+    "elementCount":     4,
+
+    "bg":
+    {
+        "position":         [1100.0, 0.0],
+        "extents":          [400.0, 700],
+        "color":            [50.0, 50.0, 50.0, 255.0]
+    },
+    
+    "elements": [
+        {
+            "type":         4,
+            "position":     [1120.0, 20.0],
+            "extents":      [360.0, 32.0],
+            "color":        [120.0, 40.0, 40.0, 255.0],
+            "textColor":    [0.0, 0.0, 0.0, 255.0],
+            "text":         "I like labels"
+        }
+    ]
+}

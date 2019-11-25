@@ -78,7 +78,7 @@ int main(int argc,char *argv[])
 
     /* controllers */
     SDL_Joystick *controller = NULL;
-    
+
     for (a = 1; a < argc;a++)
     {
         if (strcmp(argv[a],"-disable_validate") == 0)
@@ -89,12 +89,12 @@ int main(int argc,char *argv[])
         {
             drawShapes = 1;
         }
-        else if (strcmp(argv[a], "-edit") == 0)
+        else if ( strcmp(argv[a], "-edit") == 0 || strcmp(argv[a], "-e") == 0 )
         {
             return app_editor_main(argc, argv);
         }
     }
-    
+
     init_logger("gf3d.log");    
     slog("gf3d begin");
     gf3d_vgraphics_init(

@@ -118,6 +118,42 @@ GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color)
     return element;
 }
 
+GuiElement *gf3d_gui_element_load(SJson *json)
+{
+    SJson *arr = NULL;
+    SJson *obj = NULL;
+    GuiElement *e = NULL;
+
+    Vector2D pos, ext;
+    Vector4D color;
+
+    arr = sj_object_get_value(json, "position");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &pos.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &pos.y);
+    
+    arr = sj_object_get_value(json, "extents");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &ext.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &ext.y);
+
+    arr = sj_object_get_value(json, "color");
+    obj = sj_array_get_nth(arr, 0);
+    sj_get_float_value(obj, &color.x);
+    obj = sj_array_get_nth(arr, 1);
+    sj_get_float_value(obj, &color.y);
+    obj = sj_array_get_nth(arr, 2);
+    sj_get_float_value(obj, &color.z);
+    obj = sj_array_get_nth(arr, 3);
+    sj_get_float_value(obj, &color.w);
+
+    e = gf3d_gui_element_create(pos, ext, color);
+
+    return e;
+}
+
 void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName)
 {
     Texture *tex = NULL;
