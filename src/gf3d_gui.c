@@ -167,7 +167,7 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         if(!gui->bg) gui->bg = gf3d_gui_element_create(
             vector2d(0.0f, 0.0f),
             vector2d(gf3d_vgraphics_get_view_extent().width, gf3d_vgraphics_get_view_extent().height),
-            vector4d(50.0f, 50.0f, 50.0f, 255.0f)
+            vector4d(50.0f, 50.0f, 50.0f, 0.0f)
         );
 
         gui->_inuse = 1;

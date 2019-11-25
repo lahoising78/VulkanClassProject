@@ -42,6 +42,9 @@
 *.idb
 *.pdb
 
+# Fonts
+*.ttf
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd

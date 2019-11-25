@@ -294,8 +294,11 @@ void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event
 
         if(SDL_PointInRect(&p, &r) == SDL_TRUE)
         {
-            slog("i have been selected");
             textInput->selected = 1;
+        }
+        else
+        {
+            textInput->selected = 0;
         }
         break;
     }
