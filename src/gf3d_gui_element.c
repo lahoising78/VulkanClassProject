@@ -151,6 +151,12 @@ GuiElement *gf3d_gui_element_load(SJson *json)
 
     e = gf3d_gui_element_create(pos, ext, color);
 
+    obj = sj_object_get_value(json, "texture");
+    if(obj)
+    {
+        gf3d_gui_element_attach_texture(e, sj_get_string_value(obj));
+    }
+
     return e;
 }
 

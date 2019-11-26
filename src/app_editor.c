@@ -17,9 +17,9 @@
 #define GREEN_PRINT "\033[0;32m"
 #define PRINT_COLOR_END "\033[0m"
 
-uint8_t app_editor_load(Gui **rightPane);
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane);
 
-int screenWidth = 1500;
+int screenWidth = 1800;
 int screenHeight = 700;
 
 uint8_t lctrl = 0;
@@ -50,6 +50,7 @@ int app_editor_main(int argc, char *argv[])
     SDL_Event e;
 
     Gui *rightPane = NULL;
+    Gui *leftPane = NULL;
 
     for(i = 1; i < argc; i++)
     {
@@ -70,7 +71,7 @@ int app_editor_main(int argc, char *argv[])
         validate                //validation
     );
 
-    running = app_editor_load(&rightPane);
+    running = app_editor_load(&rightPane, &leftPane);
 
     slog("\033[0;32m================= Main Loop ===================\033[0m");
     frameTimer = gf3d_timer_new();
@@ -131,7 +132,7 @@ int app_editor_main(int argc, char *argv[])
             /* reload */
             if( lctrl && keys[SDL_SCANCODE_R].type == SDL_KEYDOWN )
             {
-                running = app_editor_load(&rightPane);
+                running = app_editor_load(&rightPane, &leftPane);
             }
         }
     }
@@ -144,7 +145,7 @@ int app_editor_main(int argc, char *argv[])
     return 0;
 }
 
-uint8_t app_editor_load(Gui **rightPane)
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
 {
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
 
@@ -158,6 +159,13 @@ uint8_t app_editor_load(Gui **rightPane)
     if(!*rightPane)
     {
         slog("unable to load right pane");
+        return 0;
+    }
+
+    *leftPane = gf3d_gui_load("editor_content_view");
+    if(!(*leftPane))
+    {
+        slog("unable to load left pane");
         return 0;
     }
 

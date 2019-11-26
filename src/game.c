@@ -249,7 +249,9 @@ int main(int argc,char *argv[])
     button.element.button = gf3d_hud_button_create(
         vector2d(0.0f, 90.0f),
         vector2d(50.0f, 30.0f),
-        vector4d(128.0f, 64.0f, 32.0f, 255.0f)
+        vector4d(128.0f, 64.0f, 32.0f, 255.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f),
+        "+"
     );
     button.element.button->on_click = click;
     gf3d_hud_add_element(gui, button);

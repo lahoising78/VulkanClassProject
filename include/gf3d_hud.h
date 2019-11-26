@@ -33,16 +33,6 @@ ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWid
 void gf3d_hud_progress_bar_set_background(ProgressBar *bar, Vector2D pos, Vector2D ext, Vector4D color);
 void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector4D color);
 
-/* =========BUTTON======== */
-typedef struct hud_button_t
-{
-    GuiElement *bg;
-    void (*on_click) (struct hud_button_t *button);
-} Button;
-
-Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color);
-extern OnClickCallback on_clicks[32];
-
 /* ========HUD LABELS======= */
 
 typedef struct
@@ -53,8 +43,19 @@ typedef struct
     char *text;
 } Label;
 
-Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, char *text);
-void gf3d_hud_label_set_text(Label *label, char *text);
+Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, const char *text);
+void gf3d_hud_label_set_text(Label *label, const char *text);
+
+/* =========BUTTON======== */
+
+typedef struct hud_button_t
+{
+    Label *bg;
+    void (*on_click) (struct hud_button_t *button);
+} Button;
+
+Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, const char *text);
+extern OnClickCallback on_clicks[32];
 
 /* ===========HUD TEXT INPUT=========== */
 
@@ -64,7 +65,7 @@ typedef struct
     uint8_t selected;
 } TextInput;
 
-TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, char *text);
+TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, const char *text);
 
 /* =========HUD ELEMENT======= */
 
@@ -80,6 +81,7 @@ typedef struct hud_element_t
     } element;
 
     HudType type;
+    char name[GFCLINELEN];
 } HudElement;
 
 HudElement gf3d_hud_element_load(SJson *json);

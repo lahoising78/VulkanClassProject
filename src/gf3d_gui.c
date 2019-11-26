@@ -281,6 +281,10 @@ void gf3d_hud_add_element(Gui *gui, HudElement element)
     for(i = 0; i < gui->elementCount; i++)
     {
         if(gui->elements[i].type) continue;
+        if( strcmp(element.name, "") == 0 )
+        {
+            snprintf(element.name, GFCLINELEN, "%d", i);
+        }
         gui->elements[i] = element;
         slog("hud type: %d", gui->elements[i].type);
         return;

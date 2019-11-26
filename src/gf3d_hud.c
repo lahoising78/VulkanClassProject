@@ -126,12 +126,12 @@ void gf3d_hud_progress_bar_set_foreground(ProgressBar *bar, Vector4D color)
 }
 
 /* ==========HUD BUTTON========= */
-Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color)
+Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, const char *text)
 {
     Button *button;
 
     button = (Button*)malloc(sizeof(Button));
-    button->bg = gf3d_gui_element_create(pos, ext, color);
+    button->bg = gf3d_hud_label_create(pos, ext, color, textColor, text);
     button->on_click = NULL;
 
     return button;
@@ -148,15 +148,11 @@ Button *gf3d_hud_button_load(SJson *json)
     SJson *arr = NULL;
 
     slog("button load");
+    button = (Button*)malloc(sizeof(Button));
+    if(!button) return NULL;
 
-    arr = sj_object_get_value(json, "position");
-    pos = gf3d_vec2_load(arr);
-    arr = sj_object_get_value(json, "extents");
-    ext = gf3d_vec2_load(arr);
-    arr = sj_object_get_value(json, "color");
-    color = gf3d_vec4_load(arr);
-
-    button = gf3d_hud_button_create(pos, ext, color);
+    obj = sj_object_get_value(json, "label");
+    button->bg = gf3d_hud_label_load(obj);
 
     /* onClick field in json will be the index in on_click OnClickCallback array */
     obj = sj_object_get_value(json, "onClick");
@@ -171,7 +167,7 @@ void gf3d_hud_button_free(Button *button)
 {
     if(!button) return;
 
-    gf3d_gui_element_free(button->bg);
+    gf3d_hud_label_free(button->bg);
     button->bg = NULL;
 }
 
@@ -183,16 +179,16 @@ void gf3d_hud_button_update(Button *button, SDL_Event *events)
 
     if(!button) return;
     
-    gf3d_gui_element_update(button->bg);
+    gf3d_hud_label_update(button->bg);
 
     if(!button->on_click) return;
     
     e = events[SDL_BUTTON_LEFT];
     if( e.button.type == SDL_MOUSEBUTTONUP )
     {
-        vector2d_copy(a, button->bg->position);
-        a.w = button->bg->extents.x;
-        a.h = button->bg->extents.y;
+        vector2d_copy(a, button->bg->display->position);
+        a.w = button->bg->display->extents.x;
+        a.h = button->bg->display->extents.y;
 
         p.x = e.button.x; 
         p.y = e.button.y;
@@ -208,10 +204,10 @@ void gf3d_hud_button_draw(Button *button, uint32_t bufferFrame, VkCommandBuffer 
 {
     if(!button) return;
     
-    gf3d_gui_element_draw(button->bg, bufferFrame, commandBuffer);
+    gf3d_hud_label_draw(button->bg, bufferFrame, commandBuffer);
 }
 
-Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, char *text)
+Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, const char *text)
 {
     Label *label = NULL;
 
@@ -247,7 +243,6 @@ Label *gf3d_hud_label_load(SJson *json)
     Label *label = NULL;
     Vector2D pos, ext;
     Vector4D color, textColor;
-    char *text;
 
     SJson *obj = NULL;
     SJson *arr = NULL;
@@ -287,15 +282,8 @@ Label *gf3d_hud_label_load(SJson *json)
     sj_get_float_value(obj, &textColor.w);
 
     arr = sj_object_get_value(json, "text");
-    text = sj_get_string_value(arr);
 
-    label = gf3d_hud_label_create(pos, ext, color, textColor, text);
-
-    vector2d_slog(pos);
-    vector2d_slog(ext);
-    vector4d_slog(color);
-    vector4d_slog(textColor);
-    slog("%s", text);
+    label = gf3d_hud_label_create(pos, ext, color, textColor, sj_get_string_value(arr));
 
     return label;
 }
@@ -325,7 +313,7 @@ void gf3d_hud_label_draw(Label *label, uint32_t bufferFrame, VkCommandBuffer com
     gf3d_gui_element_draw(label->textDisp, bufferFrame, commandBuffer);
 }
 
-void gf3d_hud_label_set_text(Label *label, char *text)
+void gf3d_hud_label_set_text(Label *label, const char *text)
 {
     SDL_Surface *surface = NULL;
     // SDL_Renderer *renderer = NULL;
@@ -370,7 +358,7 @@ void gf3d_hud_label_set_text(Label *label, char *text)
 }
 
 /* =========HUD TEXT INPUT======== */
-TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, char *text)
+TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, const char *text)
 {
     TextInput *textInput = NULL;
 
@@ -399,7 +387,7 @@ TextInput *gf3d_hud_text_input_load(SJson *json)
     if(!textInput)
     {
         slog("unable to allocate a new text input");
-        return;
+        return NULL;
     }
 
     obj = sj_object_get_value(json, "label");
@@ -498,6 +486,15 @@ HudElement gf3d_hud_element_load(SJson *json)
 
     obj = sj_object_get_value(json, "type");
     sj_get_integer_value(obj, &type);
+    obj = sj_object_get_value(json, "name");
+    if(obj)
+    {
+        gfc_line_cpy(e.name, sj_get_string_value(obj));
+    }
+    else
+    {
+        gfc_line_cpy(e.name, "Element");
+    }
 
     switch (type)
     {
