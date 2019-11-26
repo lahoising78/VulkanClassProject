@@ -21,7 +21,9 @@
 #define STAGE_SCALE_Z 1
 
 /* vector */
+#define vector2d_slog(vec) (slog("x: %.3f, y: %.3f", vec.x, vec.y))
 #define vector3d_slog(vec) (slog("x: %.3f, y: %.3f, z: %.3f", vec.x, vec.y, vec.z))
+#define vector4d_slog(vec) (slog("x: %.3f, y: %.3f, z: %.3f, w: %.3f", vec.x, vec.y, vec.z, vec.w))
 
 #define vector2d_mul(dst, src, mul) (dst.x = src.x * mul, dst.y = src.y * mul)
 #define vector3d_mul(dst, src, mul) (dst.x = src.x * mul, dst.y = src.y * mul, dst.z = src.z * mul)

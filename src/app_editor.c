@@ -152,7 +152,9 @@ uint8_t app_editor_load(Gui **rightPane)
     {
         gf3d_gui_free(*rightPane);
     }
-    *rightPane = gf3d_gui_load("app_editor_right_pane");
+
+    // *rightPane = gf3d_gui_load("app_editor_right_pane");
+    *rightPane = gf3d_gui_load("editor_gui_element");
     if(!*rightPane)
     {
         slog("unable to load right pane");

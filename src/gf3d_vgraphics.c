@@ -149,7 +149,7 @@ void gf3d_vgraphics_init(
     // gf3d_vgraphics.pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert_gui.spv","shaders/frag_gui.spv",gf3d_vgraphics_get_view_extent(),1024);
     gf3d_vgraphics.pipe = gf3d_pipeline_basic_model_create(device,"shaders/vert.spv","shaders/frag.spv", gf3d_vgraphics_get_view_extent(),1024);
     gf3d_model_manager_init(1024,gf3d_swapchain_get_swap_image_count(),device);
-    gf3d_vgraphics.pipe2D = gf3d_pipeline_basic_model_create_2D(device, "shaders/vert_gui.spv", "shaders/frag_gui.spv", gf3d_vgraphics_get_view_extent(), 16);
+    gf3d_vgraphics.pipe2D = gf3d_pipeline_basic_model_create_2D(device, "shaders/vert_gui.spv", "shaders/frag_gui.spv", gf3d_vgraphics_get_view_extent(), 1024);
     // gf3d_vgraphics.pipe2D = gf3d_pipeline_basic_model_create(device,"shaders/vert_gui.spv","shaders/frag_gui.spv",gf3d_vgraphics_get_view_extent(),1024);
     gf3d_gui_manager_attach_pipe(gf3d_vgraphics.pipe2D);
     gf3d_gui_element_manager_init(device, gf3d_vgraphics.pipe2D);

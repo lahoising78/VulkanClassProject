@@ -291,6 +291,12 @@ Label *gf3d_hud_label_load(SJson *json)
 
     label = gf3d_hud_label_create(pos, ext, color, textColor, text);
 
+    vector2d_slog(pos);
+    vector2d_slog(ext);
+    vector4d_slog(color);
+    vector4d_slog(textColor);
+    slog("%s", text);
+
     return label;
 }
 
