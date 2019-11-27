@@ -23,6 +23,14 @@ void gf3d_hud_text_input_free(TextInput *textInput);
 void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event *mouse);
 void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
+Window *gf3d_hud_window_load(SJson *json);
+void gf3d_hud_window_free(Window *window);
+void gf3d_hud_window_update(Window *window, SDL_Event *keys, SDL_Event *mouse);
+void gf3d_hud_window_draw(Window *window, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
+Vector2D gf3d_hud_element_get_position(HudElement e);
+void gf3d_hud_element_set_position(HudElement e, Vector2D pos);
+
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
 {
@@ -140,12 +148,9 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color, Vecto
 Button *gf3d_hud_button_load(SJson *json)
 {
     Button *button = NULL;
-    Vector2D pos, ext;
-    Vector4D color;
     int func;
 
     SJson *obj = NULL;
-    SJson *arr = NULL;
 
     slog("button load");
     button = (Button*)malloc(sizeof(Button));
@@ -557,6 +562,10 @@ void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer 
             gf3d_hud_text_input_draw(e->element.textInput, bufferFrame, commandBuffer);
             break;
 
+        case GF3D_HUD_TYPE_WINDOW:
+            gf3d_hud_window_draw(e->element.window, bufferFrame, commandBuffer);
+            break;
+
         default:
             slog("unrecognized hud type");
             break;
@@ -566,6 +575,7 @@ void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer 
 void gf3d_hud_element_free(HudElement *e)
 {
     if(!e) return;
+    slog("free %s", e->name);
     switch (e->type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
@@ -586,6 +596,10 @@ void gf3d_hud_element_free(HudElement *e)
 
     case GF3D_HUD_TYPE_TEXT_INPUT:
         gf3d_hud_text_input_free(e->element.textInput);
+        break;
+
+    case GF3D_HUD_TYPE_WINDOW:
+        gf3d_hud_window_free(e->element.window);
         break;
 
     default:
@@ -621,9 +635,164 @@ void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse)
     case GF3D_HUD_TYPE_TEXT_INPUT:
         gf3d_hud_text_input_update(e->element.textInput, keys, mouse);
         break;
+
+    case GF3D_HUD_TYPE_WINDOW:
+        gf3d_hud_window_update(e->element.window, keys, mouse);
+        break;
     
     default:
         slog("unrecognized hud type");
+        break;
+    }
+}
+
+Vector2D gf3d_hud_element_get_position(HudElement e)
+{
+    switch (e.type)
+    {
+        case GF3D_HUD_TYPE_GUI_ELEMENT:     return e.element.guiElement->position; break;
+        case GF3D_HUD_TYPE_PROGRESS_BAR:    return e.element.pBar->back->position; break;
+        case GF3D_HUD_TYPE_BUTTON:          return e.element.button->bg->display->position; break;
+        case GF3D_HUD_TYPE_LABEL:           return e.element.label->display->position; break;
+        case GF3D_HUD_TYPE_TEXT_INPUT:      return e.element.textInput->textDisplay->display->position; break;
+        case GF3D_HUD_TYPE_WINDOW:          return e.element.window->bg->position; break;
+        default: return vector2d(0.0, 0.0);
+    }
+}
+
+void gf3d_hud_element_set_position(HudElement e, Vector2D pos)
+{
+    switch (e.type)
+    {
+        case GF3D_HUD_TYPE_GUI_ELEMENT:     
+            vector2d_copy(e.element.guiElement->position, pos); 
+            break;
+        case GF3D_HUD_TYPE_PROGRESS_BAR:    
+            vector2d_copy(e.element.pBar->back->position, pos); 
+            break;
+        case GF3D_HUD_TYPE_BUTTON:          
+            vector2d_copy(e.element.button->bg->display->position, pos); 
+            vector2d_copy(e.element.button->bg->textDisp->position, pos);
+            break;
+        case GF3D_HUD_TYPE_LABEL:           
+            vector2d_copy(e.element.label->display->position, pos); 
+            vector2d_copy(e.element.label->textDisp->position, pos);
+            break;
+        case GF3D_HUD_TYPE_TEXT_INPUT:      
+            vector2d_copy(e.element.textInput->textDisplay->display->position, pos); 
+            vector2d_copy(e.element.textInput->textDisplay->textDisp->position, pos);
+            break;
+        case GF3D_HUD_TYPE_WINDOW:          
+            vector2d_copy(e.element.window->bg->position, pos); 
+            break;
+        default:                            break;
+    }
+}
+
+/* ==============HUD WINDOW=========== */
+Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color)
+{
+    Window *window = NULL;
+
+    window = (Window*)malloc(sizeof(Window));
+    if(!window)
+    {
+        slog("unable to create window");
+        return NULL;
+    }
+    memset(window, 0, sizeof(Window));
+
+    window->elements = (HudElement*)gfc_allocate_array(sizeof(HudElement), count);
+    if(!window->elements)
+    {
+        slog("could not allocate enough elements");
+        free(window);
+        return NULL;
+    }
+
+    window->elementPositions = (Vector2D*)gfc_allocate_array(sizeof(Vector2D), count);
+    if(!window->elementPositions)
+    {
+        slog("was unable to allocate enough positions");
+        free(window);
+        free(window->elements);
+    }
+
+    window->count = count;
+
+    window->bg = gf3d_gui_element_create(pos, ext, color);
+
+    return window;
+}
+
+void gf3d_hud_window_free(Window *window)
+{
+    int i;
+    HudElement *e = NULL;
+    if(!window);
+    
+    gf3d_gui_element_free(window->bg);
+
+    for(i = 0; i < window->count; i++)
+    {
+        e = (&window->elements[i]);
+        gf3d_hud_element_free(e);
+        memset(e, 0, sizeof(HudElement));
+    }
+    if(window->elements) free(window->elements);
+
+    if(window->elementPositions) free(window->elementPositions);
+
+    memset(window, 0, sizeof(Window));
+}
+
+void gf3d_hud_window_update(Window *window, SDL_Event *keys, SDL_Event *mouse)
+{
+    int i;
+    Vector2D pos;
+    if(!window) return;
+
+    gf3d_gui_element_update(window->bg);
+
+    for(i = 0; i < window->count; i++)
+    {
+        if(window->elements[i].type != GF3D_HUD_TYPE_NONE)
+        {
+            vector2d_copy(pos, gf3d_hud_element_get_position(window->elements[i]));
+            vector2d_copy(window->elementPositions[i], pos );
+            vector2d_add(pos, pos, window->bg->position);
+            gf3d_hud_element_set_position(window->elements[i], pos);
+            gf3d_hud_element_update(&window->elements[i], keys, mouse);
+            gf3d_hud_element_set_position( window->elements[i], window->elementPositions[i] );
+        }
+    }
+}
+
+void gf3d_hud_window_draw(Window *window, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
+{
+    int i;
+    if(!window) return;
+
+    gf3d_gui_element_draw(window->bg, bufferFrame, commandBuffer);
+
+    for(i = 0; i < window->count; i++)
+    {
+        if(window->elements[i].type != GF3D_HUD_TYPE_NONE)
+        {
+            gf3d_hud_element_draw(&window->elements[i], bufferFrame, commandBuffer);
+        }
+    }
+}
+
+void gf3d_hud_window_add_element(Window *window, HudElement e)
+{
+    int i;
+    if(!e.type || !window) return;
+
+    for(i = 0; i < window->count; i++)
+    {
+        if(window->elements[i].type) continue;
+        window->elements[i] = e;
         break;
     }
 }

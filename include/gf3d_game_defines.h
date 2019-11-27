@@ -34,8 +34,9 @@
 
 #define within_stage(a) (a.x >= -MAX_STAGE_X && a.x <= MAX_STAGE_X && a.y >= -MAX_STAGE_Y && a.y <= MAX_STAGE_Y)
 
-typedef struct hud_button_t Button;
-typedef void (*OnClickCallback) (Button*);
+// typedef struct hud_button_t Button;
+struct hud_button_t;
+typedef void (*OnClickCallback) (struct hud_button_t*);
 
 /* public time since last frame */
 // float worldTime = 0.0f;

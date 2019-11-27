@@ -13,7 +13,9 @@ typedef enum
     GF3D_HUD_TYPE_PROGRESS_BAR =    2,
     GF3D_HUD_TYPE_BUTTON =          3,
     GF3D_HUD_TYPE_LABEL =           4,
-    GF3D_HUD_TYPE_TEXT_INPUT =      5
+    GF3D_HUD_TYPE_TEXT_INPUT =      5,
+    GF3D_HUD_TYPE_WINDOW =          6,
+    GF3D_HUD_TYPE_NUM
 } HudType;
 
 /* ==========PROGRESS BAR======== */
@@ -68,7 +70,7 @@ typedef struct
 TextInput *gf3d_hud_text_input_create(Vector2D pos, Vector2D ext, Vector4D bgColor, Vector4D textColor, const char *text);
 
 /* =========HUD ELEMENT======= */
-
+struct hud_window_t;
 typedef struct hud_element_t
 {
     union
@@ -78,6 +80,8 @@ typedef struct hud_element_t
         Button *button;
         Label *label;
         TextInput *textInput;
+        struct hud_window_t *window;
+        
     } element;
 
     HudType type;
@@ -89,5 +93,18 @@ HudElement gf3d_hud_element_load(SJson *json);
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
 void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse);
+
+/* ===========HUD WINDOW========= */
+
+typedef struct hud_window_t
+{
+    GuiElement *bg;
+    HudElement *elements;
+    Vector2D *elementPositions;
+    uint32_t count;
+} Window;
+
+Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color);
+void gf3d_hud_window_add_element(Window *window, HudElement e);
 
 #endif

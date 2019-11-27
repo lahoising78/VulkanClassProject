@@ -147,6 +147,9 @@ int app_editor_main(int argc, char *argv[])
 
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
 {
+    HudElement window = {0};
+    HudElement box = {0};
+
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
 
     if( *rightPane )
@@ -168,6 +171,27 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
         slog("unable to load left pane");
         return 0;
     }
+
+    window.type = GF3D_HUD_TYPE_WINDOW;
+    window.element.window = gf3d_hud_window_create(
+        4, 
+        vector2d(300.0f, 0.0f),
+        vector2d(1200.0f, 700.0f),
+        vector4d(200.0f, 100.0f, 100.0f, 255.0f)
+    );
+    sprintf(window.name, "%c", 'w');
+    gf3d_hud_add_element(*leftPane, window);
+
+    box.type = GF3D_HUD_TYPE_LABEL;
+    box.element.label = gf3d_hud_label_create(
+        vector2d(0.0f, 0.0f),
+        vector2d(100.0f, 100.0f),
+        vector4d(0.0f, 0.0f, 0.0f, 255.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f),
+        "heyoooo"
+    );
+    sprintf(box.name, "%c", 'a');
+    gf3d_hud_window_add_element(window.element.window, box);
 
     slog("right pane element count: %d", (*rightPane)->elementCount);
     
