@@ -675,6 +675,7 @@ void gf3d_hud_element_set_position(HudElement e, Vector2D pos)
             break;
         case GF3D_HUD_TYPE_PROGRESS_BAR:    
             vector2d_copy(e.element.pBar->back->position, pos); 
+            vector2d_add(e.element.pBar->fore->position, e.element.pBar->back->position, e.element.pBar->bgWidth);
             break;
         case GF3D_HUD_TYPE_BUTTON:          
             vector2d_copy(e.element.button->bg->display->position, pos); 
@@ -856,6 +857,7 @@ void gf3d_hud_window_add_element(Window *window, HudElement e)
     {
         if(window->elements[i].type) continue;
         window->elements[i] = e;
+        window->countActual++;
         break;
     }
 }
@@ -872,6 +874,7 @@ void gf3d_hud_window_remove_element(Window *window, HudElement e)
         {
             gf3d_hud_element_free(&window->elements[i]);
             memset(&window->elements[i], 0, sizeof(HudElement));
+            window->countActual--;
             return;
         }
     }

@@ -17,6 +17,8 @@
 
 #define GREEN_PRINT "\033[0;32m"
 #define PRINT_COLOR_END "\033[0m"
+#define DEFAULT_ELEMENT_COLOR vector4d(255.0f, 255.0f, 255.0f, 255.0f)
+#define DEFAULT_ELEMENT_TEXT_COLOR vector4d(180.0f, 180.0f, 180.0f, 255.0f)
 
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
 Window *centerWindow = NULL;
@@ -27,7 +29,10 @@ int screenHeight = 700;
 uint8_t lctrl = 0;
 uint8_t rctrl = 0;
 
+HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
+
 void add_editor_entity(Button *btn);
+void next_hud_type();
 
 OnClickCallback on_clicks[32] = {add_editor_entity};
 
@@ -41,13 +46,62 @@ void add_editor_entity(Button *btn)
     e->pos = vector2d(0.0f, 0.0f);
     e->ext = vector2d(50.0f, 50.0f);
     e->parent = centerWindow;
-    e->ent.type = GF3D_HUD_TYPE_GUI_ELEMENT;
-    e->ent.element.guiElement = gf3d_gui_element_create(
-        vector2d(0.0f, 0.0f),
-        vector2d(50.0f, 50.0f),
-        vector4d(255.0f, 255.0f, 255.0f, 255.0f)
-    );
-    sprintf(e->ent.name, "hola");
+    e->ent.type = eType;
+    switch(eType)
+    {
+        case GF3D_HUD_TYPE_GUI_ELEMENT:
+            e->ent.element.guiElement = gf3d_gui_element_create(
+                vector2d(0.0f, 0.0f),
+                vector2d(50.0f, 50.0f),
+                DEFAULT_ELEMENT_COLOR
+            );
+            break;
+        
+        case GF3D_HUD_TYPE_PROGRESS_BAR:
+            e->ent.element.pBar = gf3d_hud_progress_bar_create(
+                NULL, NULL, vector2d(2.0f, 2.0f)
+            );
+            gf3d_hud_progress_bar_set_background(
+                e->ent.element.pBar, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
+            );
+            gf3d_hud_progress_bar_set_foreground(
+                e->ent.element.pBar, DEFAULT_ELEMENT_TEXT_COLOR
+            );
+            break;
+
+        case GF3D_HUD_TYPE_BUTTON:
+            e->ent.element.button = gf3d_hud_button_create(
+                e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
+                DEFAULT_ELEMENT_TEXT_COLOR, "button"
+            );
+            break;
+
+        case GF3D_HUD_TYPE_LABEL:
+            e->ent.element.label = gf3d_hud_label_create(
+                e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
+                DEFAULT_ELEMENT_TEXT_COLOR, "label"
+            );
+            break;
+
+        case GF3D_HUD_TYPE_TEXT_INPUT:
+            e->ent.element.textInput = gf3d_hud_text_input_create(
+                e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
+                DEFAULT_ELEMENT_TEXT_COLOR, "text box"
+            );
+            break;
+
+        case GF3D_HUD_TYPE_WINDOW:
+            e->ent.element.window = gf3d_hud_window_create(
+                32, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
+            );
+            break;
+
+        default:
+            app_editor_entity_free(e);
+            return;
+            break;
+    }
+    sprintf(e->ent.name, "element_%d", centerWindow->countActual);
     gf3d_hud_window_add_element(centerWindow, e->ent);
 }
 
@@ -114,7 +168,7 @@ int app_editor_main(int argc, char *argv[])
             {
                 mouse[ e.button.button ] = e;
             }
-            else if( e.key.keysym.scancode < MAX_INPUT_KEY )
+            if( e.key.keysym.scancode < MAX_INPUT_KEY )
                 keys[ e.key.keysym.scancode ] = e;
         }
 
@@ -156,6 +210,11 @@ int app_editor_main(int argc, char *argv[])
             if( lctrl && keys[SDL_SCANCODE_R].type == SDL_KEYDOWN )
             {
                 running = app_editor_load(&rightPane, &leftPane, &center);
+            }
+            /* next gui type */
+            else if ( (e = keys[SDL_SCANCODE_E]).type == SDL_KEYDOWN && e.key.repeat == 0)
+            {
+                next_hud_type();
             }
         }
     }
@@ -213,4 +272,15 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
     slog("right pane element count: %d", (*rightPane)->elementCount);
     
     return 1;
+}
+
+void next_hud_type()
+{   
+    eType++;
+    if(eType > GF3D_HUD_TYPE_NUM - 1 )
+        eType = 1;
+    else if (eType < 1) 
+        eType = 1;
+
+    slog("current type: %d", eType);
 }

@@ -107,6 +107,7 @@ typedef struct hud_window_t
     HudElement *elements;
     Vector2D *elementPositions;
     uint32_t count;
+    uint32_t countActual;
 } Window;
 
 Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color);

@@ -106,9 +106,6 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
             e->selected = 1;
             e->dragging = 1;
         }
-
-
-
     }
     else if (evt.button.type == SDL_MOUSEBUTTONUP)
     {
