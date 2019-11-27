@@ -6,6 +6,7 @@
 #include "gf3d_entity.h"
 #include "gf3d_timer.h"
 #include "gf3d_gui.h"
+#include "app_editor_entity.h"
 
 #define MAX_INPUT_KEY SDL_NUM_SCANCODES
 #if SDL_BUTTON_X2 < 8
@@ -18,6 +19,7 @@
 #define PRINT_COLOR_END "\033[0m"
 
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
+Window *centerWindow = NULL;
 
 int screenWidth = 1800;
 int screenHeight = 700;
@@ -25,13 +27,19 @@ int screenHeight = 700;
 uint8_t lctrl = 0;
 uint8_t rctrl = 0;
 
-void hola(Button *btn);
+void add_editor_entity(Button *btn);
 
-OnClickCallback on_clicks[32] = {hola};
+OnClickCallback on_clicks[32] = {add_editor_entity};
 
-void hola(Button *btn)
+void add_editor_entity(Button *btn)
 {
-    slog("hola");
+    EditorEntity *e = NULL;
+    if(!centerWindow) return;
+
+    e = app_editor_entity_create();
+    if(!e) return;
+    e->parent = centerWindow;
+    gf3d_hud_window_add_element(centerWindow, e->ent);
 }
 
 int app_editor_main(int argc, char *argv[])
@@ -71,6 +79,7 @@ int app_editor_main(int argc, char *argv[])
         0,                      //fullscreen
         validate                //validation
     );
+    app_editor_entity_manager_init(32);
 
     running = app_editor_load(&rightPane, &leftPane, &center);
 
@@ -98,6 +107,7 @@ int app_editor_main(int argc, char *argv[])
                 mouse[ e.button.button ] = e;
         }
 
+        app_editor_entity_manager_update(keys, mouse);
         gf3d_gui_manager_update(keys, mouse);
 
         bufferFrame = gf3d_vgraphics_render_begin();
@@ -108,6 +118,7 @@ int app_editor_main(int argc, char *argv[])
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, worldTime);
                 gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                // app_editor_entity_manager_draw(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
             
@@ -186,6 +197,7 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
         slog("unable to load center preview");
         return 0;
     }
+    centerWindow = (*center)->elements[0].element.window;
 
     slog("right pane element count: %d", (*rightPane)->elementCount);
     

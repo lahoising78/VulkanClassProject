@@ -94,6 +94,11 @@ void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer 
 void gf3d_hud_element_free(HudElement *e);
 void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse);
 
+void gf3d_hud_element_set_position(HudElement e, Vector2D pos);
+Vector2D gf3d_hud_element_get_position(HudElement e);
+void gf3d_hud_element_set_extents(HudElement e, Vector2D ext);
+Vector2D gf3d_hud_element_get_extents(HudElement e);
+
 /* ===========HUD WINDOW========= */
 
 typedef struct hud_window_t

@@ -695,6 +695,31 @@ void gf3d_hud_element_set_position(HudElement e, Vector2D pos)
     }
 }
 
+void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
+{
+    switch (e.type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        vector2d_copy(e.element.guiElement->extents, ext);
+        break;
+    
+    default:
+        break;
+    }
+}
+
+Vector2D gf3d_hud_element_get_extents(HudElement e)
+{
+    switch(e.type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        return e.element.guiElement->extents;
+
+    default:
+        return vector2d(0.0f, 0.0f);
+    }
+}
+
 /* ==============HUD WINDOW=========== */
 Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color)
 {
