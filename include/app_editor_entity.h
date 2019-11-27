@@ -10,6 +10,8 @@ typedef struct
     Vector2D ext;
     Window *parent;
     uint8_t _inuse;
+    uint8_t selected;
+    uint8_t dragging;
 } EditorEntity;
 
 void app_editor_entity_manager_init(uint32_t count);

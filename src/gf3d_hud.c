@@ -859,3 +859,20 @@ void gf3d_hud_window_add_element(Window *window, HudElement e)
         break;
     }
 }
+
+void gf3d_hud_window_remove_element(Window *window, HudElement e)
+{
+    int i;
+    if(!e.type || !window) return;
+
+    for(i = 0; i < window->count; i++)
+    {
+        if(!window->elements[i].type) continue;
+        if( gfc_line_cmp(window->elements[i].name, e.name) == 0 )
+        {
+            gf3d_hud_element_free(&window->elements[i]);
+            memset(&window->elements[i], 0, sizeof(HudElement));
+            return;
+        }
+    }
+}

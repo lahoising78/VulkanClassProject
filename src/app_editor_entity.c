@@ -54,14 +54,14 @@ void app_editor_entity_manager_update(SDL_Event *keys, SDL_Event *mouse)
 
 void app_editor_entity_manager_draw(uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
-    int i;
-    EditorEntity *e = NULL;
-    for(i = 0; i < app_editor_entity_manager.count; i++)
-    {
-        e = &app_editor_entity_manager.entity_list[i];
-        if(!e->_inuse) continue;
-        gf3d_hud_element_draw(&e->ent, bufferFrame, commandBuffer);
-    }
+    // int i;
+    // EditorEntity *e = NULL;
+    // for(i = 0; i < app_editor_entity_manager.count; i++)
+    // {
+    //     e = &app_editor_entity_manager.entity_list[i];
+    //     if(!e->_inuse) continue;
+    //     gf3d_hud_element_draw(&e->ent, bufferFrame, commandBuffer);
+    // }
 }
 
 EditorEntity *app_editor_entity_create()
@@ -73,14 +73,6 @@ EditorEntity *app_editor_entity_create()
         if(app_editor_entity_manager.entity_list[i]._inuse) continue;
         e = &app_editor_entity_manager.entity_list[i];
         e->_inuse = 1;
-        e->pos = vector2d(0.0f, 0.0f);
-        e->ext = vector2d(50.0f, 50.0f);
-        e->ent.type = GF3D_HUD_TYPE_GUI_ELEMENT;
-        e->ent.element.guiElement = gf3d_gui_element_create(
-            e->pos,
-            e->ext,
-            vector4d(255.0f, 255.0f, 255.0f, 255.0f)
-        );
         return e;
     }
     return NULL;
@@ -88,30 +80,61 @@ EditorEntity *app_editor_entity_create()
 
 void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse)
 {
-    Vector2D pos;
-    if(!e) return;
-    // if(!e->parent)
-    // {
-    //     gf3d_hud_element_set_position(e->ent, e->pos);
-    //     gf3d_hud_element_set_extents(e->ent, e->ext);
-    // }
-    // else
-    // {
-    //     vector2d_copy(pos, e->pos);
-    //     vector2d_add(e->pos, e->pos, e->parent->bg->position);
-    // }
+    SDL_Event evt = {0};
+    SDL_Point p = {0};
+    SDL_Rect r = {0};
+    Vector2D pos = {0};
     
-    // gf3d_hud_element_update(&e->ent, keys, mouse);
+    if(!e) return;
+    
+    evt = keys[SDL_SCANCODE_DELETE];
+    if( evt.key.type == SDL_KEYDOWN && e->selected )
+    {
+        app_editor_entity_free(e);
+        return;
+    }
 
-    // if(e->parent)
-    // {
-    //     vector2d_copy(e->pos, pos);
-    // }
+    evt = mouse[SDL_BUTTON_LEFT];
+    if( evt.button.type == SDL_MOUSEBUTTONDOWN )
+    {
+        vector2d_copy( p, evt.button );
+        vector2d_add(pos, e->pos, e->parent->bg->position);
+        vector2d_copy(r, pos);
+        r.w = e->ext.x, r.h = e->ext.y;
+        if( SDL_PointInRect(&p, &r) )
+        {
+            e->selected = 1;
+            e->dragging = 1;
+        }
+
+
+
+    }
+    else if (evt.button.type == SDL_MOUSEBUTTONUP)
+    {
+        e->dragging = 0;
+    }
+
+    /* motion is recorded in the button being pressed */
+    if(e->dragging && evt.type == SDL_MOUSEMOTION)
+    {
+        e->pos.x += evt.motion.xrel;
+        e->pos.y += evt.motion.yrel;
+        if(e->pos.x < 0.0f) e->pos.x = 0.0f;
+        else if (e->pos.x + e->ext.x > e->parent->bg->extents.x) e->pos.x = e->parent->bg->extents.x - e->ext.x;
+        if(e->pos.y < 0.0f) e->pos.y = 0.0f;
+        else if (e->pos.y + e->ext.y > e->parent->bg->extents.y) e->pos.y = e->parent->bg->extents.y - e->ext.y;
+        gf3d_hud_element_set_position(e->ent, e->pos);
+    }
 }
 
 void app_editor_entity_free(EditorEntity *e)
 {
     if(!e) return;
-    gf3d_hud_element_free(&e->ent);
+    if(e->parent) 
+    {
+        gf3d_hud_window_remove_element(e->parent, e->ent);
+    }
+
     memset(e, 0, sizeof(EditorEntity));
 }

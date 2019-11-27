@@ -45,6 +45,9 @@
 # Fonts
 *.ttf
 
+#IDE Dump
+*.idea
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd

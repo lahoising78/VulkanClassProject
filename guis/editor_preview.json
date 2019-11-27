@@ -15,8 +15,7 @@
             {
                 "position":         [300.0, 0.0],
                 "extents":          [1200.0, 700.0],
-                "color":            [0.0, 0.0, 0.0, 0.0],
-                "texture":          "images/bg_flat.png"
+                "color":            [0.0, 0.0, 0.0, 0.0]
             },
             "count":                32
         }

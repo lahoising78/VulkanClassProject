@@ -10,9 +10,9 @@
 
 #define MAX_INPUT_KEY SDL_NUM_SCANCODES
 #if SDL_BUTTON_X2 < 8
-    #define MAX_INPUT_MOUSE 8
+    #define MAX_INPUT_MOUSE 9
 #else
-    #define MAX_INPUT_MOUSE SDL_BUTTON_X2
+    #define MAX_INPUT_MOUSE SDL_BUTTON_X2 + 1
 #endif
 
 #define GREEN_PRINT "\033[0;32m"
@@ -38,7 +38,16 @@ void add_editor_entity(Button *btn)
 
     e = app_editor_entity_create();
     if(!e) return;
+    e->pos = vector2d(0.0f, 0.0f);
+    e->ext = vector2d(50.0f, 50.0f);
     e->parent = centerWindow;
+    e->ent.type = GF3D_HUD_TYPE_GUI_ELEMENT;
+    e->ent.element.guiElement = gf3d_gui_element_create(
+        vector2d(0.0f, 0.0f),
+        vector2d(50.0f, 50.0f),
+        vector4d(255.0f, 255.0f, 255.0f, 255.0f)
+    );
+    sprintf(e->ent.name, "hola");
     gf3d_hud_window_add_element(centerWindow, e->ent);
 }
 
@@ -101,10 +110,12 @@ int app_editor_main(int argc, char *argv[])
 
         while( SDL_PollEvent(&e) )
         {
-            if( e.key.keysym.scancode < MAX_INPUT_KEY )
-                keys[ e.key.keysym.scancode ] = e;
-            else if (e.button.button < MAX_INPUT_MOUSE )
+            if (e.button.button < MAX_INPUT_MOUSE )
+            {
                 mouse[ e.button.button ] = e;
+            }
+            else if( e.key.keysym.scancode < MAX_INPUT_KEY )
+                keys[ e.key.keysym.scancode ] = e;
         }
 
         app_editor_entity_manager_update(keys, mouse);
