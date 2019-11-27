@@ -127,6 +127,8 @@ GuiElement *gf3d_gui_element_load(SJson *json)
     Vector2D pos, ext;
     Vector4D color;
 
+    if(!json) return NULL;
+
     arr = sj_object_get_value(json, "position");
     obj = sj_array_get_nth(arr, 0);
     sj_get_float_value(obj, &pos.x);

@@ -528,9 +528,15 @@ HudElement gf3d_hud_element_load(SJson *json)
         e.element.textInput = gf3d_hud_text_input_load(json);
         break;
 
+    case GF3D_HUD_TYPE_WINDOW:
+        e.type = GF3D_HUD_TYPE_WINDOW;
+        e.element.window = gf3d_hud_window_load(json);
+        break;
+
     default:
         e.type = GF3D_HUD_TYPE_NONE;
         e.element.guiElement = NULL;
+        sprintf(e.name, " ");
         break;
     }
 
@@ -725,12 +731,44 @@ Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vecto
     return window;
 }
 
+Window *gf3d_hud_window_load(SJson *json)
+{
+    Window *window = NULL;
+    SJson *obj = NULL;
+
+    if(!json) return NULL;
+
+    window = (Window*)malloc(sizeof(Window));
+    if(!window) 
+    {
+        slog("unable to allocate a new window");
+        return NULL;
+    }
+
+    obj = sj_object_get_value(json, "bg");
+    window->bg = gf3d_gui_element_load(obj);
+
+    obj = sj_object_get_value(json, "count");
+    if(obj)
+    {
+        sj_get_integer_value(obj,(int*)(&window->count));
+    }
+    else
+    {
+        window->count = 32;
+    }
+    window->elementPositions = (Vector2D*)gfc_allocate_array(sizeof(Vector2D), window->count);
+    window->elements = (HudElement*)gfc_allocate_array(sizeof(HudElement), window->count);
+
+    return window;
+}
+
 void gf3d_hud_window_free(Window *window)
 {
     int i;
     HudElement *e = NULL;
     if(!window);
-    
+
     gf3d_gui_element_free(window->bg);
 
     for(i = 0; i < window->count; i++)

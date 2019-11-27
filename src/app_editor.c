@@ -17,7 +17,7 @@
 #define GREEN_PRINT "\033[0;32m"
 #define PRINT_COLOR_END "\033[0m"
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane);
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
 
 int screenWidth = 1800;
 int screenHeight = 700;
@@ -51,6 +51,7 @@ int app_editor_main(int argc, char *argv[])
 
     Gui *rightPane = NULL;
     Gui *leftPane = NULL;
+    Gui *center = NULL;
 
     for(i = 1; i < argc; i++)
     {
@@ -71,7 +72,7 @@ int app_editor_main(int argc, char *argv[])
         validate                //validation
     );
 
-    running = app_editor_load(&rightPane, &leftPane);
+    running = app_editor_load(&rightPane, &leftPane, &center);
 
     slog("\033[0;32m================= Main Loop ===================\033[0m");
     frameTimer = gf3d_timer_new();
@@ -132,7 +133,7 @@ int app_editor_main(int argc, char *argv[])
             /* reload */
             if( lctrl && keys[SDL_SCANCODE_R].type == SDL_KEYDOWN )
             {
-                running = app_editor_load(&rightPane, &leftPane);
+                running = app_editor_load(&rightPane, &leftPane, &center);
             }
         }
     }
@@ -145,11 +146,8 @@ int app_editor_main(int argc, char *argv[])
     return 0;
 }
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
 {
-    HudElement window = {0};
-    HudElement box = {0};
-
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
 
     if( *rightPane )
@@ -165,6 +163,11 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
         return 0;
     }
 
+    if( *leftPane )
+    {
+        gf3d_gui_free(*leftPane);
+    }
+
     *leftPane = gf3d_gui_load("editor_content_view");
     if(!(*leftPane))
     {
@@ -172,26 +175,17 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane)
         return 0;
     }
 
-    window.type = GF3D_HUD_TYPE_WINDOW;
-    window.element.window = gf3d_hud_window_create(
-        4, 
-        vector2d(300.0f, 0.0f),
-        vector2d(1200.0f, 700.0f),
-        vector4d(200.0f, 100.0f, 100.0f, 255.0f)
-    );
-    sprintf(window.name, "%c", 'w');
-    gf3d_hud_add_element(*leftPane, window);
+    if( *center )
+    {
+        gf3d_gui_free( *center );
+    }
 
-    box.type = GF3D_HUD_TYPE_LABEL;
-    box.element.label = gf3d_hud_label_create(
-        vector2d(0.0f, 0.0f),
-        vector2d(100.0f, 100.0f),
-        vector4d(0.0f, 0.0f, 0.0f, 255.0f),
-        vector4d(255.0f, 255.0f, 255.0f, 255.0f),
-        "heyoooo"
-    );
-    sprintf(box.name, "%c", 'a');
-    gf3d_hud_window_add_element(window.element.window, box);
+    *center = gf3d_gui_load("editor_preview");
+    if(!(*center))
+    {
+        slog("unable to load center preview");
+        return 0;
+    }
 
     slog("right pane element count: %d", (*rightPane)->elementCount);
     
