@@ -46,6 +46,7 @@ void gf3d_gui_free(Gui *gui);
 
 // void gf3d_gui_add_element(Gui *gui, GuiElement *element);
 void gf3d_hud_add_element(Gui *gui, HudElement element);
+HudElement gf3d_gui_get_element_by_name(Gui *gui, const char *name);
 
 // void gf3d_gui_draw(Gui *gui, VkDescriptorSet *descriptorSet, VkCommandBuffer commandBuffer);
 

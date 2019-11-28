@@ -291,6 +291,19 @@ void gf3d_hud_add_element(Gui *gui, HudElement element)
     }
 }
 
+HudElement gf3d_gui_get_element_by_name(Gui *gui, const char *name)
+{
+    int i;
+    HudElement e = {0};
+    if(!gui) return e;
+    for(i = 0; i < gui->elementCount; i++)
+    {
+        if( gfc_line_cmp(gui->elements[i].name, name) == 0 )
+            return gui->elements[i];
+    }
+    return e;
+}
+
 void gf3d_gui_init(Gui *gui)
 {
     VkExtent2D ext = gf3d_vgraphics_get_view_extent();

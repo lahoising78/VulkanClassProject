@@ -6,6 +6,7 @@ typedef struct
 {
     uint32_t count;
     EditorEntity *entity_list;
+    EditorEntity *selected;
 } EditorEntityManager;
 
 static EditorEntityManager app_editor_entity_manager = {0};
@@ -37,6 +38,7 @@ void app_editor_entity_manager_init(uint32_t count)
     }
     memset(app_editor_entity_manager.entity_list, 0, sizeof(EditorEntity) * count);
     app_editor_entity_manager.count = count;
+    app_editor_entity_manager.selected = NULL;
     atexit(app_editor_entity_manager_close);
 }
 
@@ -64,6 +66,11 @@ void app_editor_entity_manager_draw(uint32_t bufferFrame, VkCommandBuffer comman
     // }
 }
 
+EditorEntity *app_editor_entity_manager_get_selected()
+{
+    return app_editor_entity_manager.selected;
+}
+
 EditorEntity *app_editor_entity_create()
 {
     int i;
@@ -88,7 +95,7 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     if(!e) return;
     
     evt = keys[SDL_SCANCODE_DELETE];
-    if( evt.key.type == SDL_KEYDOWN && e->selected )
+    if( evt.key.type == SDL_KEYDOWN && app_editor_entity_manager.selected == e )
     {
         app_editor_entity_free(e);
         return;
@@ -103,7 +110,7 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
         r.w = e->ext.x, r.h = e->ext.y;
         if( SDL_PointInRect(&p, &r) )
         {
-            e->selected = 1;
+            app_editor_entity_manager.selected = e;
             e->dragging = 1;
         }
     }

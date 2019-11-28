@@ -33,6 +33,7 @@ HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
 
 void add_editor_entity(Button *btn);
 void next_hud_type();
+void set_add_btn_text(Gui *layer);
 
 OnClickCallback on_clicks[32] = {add_editor_entity};
 
@@ -124,6 +125,8 @@ int app_editor_main(int argc, char *argv[])
     Gui *leftPane = NULL;
     Gui *center = NULL;
 
+    HudElement buf = {0};
+
     for(i = 1; i < argc; i++)
     {
         if( gfc_line_cmp(argv[i], "-no-validate") )
@@ -183,7 +186,6 @@ int app_editor_main(int argc, char *argv[])
                 gf3d_entity_manager_draw(bufferFrame, commandBuffer, worldTime);
                 gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 gf3d_gui_manager_draw(bufferFrame, commandBuffer);
-                // app_editor_entity_manager_draw(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
             
@@ -215,6 +217,7 @@ int app_editor_main(int argc, char *argv[])
             else if ( (e = keys[SDL_SCANCODE_E]).type == SDL_KEYDOWN && e.key.repeat == 0)
             {
                 next_hud_type();
+                set_add_btn_text(leftPane);
             }
         }
     }
@@ -269,6 +272,8 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
     }
     centerWindow = (*center)->elements[0].element.window;
 
+    set_add_btn_text(*leftPane);
+
     slog("right pane element count: %d", (*rightPane)->elementCount);
     
     return 1;
@@ -283,4 +288,47 @@ void next_hud_type()
         eType = 1;
 
     slog("current type: %d", eType);
+}
+
+void set_add_btn_text(Gui *layer)
+{
+    HudElement buf = {0};
+    char t[GFCLINELEN];
+    buf = gf3d_gui_get_element_by_name(layer, "add button");
+    if(buf.type == GF3D_HUD_TYPE_BUTTON)
+    {
+        switch (eType)
+        {
+        case GF3D_HUD_TYPE_GUI_ELEMENT:
+            sprintf(t, "+GE");
+            break;
+
+        case GF3D_HUD_TYPE_PROGRESS_BAR:
+            sprintf(t, "+PB");
+            break;
+
+        case GF3D_HUD_TYPE_BUTTON:
+            sprintf(t, "+Btn");
+            break;
+
+        case GF3D_HUD_TYPE_LABEL:
+            sprintf(t, "+Lbl");
+            break;
+
+        case GF3D_HUD_TYPE_TEXT_INPUT:
+            sprintf(t, "+TxtIn");
+            break;
+
+        case GF3D_HUD_TYPE_WINDOW:
+            sprintf(t, "+Win");
+            break;
+
+        default:
+            sprintf(t, "+");
+            break;
+        }
+        buf.element.button->bg->display->extents.x = strlen(t) * 16.0f;
+        buf.element.button->bg->textDisp->extents.x = strlen(t) * 16.0f;
+        gf3d_hud_label_set_text( buf.element.button->bg, t );
+    }
 }

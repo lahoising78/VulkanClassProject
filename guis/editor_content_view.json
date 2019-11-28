@@ -29,7 +29,8 @@
                 "textColor":        [150.0, 255.0, 150.0, 255.0],
                 "text":             "+"
             },
-            "onClick":              0
+            "onClick":              0,
+            "name":                 "add button"
         }
     ]
 }
