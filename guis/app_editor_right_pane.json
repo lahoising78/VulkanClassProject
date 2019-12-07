@@ -1,18 +1,52 @@
 {
-    "elementCount":             8,
-
-    "bg":
+    "elementCount": 32,
+    
+    "bg": 
     {
-        "position":             [1100.0, 0.0],
-        "extents":              [400.0, 700],
+        "position":             [1500.0, 0.0],
+        "extents":              [300.0, 700.0],
         "color":                [50.0, 50.0, 50.0, 255.0]
     },
-    
-    "elements": [
-        
-        {
-            
-        }
 
+    "elements":
+    [
+        {
+            "type":                     4,
+            "position":                 [1510.0, 10.0],
+            "extents":                  [64.0, 0.0],
+            "color":                    [0.0, 0.0, 0.0, 0.0],
+            "textColor":                [200.0, 200.0, 200.0, 255.0],
+            "text":                     "name"
+        },
+
+        {
+            "type":                     5,
+            "label":
+            {
+                "position":             [1579.0, 10.0],
+                "extents":              [211.0, 32.0],
+                "color":                [20.0, 20.0, 20.0, 255.0],
+                "textColor":            [200.0, 200.0, 200.0, 255.0],
+                "text":                 "name"
+            }
+        },
+
+        {
+            "file":                     
+            {
+                "filename":             "editor_gui_element",
+                "window":
+                {
+                    "type":             6,
+                    "bg":
+                    {
+                        "position":     [1500.0, 50.0],
+                        "extents":      [300.0, 650],
+                        "color":        [100.0, 40.0, 70.0, 255.0]
+                    },
+                    "count":            32
+                }
+            }
+        }
     ]
 }

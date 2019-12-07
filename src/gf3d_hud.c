@@ -31,6 +31,8 @@ void gf3d_hud_window_draw(Window *window, uint32_t bufferFrame, VkCommandBuffer 
 Vector2D gf3d_hud_element_get_position(HudElement e);
 void gf3d_hud_element_set_position(HudElement e, Vector2D pos);
 
+HudElement gf3d_hud_element_load_hud_file(SJson *json);
+
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
 {
@@ -489,6 +491,12 @@ HudElement gf3d_hud_element_load(SJson *json)
     HudElement e = {0};
     int type = GF3D_HUD_TYPE_NONE;
 
+    obj = sj_object_get_value(json, "file");
+    if(obj)
+    {
+        return gf3d_hud_element_load_hud_file(obj);
+    }
+
     obj = sj_object_get_value(json, "type");
     sj_get_integer_value(obj, &type);
     obj = sj_object_get_value(json, "name");
@@ -541,6 +549,60 @@ HudElement gf3d_hud_element_load(SJson *json)
     }
 
     return e;
+}
+
+HudElement gf3d_hud_element_load_hud_file(SJson *json)
+{
+    int i;
+    TextLine assetname;
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+
+    HudElement window = {0};
+    HudElement e = {0};
+
+    char filename[GFCLINELEN];
+
+    obj = sj_object_get_value(json, "window");
+    window = gf3d_hud_element_load(obj);
+    if(window.type != GF3D_HUD_TYPE_WINDOW) 
+    {
+        gf3d_hud_element_free(&window);
+        memset(&window, 0, sizeof(HudElement));
+        return window;
+    }
+
+    obj = sj_object_get_value(json, "filename");
+    gfc_line_cpy(filename, sj_get_string_value(obj));
+
+    snprintf(assetname, GFCLINELEN, "guis/%s.json", filename);
+    json = sj_load(assetname);
+    if( !json )
+    {
+        slog("file was not found");
+        gf3d_hud_element_free(&window);
+        memset(&window, 0, sizeof(HudElement));
+        return window;
+    }
+    slog("opened hud file %s", assetname);
+
+    arr = sj_object_get_value(json, "elements");
+    for(i = 0; i < window.element.window->count; i++)
+    {
+        obj = sj_array_get_nth(arr, i);
+        if(!obj) break;
+
+        e = gf3d_hud_element_load(obj);
+        if(e.type == GF3D_HUD_TYPE_NONE || e.type == GF3D_HUD_TYPE_NUM) 
+        {
+            gf3d_hud_element_free(&e);
+            continue;
+        }
+        gf3d_hud_window_add_element(window.element.window, e);
+    }
+
+    sj_free(json);
+    return window;
 }
 
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
@@ -759,8 +821,10 @@ Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vecto
 
 Window *gf3d_hud_window_load(SJson *json)
 {
+    int i;
     Window *window = NULL;
     SJson *obj = NULL;
+    SJson *arr = NULL;
 
     if(!json) return NULL;
 
@@ -785,6 +849,18 @@ Window *gf3d_hud_window_load(SJson *json)
     }
     window->elementPositions = (Vector2D*)gfc_allocate_array(sizeof(Vector2D), window->count);
     window->elements = (HudElement*)gfc_allocate_array(sizeof(HudElement), window->count);
+
+    arr = sj_object_get_value(json, "elements");
+    for(i = 0; i < window->count; i++)
+    {
+        obj = sj_array_get_nth(arr, i);
+        if(!obj)
+        {
+            break;
+        }
+
+        gf3d_hud_window_add_element(window, gf3d_hud_element_load(obj));
+    }
 
     return window;
 }

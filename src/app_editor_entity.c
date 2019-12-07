@@ -124,6 +124,8 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     {
         e->pos.x += evt.motion.xrel;
         e->pos.y += evt.motion.yrel;
+        e->pos.x = ceilf(e->pos.x);
+        e->pos.y = ceilf(e->pos.y);
         if(e->pos.x < 0.0f) e->pos.x = 0.0f;
         else if (e->pos.x + e->ext.x > e->parent->bg->extents.x) e->pos.x = e->parent->bg->extents.x - e->ext.x;
         if(e->pos.y < 0.0f) e->pos.y = 0.0f;

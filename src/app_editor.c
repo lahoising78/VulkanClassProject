@@ -22,6 +22,7 @@
 
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
 Window *centerWindow = NULL;
+Window *leftWindow = NULL;
 
 int screenWidth = 1800;
 int screenHeight = 700;
@@ -40,6 +41,7 @@ OnClickCallback on_clicks[32] = {add_editor_entity};
 void add_editor_entity(Button *btn)
 {
     EditorEntity *e = NULL;
+    HudElement lbl = {0};
     if(!centerWindow) return;
 
     e = app_editor_entity_create();
@@ -104,6 +106,18 @@ void add_editor_entity(Button *btn)
     }
     sprintf(e->ent.name, "element_%d", centerWindow->countActual);
     gf3d_hud_window_add_element(centerWindow, e->ent);
+
+    if(!leftWindow) return;
+
+    lbl.type = GF3D_HUD_TYPE_LABEL;
+    lbl.element.label = gf3d_hud_label_create(
+        vector2d(5.0f, leftWindow->countActual * 32.0f),
+        vector2d(0.0f, 0.0f),
+        vector4d(0.0f, 0.0f, 0.0f, 0.0f),
+        vector4d(200.0f, 200.0f, 200.0f, 255.0f),
+        e->ent.name
+    );
+    gf3d_hud_window_add_element(leftWindow, lbl);
 }
 
 int app_editor_main(int argc, char *argv[])
@@ -239,8 +253,8 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
         gf3d_gui_free(*rightPane);
     }
 
-    // *rightPane = gf3d_gui_load("app_editor_right_pane");
-    *rightPane = gf3d_gui_load("editor_gui_element");
+    *rightPane = gf3d_gui_load("app_editor_right_pane");
+    // *rightPane = gf3d_gui_load("editor_gui_element");
     if(!*rightPane)
     {
         slog("unable to load right pane");
@@ -258,6 +272,7 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
         slog("unable to load left pane");
         return 0;
     }
+    leftWindow = (*leftPane)->elements[2].element.window;
 
     if( *center )
     {

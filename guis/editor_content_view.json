@@ -31,6 +31,18 @@
             },
             "onClick":              0,
             "name":                 "add button"
+        },
+
+        {
+            "type":             6,
+            "bg":
+            {
+                "position":         [10.0, 52.0],
+                "extents":          [280.0, 638.0],
+                "color":            [10.0, 10.0, 10.0, 255.0]
+            },
+            "count":            32,
+            "name":             "name window"
         }
     ]
 }
