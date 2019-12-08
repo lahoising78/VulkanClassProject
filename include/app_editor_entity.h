@@ -14,6 +14,7 @@ typedef struct
 } EditorEntity;
 
 void app_editor_entity_manager_init(uint32_t count);
+void app_editor_entity_manager_clean();
 void app_editor_entity_manager_update(SDL_Event *keys, SDL_Event *mouse);
 void app_editor_entity_manager_draw(uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 

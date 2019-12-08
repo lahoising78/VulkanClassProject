@@ -598,6 +598,7 @@ HudElement gf3d_hud_element_load_hud_file(SJson *json)
             gf3d_hud_element_free(&e);
             continue;
         }
+        slog("-== type: %d ==-", e.type);
         gf3d_hud_window_add_element(window.element.window, e);
     }
 
@@ -819,6 +820,22 @@ Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vecto
     return window;
 }
 
+HudElement *gf3d_hud_window_get_element_by_name(Window *window, const char *name)
+{
+    int i;
+
+    if(!window) return NULL;
+    if(!window->elements) return NULL;
+
+    for(i = 0; i < window->count; i++)
+    {
+        // if(strncmp(window->elements[i].name, name, strlen(name)) == 0)
+        //     return &window->elements[i];
+    }
+
+    return NULL;
+}
+
 Window *gf3d_hud_window_load(SJson *json)
 {
     int i;
@@ -848,7 +865,9 @@ Window *gf3d_hud_window_load(SJson *json)
         window->count = 32;
     }
     window->elementPositions = (Vector2D*)gfc_allocate_array(sizeof(Vector2D), window->count);
+    memset(window->elementPositions, 0, sizeof(Vector2D) * window->count);
     window->elements = (HudElement*)gfc_allocate_array(sizeof(HudElement), window->count);
+    memset(window->elements, 0, sizeof(HudElement) * window->count);
 
     arr = sj_object_get_value(json, "elements");
     for(i = 0; i < window->count; i++)
@@ -954,4 +973,13 @@ void gf3d_hud_window_remove_element(Window *window, HudElement e)
             return;
         }
     }
+}
+
+void gf3d_hud_window_remove_element_at_index(Window *window, uint32_t i)
+{
+    if(!window || i >= window->count) return;
+
+    gf3d_hud_element_free( &window->elements[i] );
+    memset(&window->elements[i], 0, sizeof(HudElement));
+    window->countActual--;
 }

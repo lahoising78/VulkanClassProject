@@ -111,8 +111,9 @@ typedef struct hud_window_t
 } Window;
 
 Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color);
-// HudElement gf3d_hud_window_get_element_by_name(Window *window, const char *name);
+HudElement *gf3d_hud_window_get_element_by_name(Window *window, const char *name);
 void gf3d_hud_window_add_element(Window *window, HudElement e);
 void gf3d_hud_window_remove_element(Window *window, HudElement e);
+void gf3d_hud_window_remove_element_at_index(Window *window, uint32_t i);
 
 #endif

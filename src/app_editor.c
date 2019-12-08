@@ -23,6 +23,7 @@
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
+Window *inspectorWindow = NULL;
 
 int screenWidth = 1800;
 int screenHeight = 700;
@@ -35,6 +36,8 @@ HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
 void add_editor_entity(Button *btn);
 void next_hud_type();
 void set_add_btn_text(Gui *layer);
+void update_inspector_values();
+void removed_editor_entity(char *name);
 
 OnClickCallback on_clicks[32] = {add_editor_entity};
 
@@ -190,6 +193,7 @@ int app_editor_main(int argc, char *argv[])
         }
 
         app_editor_entity_manager_update(keys, mouse);
+        update_inspector_values();
         gf3d_gui_manager_update(keys, mouse);
 
         bufferFrame = gf3d_vgraphics_render_begin();
@@ -225,7 +229,10 @@ int app_editor_main(int argc, char *argv[])
             /* reload */
             if( lctrl && keys[SDL_SCANCODE_R].type == SDL_KEYDOWN )
             {
-                running = app_editor_load(&rightPane, &leftPane, &center);
+                if( leftWindow && leftWindow->countActual == 0 )
+                {
+                    running = app_editor_load(&rightPane, &leftPane, &center);
+                }
             }
             /* next gui type */
             else if ( (e = keys[SDL_SCANCODE_E]).type == SDL_KEYDOWN && e.key.repeat == 0)
@@ -247,6 +254,7 @@ int app_editor_main(int argc, char *argv[])
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
 {
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
+    app_editor_entity_manager_clean();
 
     if( *rightPane )
     {
@@ -260,6 +268,8 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
         slog("unable to load right pane");
         return 0;
     }
+    inspectorWindow = (*rightPane)->elements[2].element.window;
+    slog("-==== what type is it %d ====-", (*rightPane)->elements[2].type);
 
     if( *leftPane )
     {
@@ -345,5 +355,43 @@ void set_add_btn_text(Gui *layer)
         buf.element.button->bg->display->extents.x = strlen(t) * 16.0f;
         buf.element.button->bg->textDisp->extents.x = strlen(t) * 16.0f;
         gf3d_hud_label_set_text( buf.element.button->bg, t );
+    }
+}
+
+void update_inspector_values()
+{
+    EditorEntity *ent = NULL;
+    HudElement *e = NULL;
+    char buf[GFCLINELEN];
+
+    if(!inspectorWindow) return;
+
+    ent = app_editor_entity_manager_get_selected();
+    if( !ent || ent->dragging ) return;
+
+    e = &inspectorWindow->elements[2];
+    if(e->type == GF3D_HUD_TYPE_TEXT_INPUT)
+    {
+        snprintf(buf, GFCLINELEN, "%.2f", ent->pos.x);
+        if( gfc_line_cmp( e->element.textInput->textDisplay->text, buf ) != 0 )
+        {
+            e->element.textInput->textDisplay->textDisp->extents.x = strlen(buf) * 16.0f;
+            gf3d_hud_label_set_text(e->element.textInput->textDisplay, buf);
+        }
+    }
+    
+}
+
+void removed_editor_entity(char *name)
+{
+    int i;
+    for(i = 0; i < leftWindow->count; i++)
+    {
+        if( !leftWindow->elements[i].type ) continue;
+        if( gfc_line_cmp(leftWindow->elements[i].element.label->text, name) == 0 )
+        {
+            gf3d_hud_window_remove_element_at_index(leftWindow, i);
+            break;
+        }
     }
 }

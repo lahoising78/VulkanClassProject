@@ -11,6 +11,7 @@ typedef struct
 
 static EditorEntityManager app_editor_entity_manager = {0};
 
+extern void removed_editor_entity(char *name);
 void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse);
 
 void app_editor_entity_manager_close()
@@ -26,6 +27,17 @@ void app_editor_entity_manager_close()
     free(app_editor_entity_manager.entity_list);
     app_editor_entity_manager.entity_list = NULL;
     app_editor_entity_manager.count = 0;
+}
+
+void app_editor_entity_manager_clean()
+{
+    int i;
+    for(i = 0; i < app_editor_entity_manager.count; i++)
+    {
+        app_editor_entity_free(&app_editor_entity_manager.entity_list[i]);
+        // memset(&app_editor_entity_manager.entity_list[i], 0, sizeof(EditorEntity));
+    }
+    app_editor_entity_manager.selected = NULL;
 }
 
 void app_editor_entity_manager_init(uint32_t count)
@@ -124,8 +136,6 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     {
         e->pos.x += evt.motion.xrel;
         e->pos.y += evt.motion.yrel;
-        e->pos.x = ceilf(e->pos.x);
-        e->pos.y = ceilf(e->pos.y);
         if(e->pos.x < 0.0f) e->pos.x = 0.0f;
         else if (e->pos.x + e->ext.x > e->parent->bg->extents.x) e->pos.x = e->parent->bg->extents.x - e->ext.x;
         if(e->pos.y < 0.0f) e->pos.y = 0.0f;
@@ -137,10 +147,11 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
 void app_editor_entity_free(EditorEntity *e)
 {
     if(!e) return;
+    if(!e->_inuse) return;
+    removed_editor_entity(e->ent.name);
     if(e->parent) 
     {
         gf3d_hud_window_remove_element(e->parent, e->ent);
     }
-
     memset(e, 0, sizeof(EditorEntity));
 }
