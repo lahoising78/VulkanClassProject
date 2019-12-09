@@ -358,27 +358,32 @@ void set_add_btn_text(Gui *layer)
     }
 }
 
-void update_inspector_values()
+void update_inspector_element(HudElement *e, float val)
 {
-    EditorEntity *ent = NULL;
-    HudElement *e = NULL;
     char buf[GFCLINELEN];
-
-    if(!inspectorWindow) return;
-
-    ent = app_editor_entity_manager_get_selected();
-    if( !ent || ent->dragging ) return;
-
-    e = &inspectorWindow->elements[2];
+    if(!e) return;
     if(e->type == GF3D_HUD_TYPE_TEXT_INPUT)
     {
-        snprintf(buf, GFCLINELEN, "%.2f", ent->pos.x);
+        snprintf(buf, GFCLINELEN, "%.2f", val);
         if( gfc_line_cmp( e->element.textInput->textDisplay->text, buf ) != 0 )
         {
             e->element.textInput->textDisplay->textDisp->extents.x = strlen(buf) * 16.0f;
             gf3d_hud_label_set_text(e->element.textInput->textDisplay, buf);
         }
     }
+}
+
+void update_inspector_values()
+{
+    EditorEntity *ent = NULL;
+
+    if(!inspectorWindow) return;
+
+    ent = app_editor_entity_manager_get_selected();
+    if( !ent || ent->dragging ) return;
+
+    update_inspector_element( &inspectorWindow->elements[2], ent->pos.x );
+    update_inspector_element( &inspectorWindow->elements[4], ent->pos.y );
     
 }
 
