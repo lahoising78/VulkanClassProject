@@ -171,10 +171,12 @@ void gf3d_entity_general_update( Entity *self )
         vector2d_set_magnitude(&planeVel, DAMP_SPEED);
         self->velocity.x += planeVel.x;
         self->velocity.y += planeVel.y;
+        // if(&gf3d_entity_manager.entity_list[1] == self) slog("11111111111111111111111111111");
     }
     else
     {
         self->velocity.x = self->velocity.y = 0.0f;
+        // if(&gf3d_entity_manager.entity_list[1] == self) slog("00000000000000000000000000000");
     }
 
     /* vf = vi + a*t */
@@ -210,6 +212,7 @@ void gf3d_entity_general_update( Entity *self )
     /* calculate hitstun */
     self->hitstun -= worldTime;
     if(self->hitstun < 0.0f)  self->hitstun = 0.0f;
+    // vector3d_slog(self->velocity);
     // slog("hitstun: %f; worldTime: %f", self->hitstun, worldTime);
 }
 

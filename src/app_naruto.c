@@ -37,6 +37,9 @@ void app_naruto_barrage(Entity *ent);
 void app_naruto_barrage_update(Entity *self);
 void app_naruto_barrage_touch(Entity *self, Entity *other);
 
+float hor = 0;
+float ver = 0;
+
 Entity *app_naruto_new()
 {
     Entity *e = NULL;
@@ -83,13 +86,6 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
     Uint8 onFloor = 0;
     float distanceToFloor = 0.0f;
     int i;
-
-    const int usedScancodes[] = {
-        SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_A, 
-        SDL_SCANCODE_SPACE,
-        SDL_SCANCODE_J, SDL_SCANCODE_K, SDL_SCANCODE_L,
-        SDL_SCANCODE_O, SDL_SCANCODE_P
-    };
 
     if(e->locked < 0)
     {
@@ -163,8 +159,22 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
         vector3d_normalize(&camera_f);
         vector3d_normalize(&camera_r);
 
+        if( events[SDL_SCANCODE_A].type == SDL_KEYDOWN )
+            hor = -1.0f;
+        else if ( events[SDL_SCANCODE_D].type == SDL_KEYDOWN )
+            hor = 1.0f;
+        else if ( events[SDL_SCANCODE_D].type == SDL_KEYUP || events[SDL_SCANCODE_A].type == SDL_KEYUP )
+            hor = 0.0f;
+
+        if( events[SDL_SCANCODE_W].type == SDL_KEYDOWN )
+            ver = 1.0f;
+        else if ( events[SDL_SCANCODE_S].type == SDL_KEYDOWN )
+            ver = -1.0f;
+        else if ( events[SDL_SCANCODE_S].type == SDL_KEYUP || events[SDL_SCANCODE_W].type == SDL_KEYUP )
+            ver = 0.0f;
+
         /* Forward and Backwards */
-        if (events[SDL_SCANCODE_W].type == SDL_KEYDOWN)
+        if (ver == 1.0f)
         {
             e->rotation.x = 90.0f;
             vector3d_set_magnitude(&camera_f, MAX_SPEED);
@@ -180,7 +190,7 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
                 gf3d_animation_play(e->animationManager, "running", 1);
             }
         }
-        else if (events[SDL_SCANCODE_S].type == SDL_KEYDOWN)
+        else if (ver == -1.0f)
         {
             e->rotation.x = 270.0f;
             vector3d_set_magnitude(&camera_f, MAX_SPEED);
@@ -196,27 +206,20 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
                 gf3d_animation_play(e->animationManager, "running", 1);
             }
         }
-        else if (events[SDL_SCANCODE_W].type == SDL_KEYUP)
+        else if (ver == 0.0f)
         {
-            vector3d_clear(e->velocity);
-
+            // vector3d_clear(e->velocity);
+            e->velocity.y = 0.0f;
             if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
             {
                 gf3d_animation_play(e->animationManager, "idle", 1);
             }
-        }
-        else if (events[SDL_SCANCODE_S].type == SDL_KEYUP)
-        {
-            vector3d_clear(e->velocity);
 
-            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-            {
-                gf3d_animation_play(e->animationManager, "idle", 1);
-            }
+            // slog("-=== w key up ===-");
         }
 
         /* Right and Left */
-        if (events[SDL_SCANCODE_D].type == SDL_KEYDOWN)
+        if (hor == 1.0)
         {
             /* To rotate according to direction */
             if (e->velocity.y > 0)
@@ -245,7 +248,7 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
                 gf3d_animation_play(e->animationManager, "running", 1);
             }
         }
-        else if (events[SDL_SCANCODE_A].type == SDL_KEYDOWN)
+        else if (hor == -1.0f)
         {
             /* To rotate according to direction */
             if (e->velocity.y > 0)
@@ -274,33 +277,15 @@ void app_naruto_input_handler( struct Player_s *self, SDL_Event* events )
                 gf3d_animation_play(e->animationManager, "running", 1);
             }
         }
-        else if (events[SDL_SCANCODE_D].type == SDL_KEYUP)
+        else if (hor == 0.0f)
         {
-            vector3d_clear(e->velocity);
+            // vector3d_clear(e->velocity);
+            e->velocity.x = 0.0f;
             if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
             {
                 gf3d_animation_play(e->animationManager, "idle", 1);
             }
         }
-        else if (events[SDL_SCANCODE_A].type == SDL_KEYUP)
-        {
-            vector3d_clear(e->velocity);
-            if( gf3d_animation_is_playing(e->animationManager, "running") && onFloor)
-            {
-                gf3d_animation_play(e->animationManager, "idle", 1);
-            }
-        }
-    }
-
-    /* 
-    since we set the events in an array, even if we stop using
-    a key, we get the key as input after we stop pressing it.
-    To ignore these, we set the type to something else
-    */
-    for(i = 0; i < sizeof(usedScancodes) / sizeof(int); i++)
-    {
-        if ( events[ usedScancodes[i] ].type == SDL_KEYUP )
-            events[ usedScancodes[i] ].type = -SDL_KEYUP;
     }
 }
 
