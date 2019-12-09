@@ -16,6 +16,7 @@
 #include "app_player.h"
 #include "app_naruto.h"
 #include "app_gaara.h"
+#include "app_stage.h"
 
 #include "gf3d_timer.h"
 #include "gf3d_shape.h"
@@ -64,6 +65,7 @@ int main(int argc,char *argv[])
     Player* p1;
     Entity* ent2;
     Entity* stage;
+    Stage stag;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -127,6 +129,8 @@ int main(int argc,char *argv[])
     gfc_matrix_identity(stage->modelMat);
     gfc_matrix_make_translation(stage->modelMat, stage->position);
     gf3d_model_scale(stage->modelMat, stage->scale);
+
+    stag = app_stage_load("stage_final_valley");
 
     /* Setup first player */
     p1 = app_player_new();
@@ -299,6 +303,7 @@ int main(int argc,char *argv[])
     
     SDL_JoystickClose( controller );
     controller = NULL;
+    app_stage_free(&stag);
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
     //cleanup
     slog("gf3d program end");

@@ -1,0 +1,12 @@
+{
+    "floor":
+    {
+        "position":                     [0.0, 0.0, -10.0],
+        "scale":                        [100.0, 100.0, 1.0],
+        "model":
+        {
+            "model":                    "stage",
+            "texture":                  "water"
+        }
+    }
+}
