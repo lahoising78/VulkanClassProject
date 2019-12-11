@@ -18,7 +18,7 @@ Stage app_stage_load(const char *filename)
 
     slog("-------------- stage load --------------");
 
-    snprintf(assetname, GFCLINELEN, "paks/%s.paks", filename);
+    snprintf(assetname, GFCLINELEN, "paks/%s.json", filename);
     json = sj_load(assetname);
     if(!json)
     {
@@ -29,9 +29,11 @@ Stage app_stage_load(const char *filename)
     obj = sj_object_get_value(json, "floor");
     
     val = sj_object_get_value(obj, "position");
-    vector2d_copy(stage.floor->position, gf3d_vec2_load(val));
+    stage.floor->position = gf3d_vec3_load(val);
     val = sj_object_get_value(obj, "scale");
-    vector2d_copy(stage.floor->scale, gf3d_vec2_load(val));
+    stage.floor->scale = gf3d_vec3_load(val);
+    val = sj_object_get_value(obj, "rotation");
+    stage.floor->rotation = gf3d_vec3_load(val);
     val = sj_object_get_value(obj, "model");
     thirdLevelVal = sj_object_get_value(val, "model");
     snprintf(a, GFCLINELEN, "%s", sj_get_string_value(thirdLevelVal));

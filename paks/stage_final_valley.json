@@ -3,10 +3,24 @@
     {
         "position":                     [0.0, 0.0, -10.0],
         "scale":                        [100.0, 100.0, 1.0],
+        "rotation":                     [90.0, 90.0, 90.0],
         "model":
         {
-            "model":                    "stage",
-            "texture":                  "water"
+            "model":                    "cheap_water",
+            "texture":                  "cheap_water_tex"
         }
-    }
+    },
+    
+    "stageObjectCount":                       16,
+    "stageObjects":
+    [
+        {
+            "position":                 [-100.0, 100.0, 10.0],
+            "model":
+            {
+                "model":                "",
+                "texture":              ""
+            }
+        }
+    ]
 }

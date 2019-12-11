@@ -122,13 +122,13 @@ int main(int argc,char *argv[])
 
     // /* Set up the stage */
     // stage->healthmax = stage->health = 5000.0f;
-    stage = gf3d_entity_new();
-    stage->position = vector3d(0, 0, MAX_STAGE_Z);
-    stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
-    stage->model = gf3d_model_load("stage", NULL);
-    gfc_matrix_identity(stage->modelMat);
-    gfc_matrix_make_translation(stage->modelMat, stage->position);
-    gf3d_model_scale(stage->modelMat, stage->scale);
+    // stage = gf3d_entity_new();
+    // stage->position = vector3d(0, 0, MAX_STAGE_Z);
+    // stage->scale = vector3d(MAX_STAGE_X, MAX_STAGE_Y, STAGE_SCALE_Z);
+    // stage->model = gf3d_model_load("stage", NULL);
+    // gfc_matrix_identity(stage->modelMat);
+    // gfc_matrix_make_translation(stage->modelMat, stage->position);
+    // gf3d_model_scale(stage->modelMat, stage->scale);
 
     stag = app_stage_load("stage_final_valley");
 
