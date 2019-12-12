@@ -9,6 +9,7 @@ typedef struct
     Entity **stageObjects;
     uint32_t count;
     Entity *floor;
+    Entity *skybox;
     Entity *fighters[2];
 } Stage;
 

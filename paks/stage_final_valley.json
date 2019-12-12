@@ -11,16 +11,5 @@
         }
     },
     
-    "stageObjectCount":                       16,
-    "stageObjects":
-    [
-        {
-            "position":                 [-100.0, 100.0, 10.0],
-            "model":
-            {
-                "model":                "",
-                "texture":              ""
-            }
-        }
-    ]
+    "stageObjectCount":                       16
 }

@@ -1,0 +1,28 @@
+{
+    "floor":
+    {
+        "position":                 [0.0, 0.0, -10.0],
+        "scale":                    [100.0, 100.0, 1.0],
+        "rotation":                 [0.0, 90.0, 0.0],
+        "model":
+        {
+            "model":                "cheap_chunin_floor",
+            "texture":              "cheap_chunin_floor"
+        }
+    },
+
+    "stageObjectCount":             16,
+    "stageObjects":
+    [
+        {
+            "position":             [0.0, 100.0, 0.0],
+            "scale":                [10.0, 10.0, 10.0],
+            "rotation":             [0.0, 0.0, 90.0],
+            "model":
+            {
+                "model":            "cheap_tiger",
+                "texture":            "cheap_tiger"
+            }
+        }
+    ]
+}

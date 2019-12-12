@@ -9,12 +9,11 @@ Stage app_stage_load(const char *filename)
 
     SJson *json = NULL;
     SJson *obj = NULL;
-    SJson *val = NULL;
-    SJson *thirdLevelVal = NULL;
+    SJson *arr = NULL;
     TextLine assetname;
 
-    char a[GFCLINELEN];
-    char b[GFCLINELEN];
+    int i;
+    int c;
 
     slog("-------------- stage load --------------");
 
@@ -25,25 +24,38 @@ Stage app_stage_load(const char *filename)
         return stage;
     }
 
-    stage.floor = gf3d_entity_new();
     obj = sj_object_get_value(json, "floor");
-    
-    val = sj_object_get_value(obj, "position");
-    stage.floor->position = gf3d_vec3_load(val);
-    val = sj_object_get_value(obj, "scale");
-    stage.floor->scale = gf3d_vec3_load(val);
-    val = sj_object_get_value(obj, "rotation");
-    stage.floor->rotation = gf3d_vec3_load(val);
-    val = sj_object_get_value(obj, "model");
-    thirdLevelVal = sj_object_get_value(val, "model");
-    snprintf(a, GFCLINELEN, "%s", sj_get_string_value(thirdLevelVal));
-    thirdLevelVal = sj_object_get_value(val, "texture");
-    snprintf(b, GFCLINELEN, "%s", sj_get_string_value(thirdLevelVal));
-    stage.floor->model = gf3d_model_load(a, b);
-
-    gfc_matrix_identity(stage.floor->modelMat);
+    stage.floor = gf3d_entity_load(obj);
     gfc_matrix_make_translation(stage.floor->modelMat, stage.floor->position);
     gf3d_model_scale(stage.floor->modelMat, stage.floor->scale);
+    gfc_matrix_rotate(stage.floor->modelMat, stage.floor->modelMat, (stage.floor->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
+    gfc_matrix_rotate(stage.floor->modelMat, stage.floor->modelMat, (stage.floor->rotation.y) * GFC_DEGTORAD, vector3d(1, 0, 0));
+    gfc_matrix_rotate(stage.floor->modelMat, stage.floor->modelMat, (stage.floor->rotation.z) * GFC_DEGTORAD, vector3d(0, 1, 0));
+
+    obj = sj_object_get_value(json, "skybox");
+    if( obj )
+        stage.skybox = gf3d_entity_load(obj);
+    
+    obj = sj_object_get_value(json, "stageObjectCount");
+    if(obj)
+    {
+        sj_get_integer_value(obj, &c);
+        stage.count = (uint32_t)c;
+        stage.stageObjects = (Entity**)gfc_allocate_array(sizeof(Entity*), stage.count);
+    }
+
+    arr = sj_object_get_value(json, "stageObjects");
+    if(arr)
+    {
+        for(i = 0; i < stage.count; i++)
+        {
+            obj = sj_array_get_nth(arr, i);
+            if(!obj) break;
+
+            stage.stageObjects[i] = gf3d_entity_load(obj);
+            stage.stageObjects[i]->update = gf3d_entity_general_update;
+        }
+    }
 
     sj_free(json);
     return stage;
