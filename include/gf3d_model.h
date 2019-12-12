@@ -81,11 +81,13 @@ void gf3d_model_free(Model *model);
  */
 void gf3d_model_update_basic_model_descriptor_set(Model *model,VkDescriptorSet descriptorSet,Uint32 chainIndex,Matrix4 modelMat);
 
-/* 
+/** 
  * @brief scale the matrix
  * @param modelMat the matrix of the model to scale
  * @param scale scale in x, y and z
  */
 void gf3d_model_scale( Matrix4 modelMat, Vector3D scale );
+
+// void gf3d_model_orthographic_perspective(Matrix4 mat, float left, float right, float bottom, float top, float near, float far);
 
 #endif
