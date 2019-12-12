@@ -34,7 +34,17 @@ Stage app_stage_load(const char *filename)
 
     obj = sj_object_get_value(json, "skybox");
     if( obj )
+    {
         stage.skybox = gf3d_entity_load(obj);
+        if( stage.skybox )
+        {
+            gfc_matrix_make_translation(stage.skybox->modelMat, stage.skybox->position);
+            gf3d_model_scale(stage.skybox->modelMat, stage.skybox->scale);
+            gfc_matrix_rotate(stage.skybox->modelMat, stage.skybox->modelMat, (stage.skybox->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
+            gfc_matrix_rotate(stage.skybox->modelMat, stage.skybox->modelMat, (stage.skybox->rotation.y) * GFC_DEGTORAD, vector3d(1, 0, 0));
+            gfc_matrix_rotate(stage.skybox->modelMat, stage.skybox->modelMat, (stage.skybox->rotation.z) * GFC_DEGTORAD, vector3d(0, 1, 0));
+        }
+    }
     
     obj = sj_object_get_value(json, "stageObjectCount");
     if(obj)
