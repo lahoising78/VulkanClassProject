@@ -30,7 +30,7 @@
 #define GE_COLB         16
 #define GE_COLA         18
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, Window **inspectors);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
 Window *inspectorWindow = NULL;
@@ -65,6 +65,7 @@ void add_editor_entity(Button *btn)
     e->ext = vector2d(50.0f, 50.0f);
     e->parent = centerWindow;
     e->ent.type = eType;
+    e->ent.visible = 1;
     switch(eType)
     {
         case GF3D_HUD_TYPE_GUI_ELEMENT:
@@ -132,6 +133,7 @@ void add_editor_entity(Button *btn)
         vector4d(200.0f, 200.0f, 200.0f, 255.0f),
         e->ent.name
     );
+    lbl.visible = 1;
     gf3d_hud_window_add_element(leftWindow, lbl);
 }
 
@@ -153,6 +155,7 @@ int app_editor_main(int argc, char *argv[])
     Gui *rightPane = NULL;
     Gui *leftPane = NULL;
     Gui *center = NULL;
+    Window *inspectors[GF3D_HUD_TYPE_NUM-1];
 
     HudElement buf = {0};
 
@@ -176,7 +179,7 @@ int app_editor_main(int argc, char *argv[])
     );
     app_editor_entity_manager_init(32);
 
-    running = app_editor_load(&rightPane, &leftPane, &center);
+    running = app_editor_load(&rightPane, &leftPane, &center, inspectors);
 
     slog("\033[0;32m================= Main Loop ===================\033[0m");
     frameTimer = gf3d_timer_new();
@@ -243,7 +246,7 @@ int app_editor_main(int argc, char *argv[])
             {
                 if( leftWindow && leftWindow->countActual == 0 )
                 {
-                    running = app_editor_load(&rightPane, &leftPane, &center);
+                    running = app_editor_load(&rightPane, &leftPane, &center, inspectors);
                 }
             }
             /* next gui type */
@@ -280,7 +283,7 @@ int app_editor_main(int argc, char *argv[])
     return 0;
 }
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, Window **inspectors)
 {
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
     app_editor_entity_manager_clean();
@@ -298,6 +301,7 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center)
         return 0;
     }
     inspectorWindow = (*rightPane)->elements[2].element.window;
+    inspectors[0] = inspectorWindow;
     slog("-==== what type is it %d ====-", (*rightPane)->elements[2].type);
 
     if( *leftPane )
@@ -396,7 +400,7 @@ void update_inspector_element(HudElement *e, float val)
         snprintf(buf, GFCLINELEN, "%.2f", val);
         if( gfc_line_cmp( e->element.textInput->textDisplay->text, buf ) != 0 )
         {
-            e->element.textInput->textDisplay->textDisp->extents.x = strlen(buf) * 16.0f;
+            e->element.textInput->textDisplay->textDisp->extents.x = strlen(buf) * e->element.textInput->textDisplay->size;
             gf3d_hud_label_set_text(e->element.textInput->textDisplay, buf);
         }
     }
@@ -473,31 +477,22 @@ void update_element_values( HudElement nameInput )
     if(!ent) return;
 
     e = &ent->ent;
+    if( gfc_line_cmp(nameInput.element.textInput->textDisplay->text, e->name) != 0 )
+    {
+        gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
+    }
+
     switch(e->type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
-        if( gfc_line_cmp(nameInput.element.textInput->textDisplay->text, e->name) != 0 )
-        {
-            gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
-        }
         
-        if( ent->pos.x != (pos.x = (float)atof(inspectorWindow->elements[ GE_POSX ].element.textInput->textDisplay->text)) )
-        {
-            ent->pos.x = pos.x;
-        }
-        if( ent->pos.y != (pos.y = (float)atof(inspectorWindow->elements[ GE_POSY ].element.textInput->textDisplay->text)) )
-        {
-            ent->pos.y = pos.y;
-        }
+        pos.x = (float)atof(inspectorWindow->elements[ GE_POSX ].element.textInput->textDisplay->text);
+        pos.y = (float)atof(inspectorWindow->elements[ GE_POSY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->pos, pos);
 
-        if( ent->ext.x != (ext.x = (float)atof(inspectorWindow->elements[ GE_EXTX ].element.textInput->textDisplay->text)) )
-        {
-            ent->ext.x = ext.x;
-        }
-        if( ent->ext.y != (ext.y = (float)atof(inspectorWindow->elements[ GE_EXTY ].element.textInput->textDisplay->text)) )
-        {
-            ent->ext.y = ext.y;
-        }
+        ext.x = (float)atof(inspectorWindow->elements[ GE_EXTX ].element.textInput->textDisplay->text);
+        ext.y = (float)atof(inspectorWindow->elements[ GE_EXTY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->ext, ext);
         
         col.x = (float)atof(inspectorWindow->elements[ GE_COLR ].element.textInput->textDisplay->text);
         col.y = (float)atof(inspectorWindow->elements[ GE_COLG ].element.textInput->textDisplay->text);
@@ -505,6 +500,9 @@ void update_element_values( HudElement nameInput )
         col.w = (float)atof(inspectorWindow->elements[ GE_COLA ].element.textInput->textDisplay->text);
         vector4d_copy(e->element.guiElement->color, col);
         
+        break;
+
+    case GF3D_HUD_TYPE_PROGRESS_BAR:
         break;
 
     default:

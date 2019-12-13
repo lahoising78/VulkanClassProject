@@ -43,6 +43,7 @@ typedef struct
     GuiElement *textDisp;
     Vector4D textColor;
     char *text;
+    float size;
 } Label;
 
 Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4D textColor, const char *text);
@@ -86,6 +87,7 @@ typedef struct hud_element_t
 
     HudType type;
     char name[GFCLINELEN];
+    uint8_t visible;
 } HudElement;
 
 HudElement gf3d_hud_element_load(SJson *json);

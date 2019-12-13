@@ -228,8 +228,9 @@ Label *gf3d_hud_label_create(Vector2D pos, Vector2D ext, Vector4D color, Vector4
     vector4d_copy(label->textColor, textColor);
     label->display = gf3d_gui_element_create(pos, ext, color);
 
-    ext.x = strlen(text) * 16.0f;
-    ext.y = 32.0f;
+    label->size = 16.0f;
+    ext.x = strlen(text) * label->size;
+    ext.y = label->size * 2;
     
     label->textDisp = gf3d_gui_element_create(pos, ext, textColor);
     
@@ -291,6 +292,12 @@ Label *gf3d_hud_label_load(SJson *json)
     arr = sj_object_get_value(json, "text");
 
     label = gf3d_hud_label_create(pos, ext, color, textColor, sj_get_string_value(arr));
+    if(label)
+    {
+        obj = sj_object_get_value(json, "size");
+        if(obj) sj_get_float_value(obj, &label->size);
+        else label->size = 16.0f;
+    }
 
     return label;
 }
@@ -309,6 +316,11 @@ void gf3d_hud_label_update(Label *label)
     if(!label) return;
 
     gf3d_gui_element_update(label->display);
+    if( label->textDisp->extents.y != label->size * 2.0f )
+    {
+        label->textDisp->extents.x = strlen(label->text) * label->size;
+        label->textDisp->extents.y = label->size * 2.0f;
+    }
     gf3d_gui_element_update(label->textDisp);
 }
 
@@ -465,7 +477,7 @@ void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event
                 if( strlen(textInput->textDisplay->text) < LABEL_MAX_CHARACTERS - 1 )
                 {
                     strcat(textInput->textDisplay->text, e.text.text);
-                    textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * 16.0f;
+                    textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * textInput->textDisplay->size;
                     gf3d_hud_label_set_text(textInput->textDisplay, textInput->textDisplay->text);
                 }
                 break;
@@ -490,6 +502,7 @@ HudElement gf3d_hud_element_load(SJson *json)
 
     HudElement e = {0};
     int type = GF3D_HUD_TYPE_NONE;
+    int visible = 0;
 
     obj = sj_object_get_value(json, "file");
     if(obj)
@@ -507,6 +520,17 @@ HudElement gf3d_hud_element_load(SJson *json)
     else
     {
         gfc_line_cpy(e.name, "Element");
+    }
+
+    obj = sj_object_get_value(json, "visible");
+    if(obj)
+    {
+        sj_get_integer_value(obj, &visible);
+        e.visible = visible;
+    }
+    else
+    {
+        e.visible = 1;
     }
 
     switch (type)
@@ -609,6 +633,7 @@ HudElement gf3d_hud_element_load_hud_file(SJson *json)
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     if(!e) return;
+    if(!e->visible) return;
     switch(e->type)
     {
         case GF3D_HUD_TYPE_GUI_ELEMENT:
