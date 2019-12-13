@@ -30,13 +30,14 @@ int screenHeight = 700;
 
 uint8_t lctrl = 0;
 uint8_t rctrl = 0;
+uint8_t inspectorSelected = 0;
 
 HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
 
 void add_editor_entity(Button *btn);
 void next_hud_type();
 void set_add_btn_text(Gui *layer);
-void update_inspector_values();
+void update_inspector_values( HudElement nameInput );
 void removed_editor_entity(char *name);
 
 OnClickCallback on_clicks[32] = {add_editor_entity};
@@ -193,7 +194,7 @@ int app_editor_main(int argc, char *argv[])
         }
 
         app_editor_entity_manager_update(keys, mouse);
-        update_inspector_values();
+        update_inspector_values( rightPane->elements[1] );
         gf3d_gui_manager_update(keys, mouse);
 
         bufferFrame = gf3d_vgraphics_render_begin();
@@ -239,6 +240,18 @@ int app_editor_main(int argc, char *argv[])
             {
                 next_hud_type();
                 set_add_btn_text(leftPane);
+            }
+            /* inspector is selected */
+            else if ( (e = mouse[SDL_BUTTON_LEFT]).type == SDL_MOUSEBUTTONUP )
+            {
+                if( e.button.x >= rightPane->bg->position.x && e.button.x < rightPane->bg->position.x + rightPane->bg->extents.x )
+                {
+                    inspectorSelected = 1;
+                }
+                else
+                {
+                    inspectorSelected = 0;
+                }
             }
         }
     }
@@ -373,17 +386,57 @@ void update_inspector_element(HudElement *e, float val)
     }
 }
 
-void update_inspector_values()
+void update_inspector_element_char(HudElement *e, char *text)
+{
+    if(!e) return;
+    
+    switch( e->type )
+    {
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        if( gfc_line_cmp( e->element.textInput->textDisplay->text, text ) != 0 )
+        {
+            e->element.textInput->textDisplay->textDisp->extents.x = strlen(text) * 16.0f;
+            gf3d_hud_label_set_text(e->element.textInput->textDisplay, text);
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void update_inspector_values( HudElement nameInput )
 {
     EditorEntity *ent = NULL;
 
+    if(inspectorSelected) 
+    {
+        // slog("inspector selected");
+        return;
+    }
     if(!inspectorWindow) return;
 
     ent = app_editor_entity_manager_get_selected();
     if( !ent || ent->dragging ) return;
 
-    update_inspector_element( &inspectorWindow->elements[2], ent->pos.x );
-    update_inspector_element( &inspectorWindow->elements[4], ent->pos.y );
+    update_inspector_element_char(&nameInput, ent->ent.name);
+
+    switch (ent->ent.type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        update_inspector_element( &inspectorWindow->elements[2],    ent->pos.x );
+        update_inspector_element( &inspectorWindow->elements[4],    ent->pos.y );
+        update_inspector_element( &inspectorWindow->elements[7],    ent->ext.x );
+        update_inspector_element( &inspectorWindow->elements[9],    ent->ext.y );
+        update_inspector_element( &inspectorWindow->elements[12],   ent->ent.element.guiElement->color.x );
+        update_inspector_element( &inspectorWindow->elements[14],   ent->ent.element.guiElement->color.y );
+        update_inspector_element( &inspectorWindow->elements[16],   ent->ent.element.guiElement->color.z );
+        update_inspector_element( &inspectorWindow->elements[18],   ent->ent.element.guiElement->color.w );
+        break;
+
+    default:
+        break;
+    }
     
 }
 
