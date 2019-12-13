@@ -469,7 +469,7 @@ void gf3d_hud_text_input_update(TextInput *textInput, SDL_Event *keys, SDL_Event
             case SDL_KEYDOWN:
                 if( e.key.keysym.sym != SDLK_BACKSPACE || strlen(textInput->textDisplay->text) <= 0 ) break;
                 textInput->textDisplay->text[ strlen(textInput->textDisplay->text) - 1 ] = 0;
-                textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * 16.0f;
+                textInput->textDisplay->textDisp->extents.x = strlen(textInput->textDisplay->text) * textInput->textDisplay->size;
                 gf3d_hud_label_set_text(textInput->textDisplay, textInput->textDisplay->text);
                 break;
 
@@ -790,6 +790,11 @@ void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
         vector2d_copy(e.element.guiElement->extents, ext);
+        break;
+
+    case GF3D_HUD_TYPE_PROGRESS_BAR:
+        vector2d_copy(e.element.pBar->back->extents, ext);
+        e.element.pBar->fore->extents.y = ext.y - e.element.pBar->bgWidth.y * 2.0f;
         break;
     
     default:
