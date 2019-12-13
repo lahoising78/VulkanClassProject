@@ -20,6 +20,16 @@
 #define DEFAULT_ELEMENT_COLOR vector4d(255.0f, 255.0f, 255.0f, 255.0f)
 #define DEFAULT_ELEMENT_TEXT_COLOR vector4d(180.0f, 180.0f, 180.0f, 255.0f)
 
+/* gui element indices */
+#define GE_POSX         2
+#define GE_POSY         4
+#define GE_EXTX         7
+#define GE_EXTY         9
+#define GE_COLR         12
+#define GE_COLG         14
+#define GE_COLB         16
+#define GE_COLA         18
+
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
@@ -38,6 +48,7 @@ void add_editor_entity(Button *btn);
 void next_hud_type();
 void set_add_btn_text(Gui *layer);
 void update_inspector_values( HudElement nameInput );
+void update_element_values( HudElement nameInput );
 void removed_editor_entity(char *name);
 
 OnClickCallback on_clicks[32] = {add_editor_entity};
@@ -253,6 +264,11 @@ int app_editor_main(int argc, char *argv[])
                     inspectorSelected = 0;
                 }
             }
+            /* update element values when enter key is pressed */
+            else if ( keys[SDL_SCANCODE_RETURN].type == SDL_KEYDOWN )
+            {
+                update_element_values( rightPane->elements[1] );
+            }
         }
     }
 
@@ -438,6 +454,67 @@ void update_inspector_values( HudElement nameInput )
         break;
     }
     
+}
+
+void update_element_values( HudElement nameInput )
+{
+    EditorEntity *ent = NULL;
+    HudElement *e = NULL;
+
+    Vector2D pos = {0};
+    Vector2D ext = {0};
+    Vector4D col = {0};
+
+    if(!inspectorSelected) return;
+    if(!inspectorWindow) return;
+    if(nameInput.type != GF3D_HUD_TYPE_TEXT_INPUT) return;
+
+    ent = app_editor_entity_manager_get_selected();
+    if(!ent) return;
+
+    e = &ent->ent;
+    switch(e->type)
+    {
+    case GF3D_HUD_TYPE_GUI_ELEMENT:
+        if( gfc_line_cmp(nameInput.element.textInput->textDisplay->text, e->name) != 0 )
+        {
+            gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
+        }
+        
+        if( ent->pos.x != (pos.x = (float)atof(inspectorWindow->elements[ GE_POSX ].element.textInput->textDisplay->text)) )
+        {
+            ent->pos.x = pos.x;
+        }
+        if( ent->pos.y != (pos.y = (float)atof(inspectorWindow->elements[ GE_POSY ].element.textInput->textDisplay->text)) )
+        {
+            ent->pos.y = pos.y;
+        }
+
+        if( ent->ext.x != (ext.x = (float)atof(inspectorWindow->elements[ GE_EXTX ].element.textInput->textDisplay->text)) )
+        {
+            ent->ext.x = ext.x;
+        }
+        if( ent->ext.y != (ext.y = (float)atof(inspectorWindow->elements[ GE_EXTY ].element.textInput->textDisplay->text)) )
+        {
+            ent->ext.y = ext.y;
+        }
+        
+        col.x = (float)atof(inspectorWindow->elements[ GE_COLR ].element.textInput->textDisplay->text);
+        col.y = (float)atof(inspectorWindow->elements[ GE_COLG ].element.textInput->textDisplay->text);
+        col.z = (float)atof(inspectorWindow->elements[ GE_COLB ].element.textInput->textDisplay->text);
+        col.w = (float)atof(inspectorWindow->elements[ GE_COLA ].element.textInput->textDisplay->text);
+        vector4d_copy(e->element.guiElement->color, col);
+        
+        break;
+
+    default:
+        slog("default state...");
+        break;
+    }
+    
+    gf3d_hud_element_set_extents(*e, ext);
+    app_editor_entity_fix_pos(ent);
+    gf3d_hud_element_set_position(*e, ent->pos);
 }
 
 void removed_editor_entity(char *name)

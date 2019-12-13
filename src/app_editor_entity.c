@@ -136,10 +136,7 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     {
         e->pos.x += evt.motion.xrel;
         e->pos.y += evt.motion.yrel;
-        if(e->pos.x < 0.0f) e->pos.x = 0.0f;
-        else if (e->pos.x + e->ext.x > e->parent->bg->extents.x) e->pos.x = e->parent->bg->extents.x - e->ext.x;
-        if(e->pos.y < 0.0f) e->pos.y = 0.0f;
-        else if (e->pos.y + e->ext.y > e->parent->bg->extents.y) e->pos.y = e->parent->bg->extents.y - e->ext.y;
+        app_editor_entity_fix_pos(e);
         gf3d_hud_element_set_position(e->ent, e->pos);
     }
 }
@@ -154,4 +151,13 @@ void app_editor_entity_free(EditorEntity *e)
         gf3d_hud_window_remove_element(e->parent, e->ent);
     }
     memset(e, 0, sizeof(EditorEntity));
+}
+
+void app_editor_entity_fix_pos(EditorEntity *e)
+{
+    if(!e) return;
+    if(e->pos.x < 0.0f) e->pos.x = 0.0f;
+    else if (e->pos.x + e->ext.x > e->parent->bg->extents.x) e->pos.x = e->parent->bg->extents.x - e->ext.x;
+    if(e->pos.y < 0.0f) e->pos.y = 0.0f;
+    else if (e->pos.y + e->ext.y > e->parent->bg->extents.y) e->pos.y = e->parent->bg->extents.y - e->ext.y;
 }

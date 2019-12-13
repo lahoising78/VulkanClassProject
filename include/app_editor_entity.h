@@ -23,4 +23,6 @@ EditorEntity *app_editor_entity_manager_get_selected();
 EditorEntity *app_editor_entity_create();
 void app_editor_entity_free(EditorEntity *e);
 
+void app_editor_entity_fix_pos(EditorEntity *e);
+
 #endif
