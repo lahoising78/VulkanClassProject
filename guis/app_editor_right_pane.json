@@ -88,6 +88,26 @@
                     "visible":          0
                 }
             }
+        },
+        
+        {
+            "file":
+            {
+                "filename":             "editor_button",
+                "window":
+                {
+                    "type":             6,
+                    "bg":
+                    {
+                        "position":     [1500.0, 50.0],
+                        "extents":      [300.0, 650.0],
+                        "color":        [100.0, 40.0, 70.0, 255.0]
+                    },
+                    "count":            64,
+                    "name":             "pb inspector",
+                    "visible":          0
+                }
+            }
         }
     ]
 }

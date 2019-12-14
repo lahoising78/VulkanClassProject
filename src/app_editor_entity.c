@@ -134,8 +134,8 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     /* motion is recorded in the button being pressed */
     if(e->dragging && evt.type == SDL_MOUSEMOTION)
     {
-        e->pos.x += evt.motion.xrel;
-        e->pos.y += evt.motion.yrel;
+        e->pos.x += evt.motion.xrel * (worldTime * 400.0f);
+        e->pos.y += evt.motion.yrel * (worldTime * 400.0f);
         app_editor_entity_fix_pos(e);
         gf3d_hud_element_set_position(e->ent, e->pos);
     }

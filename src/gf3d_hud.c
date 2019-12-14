@@ -707,6 +707,7 @@ void gf3d_hud_element_free(HudElement *e)
 void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse)
 {
     if(!e) return;
+    if(!e->visible) return;
 
     switch (e->type)
     {
@@ -800,6 +801,9 @@ void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
     case GF3D_HUD_TYPE_BUTTON:
         vector2d_copy(e.element.button->bg->display->extents, ext);
         break;
+
+    case GF3D_HUD_TYPE_LABEL:
+        vector2d_copy(e.element.label->display->extents, ext);
     
     default:
         break;

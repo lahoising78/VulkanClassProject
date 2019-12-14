@@ -13,6 +13,8 @@ typedef struct
     uint8_t dragging;
 } EditorEntity;
 
+extern float worldTime;
+
 void app_editor_entity_manager_init(uint32_t count);
 void app_editor_entity_manager_clean();
 void app_editor_entity_manager_update(SDL_Event *keys, SDL_Event *mouse);
