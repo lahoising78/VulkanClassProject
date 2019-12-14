@@ -460,7 +460,7 @@ void update_inspector_element_char(HudElement *e, char *text)
     case GF3D_HUD_TYPE_TEXT_INPUT:
         if( gfc_line_cmp( e->element.textInput->textDisplay->text, text ) != 0 )
         {
-            e->element.textInput->textDisplay->textDisp->extents.x = strlen(text) * 16.0f;
+            e->element.textInput->textDisplay->textDisp->extents.x = strlen(text) * e->element.textInput->textDisplay->size;
             gf3d_hud_label_set_text(e->element.textInput->textDisplay, text);
         }
         break;
@@ -611,7 +611,32 @@ void update_element_values( HudElement nameInput )
 
     case GF3D_HUD_TYPE_BUTTON:
 
+        pos.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSX ].element.textInput->textDisplay->text);
+        pos.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->pos, pos);
+
+        ext.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_EXTX ].element.textInput->textDisplay->text);
+        ext.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_EXTY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->ext, ext);
         
+        col.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLR ].element.textInput->textDisplay->text);
+        col.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLG ].element.textInput->textDisplay->text);
+        col.z = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLB ].element.textInput->textDisplay->text);
+        col.w = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLA ].element.textInput->textDisplay->text);
+        vector4d_copy(e->element.button->bg->display->color, col);
+        
+        col.x = (float)atof(inspectorWindow->elements[ BTN_TCR ].element.textInput->textDisplay->text);
+        col.y = (float)atof(inspectorWindow->elements[ BTN_TCG ].element.textInput->textDisplay->text);
+        col.z = (float)atof(inspectorWindow->elements[ BTN_TCB ].element.textInput->textDisplay->text);
+        col.w = (float)atof(inspectorWindow->elements[ BTN_TCA ].element.textInput->textDisplay->text);
+        vector4d_copy(e->element.button->bg->textColor, col);        
+        vector4d_copy(e->element.button->bg->textDisp->color, col);
+
+        if( gfc_line_cmp(e->element.button->bg->text, inspectorWindow->elements[BTN_TXT].element.textInput->textDisplay->text) != 0 )
+        {
+            gf3d_hud_label_set_text(e->element.button->bg, inspectorWindow->elements[BTN_TXT].element.textInput->textDisplay->text);
+            e->element.button->bg->textDisp->extents.x = strlen(e->element.button->bg->text) * e->element.button->bg->size;
+        }
 
         break;
 

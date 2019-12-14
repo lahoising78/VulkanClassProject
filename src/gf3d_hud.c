@@ -796,6 +796,10 @@ void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
         vector2d_copy(e.element.pBar->back->extents, ext);
         e.element.pBar->fore->extents.y = ext.y - e.element.pBar->bgWidth.y * 2.0f;
         break;
+
+    case GF3D_HUD_TYPE_BUTTON:
+        vector2d_copy(e.element.button->bg->display->extents, ext);
+        break;
     
     default:
         break;
