@@ -46,6 +46,14 @@
 #define PB_FGCB         30
 #define PB_FGCA         32
 
+/* button indices */
+#define BTN_WIN         0
+#define BTN_TCR         3
+#define BTN_TCG         5
+#define BTN_TCB         7
+#define BTN_TCA         9
+#define BTN_TXT         11
+
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
@@ -508,6 +516,22 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[PB_FGCA],  ent->ent.element.pBar->fore->color.w );
         break;
 
+    case GF3D_HUD_TYPE_BUTTON:
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSX ], ent->pos.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.button->bg->display->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.button->bg->display->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.button->bg->display->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.button->bg->display->color.w );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent.element.button->bg->textColor.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent.element.button->bg->textColor.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent.element.button->bg->textColor.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.button->bg->textColor.w );
+        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.button->bg->text );
+        break;
+
     default:
         break;
     }
@@ -582,6 +606,12 @@ void update_element_values( HudElement nameInput )
         col.z = (float)atof(inspectorWindow->elements[ PB_FGCB ].element.textInput->textDisplay->text);
         col.w = (float)atof(inspectorWindow->elements[ PB_FGCA ].element.textInput->textDisplay->text);
         vector4d_copy(e->element.pBar->fore->color, col);
+
+        break;
+
+    case GF3D_HUD_TYPE_BUTTON:
+
+        
 
         break;
 
