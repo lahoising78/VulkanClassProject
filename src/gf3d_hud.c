@@ -804,6 +804,11 @@ void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
 
     case GF3D_HUD_TYPE_LABEL:
         vector2d_copy(e.element.label->display->extents, ext);
+        break;
+
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        vector2d_copy(e.element.textInput->textDisplay->display->extents, ext);
+        break;
     
     default:
         break;

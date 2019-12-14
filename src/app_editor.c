@@ -552,6 +552,22 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.label->textColor.w );
         update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.label->text );
         break;
+        
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSX ], ent->pos.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.textInput->textDisplay->display->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.textInput->textDisplay->display->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.textInput->textDisplay->display->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.textInput->textDisplay->display->color.w );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent.element.textInput->textDisplay->textColor.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent.element.textInput->textDisplay->textColor.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent.element.textInput->textDisplay->textColor.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.textInput->textDisplay->textColor.w );
+        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.textInput->textDisplay->text );
+        break;
 
     default:
         break;
@@ -632,6 +648,7 @@ void update_element_values( HudElement nameInput )
 
     case GF3D_HUD_TYPE_BUTTON:
     case GF3D_HUD_TYPE_LABEL:
+    case GF3D_HUD_TYPE_TEXT_INPUT:
 
         pos.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSX ].element.textInput->textDisplay->text);
         pos.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSY ].element.textInput->textDisplay->text);
@@ -646,6 +663,7 @@ void update_element_values( HudElement nameInput )
         col.z = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLB ].element.textInput->textDisplay->text);
         col.w = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLA ].element.textInput->textDisplay->text);
         if(e->type == GF3D_HUD_TYPE_BUTTON) vector4d_copy(e->element.button->bg->display->color, col);
+        else if(e->type == GF3D_HUD_TYPE_TEXT_INPUT) vector4d_copy(e->element.textInput->textDisplay->display->color, col);
         else vector4d_copy(e->element.label->display->color, col);
         
         col.x = (float)atof(inspectorWindow->elements[ BTN_TCR ].element.textInput->textDisplay->text);
@@ -660,6 +678,16 @@ void update_element_values( HudElement nameInput )
             {
                 gf3d_hud_label_set_text(e->element.button->bg, inspectorWindow->elements[BTN_TXT].element.textInput->textDisplay->text);
                 e->element.button->bg->textDisp->extents.x = strlen(e->element.button->bg->text) * e->element.button->bg->size;
+            }
+        }
+        else if(e->type == GF3D_HUD_TYPE_TEXT_INPUT)
+        {
+            vector4d_copy(e->element.textInput->textDisplay->textColor, col);        
+            vector4d_copy(e->element.textInput->textDisplay->textDisp->color, col);
+            if( gfc_line_cmp(e->element.textInput->textDisplay->text, inspectorWindow->elements[BTN_TXT].element.textInput->textDisplay->text) != 0 )
+            {
+                gf3d_hud_label_set_text(e->element.textInput->textDisplay, inspectorWindow->elements[BTN_TXT].element.textInput->textDisplay->text);
+                e->element.textInput->textDisplay->textDisp->extents.x = strlen(e->element.textInput->textDisplay->text) * e->element.textInput->textDisplay->size;
             }
         }
         else
