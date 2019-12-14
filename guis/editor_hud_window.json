@@ -1,0 +1,71 @@
+{
+    "elements":
+    [
+        {
+            "file":
+            {
+                "filename":                 "editor_gui_element",
+                "window":
+                {
+                    "type":                 6,
+                    "bg":
+                    {
+                        "position":         [0.0, 0.0],
+                        "extents":          [300.0, 202.0],
+                        "color":            [0.0, 0.0, 0.0, 0.0]
+                    },
+                    "count":                32,
+                    "name":                 "details"
+                }
+            }
+        },
+
+        {
+            "type":                     4,
+            "position":                 [10.0, 212.0],
+            "extents":                  [157.5, 21.0],
+            "color":                    [0.0, 0.0, 0.0, 0.0],
+            "textColor":                [200.0, 200.0, 200.0, 255.0],
+            "text":                     "element count",
+            "size":                     10.5
+        },
+
+        {
+            "type":             5,
+            "label":
+            {
+                "position":     [163.0, 212.0],
+                "extents":      [121.0, 21.0],
+                "color":        [20.0, 20.0, 20.0, 255.0],
+                "textColor":    [200.0, 200.0, 200.0, 255.0],
+                "text":         "32",
+                "size":10.5
+            },
+            "name":             "colorr"
+        },
+
+        {
+            "type":                     4,
+            "position":                 [10.0, 243.0],
+            "extents":                  [157.5, 21.0],
+            "color":                    [0.0, 0.0, 0.0, 0.0],
+            "textColor":                [200.0, 200.0, 200.0, 255.0],
+            "text":                     "filename",
+            "size":                     10.5
+        },
+
+        {
+            "type":             5,
+            "label":
+            {
+                "position":     [10.0, 269.0],
+                "extents":      [284.0, 21.0],
+                "color":        [20.0, 20.0, 20.0, 255.0],
+                "textColor":    [200.0, 200.0, 200.0, 255.0],
+                "text":         ".",
+                "size":         10.5
+            },
+            "name":             "colorr"
+        }
+    ]
+}

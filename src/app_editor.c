@@ -54,6 +54,10 @@
 #define BTN_TCA         9
 #define BTN_TXT         11
 
+/* window indices */
+#define WIN_CNT         2
+#define WIN_INF         4
+
 uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
@@ -135,8 +139,18 @@ void add_editor_entity(Button *btn)
 
         case GF3D_HUD_TYPE_WINDOW:
             e->ent.element.window = gf3d_hud_window_create(
-                32, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
+                1, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
             );
+            if(e->ent.element.window)
+            {
+                if(e->ent.element.window->elements)
+                    free(e->ent.element.window->elements);
+                if(e->ent.element.window->elementPositions)
+                    free(e->ent.element.window->elementPositions);
+                e->ent.element.window->elements = NULL;
+                e->ent.element.window->elementPositions = NULL;
+                e->ent.element.window->count = 0;
+            } 
             break;
 
         default:
@@ -569,6 +583,19 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.textInput->textDisplay->text );
         break;
 
+    case GF3D_HUD_TYPE_WINDOW:
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSX ], ent->pos.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.window->bg->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.window->bg->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.window->bg->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.window->bg->color.w );
+        update_inspector_element( &inspectorWindow->elements[WIN_CNT], ent->ent.element.window->count );
+        update_inspector_element_char( &inspectorWindow->elements[WIN_INF], ent->ent.name );
+        break;
+
     default:
         break;
     }
@@ -593,10 +620,6 @@ void update_element_values( HudElement nameInput )
     if(!ent) return;
 
     e = &ent->ent;
-    if( gfc_line_cmp(nameInput.element.textInput->textDisplay->text, e->name) != 0 )
-    {
-        gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
-    }
 
     switch(e->type)
     {
@@ -703,9 +726,35 @@ void update_element_values( HudElement nameInput )
 
         break;
 
+    case GF3D_HUD_TYPE_WINDOW:
+
+        pos.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSX ].element.textInput->textDisplay->text);
+        pos.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_POSY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->pos, pos);
+
+        ext.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_EXTX ].element.textInput->textDisplay->text);
+        ext.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_EXTY ].element.textInput->textDisplay->text);
+        vector2d_copy(ent->ext, ext);
+        
+        col.x = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLR ].element.textInput->textDisplay->text);
+        col.y = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLG ].element.textInput->textDisplay->text);
+        col.z = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLB ].element.textInput->textDisplay->text);
+        col.w = (float)atof(inspectorWindow->elements[ BTN_WIN ].element.window->elements[ GE_COLA ].element.textInput->textDisplay->text);
+        vector4d_copy(e->element.window->bg->color, col);
+
+        e->element.window->countActual = (float)atof(inspectorWindow->elements[ WIN_CNT ].element.textInput->textDisplay->text);
+        gfc_line_cpy(ent->ent.name, inspectorWindow->elements[WIN_INF].element.textInput->textDisplay->text);
+
+        break;
+
     default:
         slog("default state...");
         break;
+    }
+
+    if( gfc_line_cmp(nameInput.element.textInput->textDisplay->text, e->name) != 0 )
+    {
+        gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
     }
     
     gf3d_hud_element_set_extents(*e, ext);
