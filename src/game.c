@@ -115,8 +115,8 @@ int main(int argc,char *argv[])
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
 
-    // stage = app_stage_load("stage_final_valley");
-    stage = app_stage_load("stage_chunin_exam");
+    stage = app_stage_load("stage_final_valley");
+    // stage = app_stage_load("stage_chunin_exam");
 
     /* Setup first player */
     p1 = app_player_new();
