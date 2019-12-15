@@ -62,6 +62,7 @@ void gf3d_gui_element_manager_init(VkDevice device, Pipeline *pipe);
 
 GuiElement *gf3d_gui_element_create(Vector2D pos, Vector2D ext, Vector4D color);
 GuiElement *gf3d_gui_element_load(SJson *json);
+SJson *gf3d_gui_element_to_json(GuiElement *e);
 void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName);
 void gf3d_gui_element_attach_texture_from_surface(GuiElement *gui, SDL_Surface *surface);
 

@@ -1,0 +1,86 @@
+{
+    "elementCount":                                 8,
+    "active":                                       0,
+    "visible":                                      0,
+
+    "bg":
+    {
+        "position":                                 [0.0, 0.0],
+        "extents":                                  [1800, 700.0],
+        "color":                                    [20.0, 20.0, 20.0, 200.0]
+    },
+
+    "elements":
+    [
+        {
+            "type":                                 6,
+            "bg":
+            {
+                "position":                         [500.0, 200.0],
+                "extents":                          [800.0, 300.0],
+                "color":                            [55.0, 55.0, 55.0, 255.0]
+            },
+            "count":                                16,
+
+            "elements":
+            [
+                {
+                    "type":                         4,
+                    "position":                     [10.0, 10.0],
+                    "extents":                      [200.0, 32.0],
+                    "color":                        [0.0, 0.0, 0.0, 0.0],
+                    "textColor":                    [255.0, 255.0, 255.0, 255.0],
+                    "text":                         "Save File As",
+                    "size":                         16.0
+                },
+
+                {
+                    "type":                         4,
+                    "position":                     [20.0, 47.0],
+                    "extents":                      [42.0, 21.0],
+                    "color":                        [0.0, 0.0, 0.0, 0.0],
+                    "textColor":                    [200.0, 200.0, 200.0, 255.0],
+                    "text":                         "file",
+                    "size":                         10.5
+                },
+
+                {
+                    "type":                         5,
+                    "label":
+                    {
+                        "position":                 [65.0, 47.0],
+                        "extents":                  [715.0, 21.0],
+                        "color":                    [0.0, 0.0, 0.0, 255.0],
+                        "textColor":                [200.0, 200.0, 200.0, 255.0],
+                        "text":                     "name of file here",
+                        "size":                     10.5
+                    }
+                },
+
+                {
+                    "type":                         4,
+                    "position":                     [40.0, 150.0],
+                    "extents":                      [0.0, 0.0],
+                    "color":                        [0.0, 0.0, 0.0, 0.0],
+                    "textColor":                    [180.0, 180.0, 180.0, 255.0],
+                    "text":                         "cannot save files with spaces",
+                    "visible":                      0
+                },
+
+                {
+                    "type":                         3,
+                    "label":
+                    {
+                        "position":                 [726.0, 258.0],
+                        "extents":                  [64.0, 32.0],
+                        "color":                    [100.0, 40.0, 70.0, 255.0],
+                        "textColor":                [200.0, 200.0, 200.0, 255.0],
+                        "text":                     "save"
+                    },
+                    "onClick":                      1
+                }
+            ]
+        }
+    ]
+
+}

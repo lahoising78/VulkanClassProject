@@ -19,6 +19,8 @@ typedef struct
     Uint32 elementCount;
     
     Uint8 _inuse;
+    uint8_t active;
+    uint8_t visible;
 } Gui;
 
 void gf3d_gui_manager_init(Uint32 count, VkDevice device);

@@ -58,10 +58,12 @@
 #define WIN_CNT         2
 #define WIN_INF         4
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors);
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors, Gui **saveWindow);
 Window *centerWindow = NULL;
 Window *leftWindow = NULL;
 Window *inspectorWindow = NULL;
+
+Gui *saveGui = NULL;
 
 int screenWidth = 1800;
 int screenHeight = 700;
@@ -73,13 +75,14 @@ uint8_t inspectorSelected = 0;
 HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
 
 void add_editor_entity(Button *btn);
+void save_file( Button *btn );
 void next_hud_type();
 void set_add_btn_text(Gui *layer);
 void update_inspector_values( HudElement nameInput );
 void update_element_values( HudElement nameInput );
 void removed_editor_entity(char *name);
 
-OnClickCallback on_clicks[32] = {add_editor_entity};
+OnClickCallback on_clicks[32] = {add_editor_entity, save_file};
 
 void add_editor_entity(Button *btn)
 {
@@ -218,7 +221,7 @@ int app_editor_main(int argc, char *argv[])
     );
     app_editor_entity_manager_init(32);
 
-    running = app_editor_load(&rightPane, &leftPane, &center, inspectors);
+    running = app_editor_load(&rightPane, &leftPane, &center, inspectors, &saveGui);
 
     slog("\033[0;32m================= Main Loop ===================\033[0m");
     frameTimer = gf3d_timer_new();
@@ -301,7 +304,7 @@ int app_editor_main(int argc, char *argv[])
             {
                 if( leftWindow && leftWindow->countActual == 0 )
                 {
-                    running = app_editor_load(&rightPane, &leftPane, &center, inspectors);
+                    running = app_editor_load(&rightPane, &leftPane, &center, inspectors, &saveGui);
                 }
             }
             /* next gui type */
@@ -327,6 +330,15 @@ int app_editor_main(int argc, char *argv[])
             {
                 update_element_values( rightPane->elements[1] );
             }
+            /* save */
+            if( lctrl && keys[SDL_SCANCODE_S].type ==  SDL_KEYDOWN )
+            {
+                saveGui->active = 1;
+                saveGui->visible = 1;
+                rightPane->active = 0;
+                leftPane->active = 0;
+                center->active = 0;
+            }
         }
 
         worldTime = gf3d_timer_get_ticks(&frame);
@@ -340,7 +352,7 @@ int app_editor_main(int argc, char *argv[])
     return 0;
 }
 
-uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors)
+uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElement **inspectors, Gui **saveGui)
 {
     int i;
     slog("%s=================== Load Entities ==================%s", GREEN_PRINT, PRINT_COLOR_END);
@@ -393,6 +405,19 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElemen
         return 0;
     }
     centerWindow = (*center)->elements[0].element.window;
+
+    if( *saveGui )
+    {
+        gf3d_gui_free( *saveGui );
+        *saveGui = NULL;
+    }
+
+    *saveGui = gf3d_gui_load("editor_save_gui");
+    if( !(*saveGui) )
+    {
+        slog("unable to load save gui");
+        return 0;
+    }
 
     set_add_btn_text(*leftPane);
 
@@ -774,4 +799,57 @@ void removed_editor_entity(char *name)
             break;
         }
     }
+}
+
+void save_file( Button *btn )
+{
+    SJson *json = NULL;
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+
+    Window *window = NULL;
+    TextLine assetname;
+
+    // Vector2D pos = {0}, ext = {0};
+    // Vector4D col = {0};
+    // int visible = 1, active = 1;
+
+    int i;
+
+    if(!saveGui) return;
+    window = saveGui->elements[0].element.window;
+
+    snprintf(assetname, GFCLINELEN, "guis/%s.json", window->elements[2].element.textInput->textDisplay->text);
+    if( strchr(assetname, ' ') )
+    {
+        saveGui->elements[0].element.window->elements[3].visible = 1;
+        return;
+    }
+
+    json = sj_object_new();
+    if(!json) return;
+
+    obj = sj_new_int(window->count);
+    sj_object_insert(json, "elementCount", obj);
+
+    obj = gf3d_gui_element_to_json(window->bg);
+    sj_object_insert(json, "bg", obj);
+
+    arr = sj_array_new();
+    if(arr)
+    {
+        for(i = 0; i < centerWindow->count; i++)
+        {
+            if(centerWindow->elements[i].type)
+            {
+                obj = gf3d_hud_element_save(&centerWindow->elements[i]);
+                sj_array_append(arr, obj);
+            }
+        }
+        sj_object_insert(json, "elements", arr);
+    }
+
+    sj_save(json, assetname);
+    slog("file saved to %s", assetname);
+    sj_free(json);
 }

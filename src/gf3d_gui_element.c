@@ -3,6 +3,7 @@
 #include "simple_logger.h"
 #include "gf3d_vgraphics.h"
 #include "gf3d_game_defines.h"
+#include "gf3d_vec.h"
 
 typedef struct 
 {
@@ -160,6 +161,27 @@ GuiElement *gf3d_gui_element_load(SJson *json)
     }
 
     return e;
+}
+
+SJson *gf3d_gui_element_to_json(GuiElement *e)
+{
+    SJson *obj = NULL;
+    SJson *arr = NULL;
+    if(!e) return;
+
+    obj = sj_object_new();
+    if(!obj) return NULL;
+
+    arr = gf3d_vec2_json(e->position);
+    sj_object_insert(obj, "position", arr);
+    
+    arr = gf3d_vec2_json(e->extents);
+    sj_object_insert(obj, "extents", arr);
+
+    arr = gf3d_vec4_json(e->color);
+    sj_object_insert(obj, "color", arr);
+    
+    return obj;
 }
 
 void gf3d_gui_element_attach_texture(GuiElement *gui, char *textureName)

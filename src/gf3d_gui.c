@@ -117,7 +117,7 @@ void gf3d_gui_manager_update(SDL_Event *keys, SDL_Event *mouse)
     for(i = 0; i < gf3d_gui.count; i++)
     {
         gui = &gf3d_gui.gui_list[i];
-        if(!gui->_inuse) continue;
+        if(!gui->_inuse || !gui->active) continue;
         gf3d_gui_update(gui, keys, mouse);
     }
 }
@@ -138,7 +138,7 @@ void gf3d_gui_manager_draw(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
         for(i = 0; i < gf3d_gui.count; i++)
         {
             gui = &gf3d_gui.gui_list[i];
-            if(!gui->_inuse) continue;
+            if(!gui->_inuse || !gui->visible) continue;
 
             gf3d_gui_draw(gui, bufferFrame, commandBuffer);
         }
@@ -172,6 +172,8 @@ Gui *gf3d_gui_new(Uint32 count, int depth)
         );
 
         gui->_inuse = 1;
+        gui->active = 1;
+        gui->visible = 1;
         return gui;
     }
 
@@ -189,6 +191,7 @@ Gui *gf3d_gui_load(char *filename)
 
     Gui *gui = NULL;
     int elementCount = 0;
+    int active = 1;
     HudElement e;
 
     snprintf(assetname, GFCLINELEN, "guis/%s.json", filename);
@@ -222,6 +225,14 @@ Gui *gf3d_gui_load(char *filename)
         sj_free(json);
         return NULL;
     }
+
+    obj = sj_object_get_value(json, "active");
+    if(obj) sj_get_integer_value(obj, &active);
+    gui->active = (uint8_t)active; active = 1;
+    
+    obj = sj_object_get_value(json, "visible");
+    if(obj) sj_get_integer_value(obj, &active);
+    gui->visible = (uint8_t)active;
 
     obj = sj_object_get_value(json, "bg");
     gui->bg = gf3d_gui_element_load( obj );

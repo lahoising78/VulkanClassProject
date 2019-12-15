@@ -150,7 +150,7 @@ Button *gf3d_hud_button_create(Vector2D pos, Vector2D ext, Vector4D color, Vecto
 Button *gf3d_hud_button_load(SJson *json)
 {
     Button *button = NULL;
-    int func;
+    int func = -1;
 
     SJson *obj = NULL;
 
@@ -163,9 +163,10 @@ Button *gf3d_hud_button_load(SJson *json)
 
     /* onClick field in json will be the index in on_click OnClickCallback array */
     obj = sj_object_get_value(json, "onClick");
-    sj_get_integer_value(obj, &func);
+    if(obj) sj_get_integer_value(obj, &func);
 
-    button->on_click = on_clicks[func];
+    if(func >= 0) button->on_click = on_clicks[func];
+    else button->on_click = NULL;
 
     return button;
 }
