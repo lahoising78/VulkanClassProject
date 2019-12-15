@@ -1,0 +1,62 @@
+{
+    "floor":
+    {
+        "position":                     [0.0, 0.0, -10.0],
+        "scale":                        [200.0, 200.0, 1.0],
+        "rotation":                     [90.0, 90.0, 90.0],
+        "model":
+        {
+            "model":                    "cheap_water",
+            "texture":                  "cheap_water_tex"
+        }
+    },
+
+    "skybox":
+    {
+        "position":                     [0.0, 0.0, 30.0],
+        "scale":                        [-200.0, -200.0, -70.0],
+        "rotation":                     [180.0, 0.0, 180.0],
+        "model":
+        {
+            "model":                    "valle_skybox",
+            "texture":                  "valle_skybox"
+        }
+    },
+    
+    "stageObjectCount":                       16,
+    "stageObject":
+    [
+        {
+            "position":                 [ 40.0, 150.0, 51.5],
+            "scale":                    [10.0, 10.0, 10.0],
+            "rotation":                 [180.0, 0.0, 0.0],
+            "model":
+            {
+                "model":                "dino",
+                "texture":              "dino"
+            }
+        },
+
+        {
+            "position":                 [-40.0, 150.0, 51.5],
+            "scale":                    [10.0, 10.0, 10.0],
+            "rotation":                 [0.0, 0.0, 0.0],
+            "model":
+            {
+                "model":                "dino",
+                "texture":              "dino"
+            }
+        },
+
+        {
+            "position":                 [0.0, 150.0, 0.0],
+            "scale":                    [20.0, 20.0, 15.0],
+            "rotation":                 [-90.0, 90.0, 0.0],
+            "model":
+            {
+                "model":                "waterfall",
+                "texture":              "waterfall_texture"
+            }
+        }
+    ]
+}

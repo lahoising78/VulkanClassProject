@@ -4,6 +4,7 @@
 #include "simple_logger.h"
 #include "gf3d_entity.h"
 #include "gf3d_timer.h"
+#include "gf3d_vec.h"
 
 // extern float worldTime;
 
@@ -171,10 +172,12 @@ void gf3d_entity_general_update( Entity *self )
         vector2d_set_magnitude(&planeVel, DAMP_SPEED);
         self->velocity.x += planeVel.x;
         self->velocity.y += planeVel.y;
+        // if(&gf3d_entity_manager.entity_list[1] == self) slog("11111111111111111111111111111");
     }
     else
     {
         self->velocity.x = self->velocity.y = 0.0f;
+        // if(&gf3d_entity_manager.entity_list[1] == self) slog("00000000000000000000000000000");
     }
 
     /* vf = vi + a*t */
@@ -206,10 +209,13 @@ void gf3d_entity_general_update( Entity *self )
     gfc_matrix_make_translation(self->modelMat, buff);
     gf3d_model_scale( self->modelMat, self->scale);
     gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.x + 90) * GFC_DEGTORAD, vector3d(0, 0, 1));
+    gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.y) * GFC_DEGTORAD, vector3d(1, 0, 0));
+    gfc_matrix_rotate(self->modelMat, self->modelMat, (self->rotation.z) * GFC_DEGTORAD, vector3d(0, 1, 0));
 
     /* calculate hitstun */
     self->hitstun -= worldTime;
     if(self->hitstun < 0.0f)  self->hitstun = 0.0f;
+    // vector3d_slog(self->velocity);
     // slog("hitstun: %f; worldTime: %f", self->hitstun, worldTime);
 }
 
@@ -277,6 +283,56 @@ Entity *gf3d_entity_new()
     }
     slog("request for entity failed: all full up");
     return NULL;
+}
+
+Entity *gf3d_entity_load(SJson *json)
+{
+    Entity *ent = NULL;
+
+    SJson *obj = NULL;
+    SJson *val = NULL;
+
+    char modelFile[GFCLINELEN];
+    char textureFile[GFCLINELEN];
+
+    if(!json) return NULL;
+
+    ent = gf3d_entity_new();
+    if(!ent) 
+    {
+        return NULL;
+    }
+
+    obj = sj_object_get_value(json, "position");
+    if( obj )
+        ent->position = gf3d_vec3_load(obj);
+    else
+        ent->position = vector3d(0.0f, 0.0f, 0.0f);
+
+    obj = sj_object_get_value(json, "scale");
+    if( obj )
+        ent->scale = gf3d_vec3_load(obj);
+    else
+        ent->scale = vector3d(1.0f, 1.0f, 1.0f);
+
+    obj = sj_object_get_value(json, "rotation");
+    if( obj )
+        ent->rotation = gf3d_vec3_load(obj);
+    else
+        ent->rotation = vector3d(0.0f, 0.0f, 0.0f);
+        
+    obj = sj_object_get_value(json, "model");
+    val = sj_object_get_value(obj, "model");
+    snprintf(modelFile, GFCLINELEN, "%s", sj_get_string_value(val));
+    val = sj_object_get_value(obj, "texture");
+    snprintf(textureFile, GFCLINELEN, "%s", sj_get_string_value(val));
+    ent->model = gf3d_model_load(modelFile, textureFile);
+
+    gfc_matrix_identity(ent->modelMat);
+
+    slog("loaded an entity");
+
+    return ent;
 }
 
 void gf3d_entity_free(Entity *self)

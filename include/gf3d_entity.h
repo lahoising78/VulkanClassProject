@@ -5,6 +5,7 @@
 #include "gf3d_collision.h"
 #include "gf3d_game_defines.h"
 #include "gf3d_animation.h"
+#include "simple_json.h"
 
 extern float worldTime;
 
@@ -91,6 +92,8 @@ void gf3d_entity_general_update( Entity *self );
  * @return NULL on out of space or a pointer to an entity otherwise
  */
 Entity *gf3d_entity_new();
+
+Entity *gf3d_entity_load(SJson *json);
 
 /**
  * @brief free an active entity

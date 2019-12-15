@@ -271,4 +271,27 @@ void gf3d_model_scale( Matrix4 modelMat, Vector3D scale )
     modelMat[2][2] = scale.z;
 }
 
+// void gf3d_model_orthographic_perspective(Matrix4 mat, float left, float right, float bottom, float top, float near, float far)
+// {
+//     mat[0][0] = 2.0f / (right - left);
+//     mat[0][1] = 0.0f;
+//     mat[0][2] = 0.0f;
+//     mat[0][3] = 0.0f;
+
+//     mat[1][0] = 0.0f;
+//     mat[1][1] = 2.0f / (bottom - top);
+//     mat[1][2] = 0.0f;
+//     mat[1][3] = 0.0f;
+
+//     mat[2][0] = 0.0f;
+//     mat[2][1] = 0.0f;
+//     mat[2][2] = 1.0f / (near - far);
+//     mat[2][3] = 0.0f;
+
+//     mat[3][0] = -(right + left) / (right - left);
+//     mat[3][1] = -(bottom + top) / (bottom - top);
+//     mat[3][2] = near / (near - far);
+//     mat[3][3] = 1.0;
+// }
+
 /*eol@eof*/

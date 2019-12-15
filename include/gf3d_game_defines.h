@@ -8,7 +8,7 @@
 #define MAX_ACCELERATION 100.0f
 #define START_ACCELERATION 50.0f
 #define DAMP_ACCELERATION 1.0f
-#define MAX_SPEED 70.0f
+#define MAX_SPEED 100.0f
 #define START_SPEED 10.0f
 #define DAMP_SPEED 2.3f
 
