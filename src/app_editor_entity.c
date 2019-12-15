@@ -23,6 +23,7 @@ void app_editor_entity_manager_close()
     {
         e = &app_editor_entity_manager.entity_list[i];
         app_editor_entity_free(e);
+        free(e->ent);
     }
     free(app_editor_entity_manager.entity_list);
     app_editor_entity_manager.entity_list = NULL;
@@ -42,6 +43,7 @@ void app_editor_entity_manager_clean()
 
 void app_editor_entity_manager_init(uint32_t count)
 {
+    int i;
     app_editor_entity_manager.entity_list = (EditorEntity*)gfc_allocate_array(sizeof(EditorEntity), count);
     if(!app_editor_entity_manager.entity_list)
     {
@@ -49,6 +51,10 @@ void app_editor_entity_manager_init(uint32_t count)
         return;
     }
     memset(app_editor_entity_manager.entity_list, 0, sizeof(EditorEntity) * count);
+    for(i = 0; i < count; i++)
+    {
+        app_editor_entity_manager.entity_list[i].ent = (HudElement*)malloc(sizeof(HudElement));
+    }
     app_editor_entity_manager.count = count;
     app_editor_entity_manager.selected = NULL;
     atexit(app_editor_entity_manager_close);
@@ -110,6 +116,7 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
     if( evt.key.type == SDL_KEYDOWN && app_editor_entity_manager.selected == e )
     {
         app_editor_entity_free(e);
+        app_editor_entity_manager.selected = NULL;
         return;
     }
 
@@ -143,6 +150,7 @@ void app_editor_entity_update(EditorEntity *e, SDL_Event *keys, SDL_Event *mouse
 
 void app_editor_entity_free(EditorEntity *e)
 {
+    HudElement *hud = NULL;
     if(!e) return;
     if(!e->_inuse) return;
     removed_editor_entity(e->ent->name);
@@ -150,7 +158,9 @@ void app_editor_entity_free(EditorEntity *e)
     {
         gf3d_hud_window_remove_element(e->parent, *e->ent);
     }
+    hud = e->ent;
     memset(e, 0, sizeof(EditorEntity));
+    e->ent = hud;
 }
 
 void app_editor_entity_fix_pos(EditorEntity *e)

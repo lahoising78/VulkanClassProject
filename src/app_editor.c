@@ -100,7 +100,7 @@ void add_editor_entity(Button *btn)
     e->pos = vector2d(0.0f, 0.0f);
     e->ext = vector2d(50.0f, 50.0f);
     e->parent = centerWindow;
-    e->ent = (HudElement*)malloc(sizeof(HudElement));
+    // e->ent = (HudElement*)malloc(sizeof(HudElement));
     e->ent->type = eType;
     e->ent->visible = 1;
     switch(eType)
@@ -206,7 +206,7 @@ int app_editor_main(int argc, char *argv[])
     Gui *center = NULL;
     HudElement *inspectors[GF3D_HUD_TYPE_NUM-1];
 
-    HudElement buf = {0};
+    // HudElement buf = {0};
 
     for(i = 1; i < argc; i++)
     {

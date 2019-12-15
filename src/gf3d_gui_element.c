@@ -127,6 +127,7 @@ GuiElement *gf3d_gui_element_load(SJson *json)
 
     Vector2D pos, ext;
     Vector4D color;
+    char buf[GFCLINELEN];
 
     if(!json) return NULL;
 
@@ -157,7 +158,8 @@ GuiElement *gf3d_gui_element_load(SJson *json)
     obj = sj_object_get_value(json, "texture");
     if(obj)
     {
-        gf3d_gui_element_attach_texture(e, sj_get_string_value(obj));
+        snprintf(buf, GFCLINELEN, "%s", sj_get_string_value(obj));
+        gf3d_gui_element_attach_texture(e, buf);
     }
 
     return e;
@@ -167,7 +169,7 @@ SJson *gf3d_gui_element_to_json(GuiElement *e)
 {
     SJson *obj = NULL;
     SJson *arr = NULL;
-    if(!e) return;
+    if(!e) return NULL;
 
     obj = sj_object_new();
     if(!obj) return NULL;
