@@ -413,6 +413,7 @@ uint8_t app_editor_load(Gui **rightPane, Gui **leftPane, Gui **center, HudElemen
     }
 
     *saveGui = gf3d_gui_load("editor_save_gui");
+    // *saveGui = gf3d_gui_load("placeholder");
     if( !(*saveGui) )
     {
         slog("unable to load save gui");
@@ -829,10 +830,10 @@ void save_file( Button *btn )
     json = sj_object_new();
     if(!json) return;
 
-    obj = sj_new_int(window->count);
+    obj = sj_new_int(centerWindow->count);
     sj_object_insert(json, "elementCount", obj);
 
-    obj = gf3d_gui_element_to_json(window->bg);
+    obj = gf3d_gui_element_to_json(centerWindow->bg);
     sj_object_insert(json, "bg", obj);
 
     arr = sj_array_new();
@@ -842,7 +843,7 @@ void save_file( Button *btn )
         {
             if(centerWindow->elements[i].type)
             {
-                obj = gf3d_hud_element_save(&centerWindow->elements[i]);
+                obj = gf3d_hud_element_to_json(&centerWindow->elements[i]);
                 sj_array_append(arr, obj);
             }
         }

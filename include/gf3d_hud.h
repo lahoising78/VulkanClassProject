@@ -91,7 +91,7 @@ typedef struct hud_element_t
 } HudElement;
 
 HudElement gf3d_hud_element_load(SJson *json);
-SJson *gf3d_hud_element_save(HudElement *e);
+SJson *gf3d_hud_element_to_json(HudElement *e);
 
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
