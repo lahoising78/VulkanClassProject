@@ -197,6 +197,20 @@ Button *gf3d_hud_button_load(SJson *json)
     return button;
 }
 
+SJson *gf3d_hud_button_to_json(Button *button)
+{
+    SJson *obj = NULL;
+    SJson *val = NULL;
+
+    obj = sj_object_new();
+    if(!obj) return NULL;
+
+    val = gf3d_hud_label_to_json(button->bg);
+    sj_object_insert(obj, "label", val);
+
+    return obj;
+}
+
 void gf3d_hud_button_free(Button *button)
 {
     if(!button) return;
@@ -327,6 +341,35 @@ Label *gf3d_hud_label_load(SJson *json)
     }
 
     return label;
+}
+
+SJson *gf3d_hud_label_to_json(Label *label)
+{
+    SJson *obj = NULL;
+    SJson *val = NULL;
+
+    obj = sj_object_new();
+    if(!obj) return NULL;
+
+    val = gf3d_vec2_json(label->display->position);
+    sj_object_insert(obj, "position", val);
+
+    val = gf3d_vec2_json(label->display->extents);
+    sj_object_insert(obj, "extents", val);
+
+    val = gf3d_vec4_json(label->display->color);
+    sj_object_insert(obj, "color", val);
+
+    val = gf3d_vec4_json(label->textColor);
+    sj_object_insert(obj, "textColor", val);
+
+    val = sj_new_str(label->text);
+    sj_object_insert(obj, "text", val);
+
+    val = sj_new_float(label->size);
+    sj_object_insert(obj, "size", val);
+
+    return obj;
 }
 
 void gf3d_hud_label_free(Label *label)
@@ -617,6 +660,15 @@ SJson *gf3d_hud_element_to_json(HudElement *e)
 
     case GF3D_HUD_TYPE_PROGRESS_BAR:
         obj = gf3d_hud_progress_bar_to_json(e->element.pBar);
+        break;
+
+    case GF3D_HUD_TYPE_BUTTON:
+        obj = gf3d_hud_button_to_json(e->element.button);
+        break;
+
+    case GF3D_HUD_TYPE_LABEL:
+        obj = gf3d_hud_label_to_json(e->element.label);
+        break;
     
     default:
         break;
