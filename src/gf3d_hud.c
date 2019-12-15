@@ -486,6 +486,20 @@ TextInput *gf3d_hud_text_input_load(SJson *json)
     return textInput;
 }
 
+SJson *gf3d_hud_text_input_to_json(TextInput *textInput)
+{
+    SJson *obj = NULL;
+    SJson *val = NULL;
+
+    obj = sj_object_new();
+    if(!obj) return NULL;
+
+    val = gf3d_hud_label_to_json(textInput->textDisplay);
+    sj_object_insert(obj, "label", val);
+
+    return obj;
+}
+
 void gf3d_hud_text_input_free(TextInput *textInput)
 {
     if(!textInput) return;
@@ -668,6 +682,10 @@ SJson *gf3d_hud_element_to_json(HudElement *e)
 
     case GF3D_HUD_TYPE_LABEL:
         obj = gf3d_hud_label_to_json(e->element.label);
+        break;
+
+    case GF3D_HUD_TYPE_TEXT_INPUT:
+        obj = gf3d_hud_text_input_to_json(e->element.textInput);
         break;
     
     default:
