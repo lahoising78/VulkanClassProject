@@ -62,6 +62,8 @@ int main(int argc,char *argv[])
     // Entity* stage;
     Stage stage;
 
+    Gui *main_menu = NULL;
+
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
 
@@ -117,6 +119,7 @@ int main(int argc,char *argv[])
 
     stage = app_stage_load("stage_final_valley");
     // stage = app_stage_load("stage_chunin_exam");
+    main_menu = gf3d_gui_load("main_menu");
 
     /* Setup first player */
     p1 = app_player_new();
