@@ -662,6 +662,7 @@ HudElement gf3d_hud_element_load(SJson *json)
 SJson *gf3d_hud_element_to_json(HudElement *e)
 {
     SJson *obj = NULL;
+    SJson *win = NULL;
     SJson *val = NULL;
 
     if(!e) return NULL;
@@ -686,6 +687,20 @@ SJson *gf3d_hud_element_to_json(HudElement *e)
 
     case GF3D_HUD_TYPE_TEXT_INPUT:
         obj = gf3d_hud_text_input_to_json(e->element.textInput);
+        break;
+
+    case GF3D_HUD_TYPE_WINDOW:
+        obj = gf3d_hud_window_to_json(e->element.window);
+        val = sj_new_str(e->name);
+        sj_object_insert(obj, "filename", val);
+
+        win = sj_object_get_value(obj, "window");
+        val = sj_new_str(e->name);
+        sj_object_insert(win, "name", val);
+        val = sj_new_int(e->type);
+        sj_object_insert(win, "type", val);
+
+        return obj;
         break;
     
     default:
@@ -1053,6 +1068,33 @@ Window *gf3d_hud_window_load(SJson *json)
     }
 
     return window;
+}
+
+SJson *gf3d_hud_window_to_json(Window *window)
+{
+    SJson *obj = NULL;
+    SJson *win = NULL;
+    SJson *val = NULL;
+
+    obj = sj_object_new();
+    if(!obj) return NULL;
+
+    win = sj_object_new();
+    if(!win)
+    {
+        sj_free(obj);
+        return NULL;
+    }
+
+    val = gf3d_gui_element_to_json(window->bg);
+    sj_object_insert(win, "bg", val);
+
+    val = sj_new_int(window->count);
+    sj_object_insert(win, "count", val);
+
+    sj_object_insert(obj, "window", win);
+
+    return obj;
 }
 
 void gf3d_hud_window_free(Window *window)

@@ -8,6 +8,8 @@
 #include "gf3d_gui.h"
 #include "app_editor_entity.h"
 
+#include <unistd.h>
+
 #define MAX_INPUT_KEY SDL_NUM_SCANCODES
 #if SDL_BUTTON_X2 < 8
     #define MAX_INPUT_MOUSE 9
@@ -70,6 +72,8 @@ int screenHeight = 700;
 
 uint8_t lctrl = 0;
 uint8_t rctrl = 0;
+uint8_t lshift = 0;
+uint8_t rshift = 0;
 uint8_t inspectorSelected = 0;
 
 HudType eType = GF3D_HUD_TYPE_GUI_ELEMENT;
@@ -81,6 +85,7 @@ void set_add_btn_text(Gui *layer);
 void update_inspector_values( HudElement nameInput );
 void update_element_values( HudElement nameInput );
 void removed_editor_entity(char *name);
+void start_game();
 
 OnClickCallback on_clicks[32] = {add_editor_entity, save_file};
 
@@ -95,12 +100,13 @@ void add_editor_entity(Button *btn)
     e->pos = vector2d(0.0f, 0.0f);
     e->ext = vector2d(50.0f, 50.0f);
     e->parent = centerWindow;
-    e->ent.type = eType;
-    e->ent.visible = 1;
+    e->ent = (HudElement*)malloc(sizeof(HudElement));
+    e->ent->type = eType;
+    e->ent->visible = 1;
     switch(eType)
     {
         case GF3D_HUD_TYPE_GUI_ELEMENT:
-            e->ent.element.guiElement = gf3d_gui_element_create(
+            e->ent->element.guiElement = gf3d_gui_element_create(
                 vector2d(0.0f, 0.0f),
                 vector2d(50.0f, 50.0f),
                 DEFAULT_ELEMENT_COLOR
@@ -108,51 +114,51 @@ void add_editor_entity(Button *btn)
             break;
         
         case GF3D_HUD_TYPE_PROGRESS_BAR:
-            e->ent.element.pBar = gf3d_hud_progress_bar_create(
+            e->ent->element.pBar = gf3d_hud_progress_bar_create(
                 NULL, NULL, vector2d(2.0f, 2.0f)
             );
             gf3d_hud_progress_bar_set_background(
-                e->ent.element.pBar, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
+                e->ent->element.pBar, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
             );
             gf3d_hud_progress_bar_set_foreground(
-                e->ent.element.pBar, DEFAULT_ELEMENT_TEXT_COLOR
+                e->ent->element.pBar, DEFAULT_ELEMENT_TEXT_COLOR
             );
             break;
 
         case GF3D_HUD_TYPE_BUTTON:
-            e->ent.element.button = gf3d_hud_button_create(
+            e->ent->element.button = gf3d_hud_button_create(
                 e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
                 DEFAULT_ELEMENT_TEXT_COLOR, "button"
             );
             break;
 
         case GF3D_HUD_TYPE_LABEL:
-            e->ent.element.label = gf3d_hud_label_create(
+            e->ent->element.label = gf3d_hud_label_create(
                 e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
                 DEFAULT_ELEMENT_TEXT_COLOR, "label"
             );
             break;
 
         case GF3D_HUD_TYPE_TEXT_INPUT:
-            e->ent.element.textInput = gf3d_hud_text_input_create(
+            e->ent->element.textInput = gf3d_hud_text_input_create(
                 e->pos, e->ext, DEFAULT_ELEMENT_COLOR,
                 DEFAULT_ELEMENT_TEXT_COLOR, "text box"
             );
             break;
 
         case GF3D_HUD_TYPE_WINDOW:
-            e->ent.element.window = gf3d_hud_window_create(
+            e->ent->element.window = gf3d_hud_window_create(
                 1, e->pos, e->ext, DEFAULT_ELEMENT_COLOR
             );
-            if(e->ent.element.window)
+            if(e->ent->element.window)
             {
-                if(e->ent.element.window->elements)
-                    free(e->ent.element.window->elements);
-                if(e->ent.element.window->elementPositions)
-                    free(e->ent.element.window->elementPositions);
-                e->ent.element.window->elements = NULL;
-                e->ent.element.window->elementPositions = NULL;
-                e->ent.element.window->count = 0;
+                if(e->ent->element.window->elements)
+                    free(e->ent->element.window->elements);
+                if(e->ent->element.window->elementPositions)
+                    free(e->ent->element.window->elementPositions);
+                e->ent->element.window->elements = NULL;
+                e->ent->element.window->elementPositions = NULL;
+                e->ent->element.window->count = 0;
             } 
             break;
 
@@ -161,8 +167,8 @@ void add_editor_entity(Button *btn)
             return;
             break;
     }
-    sprintf(e->ent.name, "element_%d", centerWindow->countActual);
-    gf3d_hud_window_add_element(centerWindow, e->ent);
+    sprintf(e->ent->name, "element_%d", centerWindow->countActual);
+    gf3d_hud_window_add_element(centerWindow, *e->ent);
 
     if(!leftWindow) return;
 
@@ -172,7 +178,7 @@ void add_editor_entity(Button *btn)
         vector2d(0.0f, 0.0f),
         vector4d(0.0f, 0.0f, 0.0f, 0.0f),
         vector4d(200.0f, 200.0f, 200.0f, 255.0f),
-        e->ent.name
+        e->ent->name
     );
     lbl.visible = 1;
     gf3d_hud_window_add_element(leftWindow, lbl);
@@ -180,6 +186,7 @@ void add_editor_entity(Button *btn)
 
 int app_editor_main(int argc, char *argv[])
 {
+    // pid_t id;
     int i;
     int fps = 0;
     uint8_t running = 1;
@@ -254,7 +261,7 @@ int app_editor_main(int argc, char *argv[])
         for(i = 0; i < GF3D_HUD_TYPE_NUM-1; i++)
         {
             if( app_editor_entity_manager_get_selected() &&
-                app_editor_entity_manager_get_selected()->ent.type == i+1 ) 
+                app_editor_entity_manager_get_selected()->ent->type == i+1 ) 
                 {
                     inspectors[i]->visible = 1;
                     inspectorWindow = inspectors[i]->element.window;
@@ -298,6 +305,16 @@ int app_editor_main(int argc, char *argv[])
                 lctrl = 0;
                 break;
             }
+            switch (keys[SDL_SCANCODE_LSHIFT].type)
+            {
+            case SDL_KEYDOWN:
+                lshift = 1;
+                break;
+            
+            case SDL_KEYUP:
+                lshift = 0;
+                break;
+            }
 
             /* reload */
             if( lctrl && keys[SDL_SCANCODE_R].type == SDL_KEYDOWN )
@@ -338,6 +355,11 @@ int app_editor_main(int argc, char *argv[])
                 rightPane->active = 0;
                 leftPane->active = 0;
                 center->active = 0;
+            }
+            if( lctrl && lshift && keys[SDL_SCANCODE_Q].type == SDL_KEYDOWN )
+            {
+                atexit(start_game);
+                running = 0;
             }
         }
 
@@ -529,19 +551,19 @@ void update_inspector_values( HudElement nameInput )
     ent = app_editor_entity_manager_get_selected();
     if( !ent || ent->dragging ) return;
 
-    update_inspector_element_char(&nameInput, ent->ent.name);
+    update_inspector_element_char(&nameInput, ent->ent->name);
 
-    switch (ent->ent.type)
+    switch (ent->ent->type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
         update_inspector_element( &inspectorWindow->elements[GE_POSX],  ent->pos.x );
         update_inspector_element( &inspectorWindow->elements[GE_POSY],  ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[GE_EXTX],  ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[GE_EXTY],  ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[GE_COLR],  ent->ent.element.guiElement->color.x );
-        update_inspector_element( &inspectorWindow->elements[GE_COLG],  ent->ent.element.guiElement->color.y );
-        update_inspector_element( &inspectorWindow->elements[GE_COLB],  ent->ent.element.guiElement->color.z );
-        update_inspector_element( &inspectorWindow->elements[GE_COLA],  ent->ent.element.guiElement->color.w );
+        update_inspector_element( &inspectorWindow->elements[GE_COLR],  ent->ent->element.guiElement->color.x );
+        update_inspector_element( &inspectorWindow->elements[GE_COLG],  ent->ent->element.guiElement->color.y );
+        update_inspector_element( &inspectorWindow->elements[GE_COLB],  ent->ent->element.guiElement->color.z );
+        update_inspector_element( &inspectorWindow->elements[GE_COLA],  ent->ent->element.guiElement->color.w );
         break;
 
     case GF3D_HUD_TYPE_PROGRESS_BAR:
@@ -549,16 +571,16 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[PB_POSY],  ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[PB_EXTX],  ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[PB_EXTY],  ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[PB_BGWX],  ent->ent.element.pBar->bgWidth.x );
-        update_inspector_element( &inspectorWindow->elements[PB_BGWY],  ent->ent.element.pBar->bgWidth.y );
-        update_inspector_element( &inspectorWindow->elements[PB_BGCR],  ent->ent.element.pBar->back->color.x );
-        update_inspector_element( &inspectorWindow->elements[PB_BGCG],  ent->ent.element.pBar->back->color.y );
-        update_inspector_element( &inspectorWindow->elements[PB_BGCB],  ent->ent.element.pBar->back->color.z );
-        update_inspector_element( &inspectorWindow->elements[PB_BGCA],  ent->ent.element.pBar->back->color.w );
-        update_inspector_element( &inspectorWindow->elements[PB_FGCR],  ent->ent.element.pBar->fore->color.x );
-        update_inspector_element( &inspectorWindow->elements[PB_FGCG],  ent->ent.element.pBar->fore->color.y );
-        update_inspector_element( &inspectorWindow->elements[PB_FGCB],  ent->ent.element.pBar->fore->color.z );
-        update_inspector_element( &inspectorWindow->elements[PB_FGCA],  ent->ent.element.pBar->fore->color.w );
+        update_inspector_element( &inspectorWindow->elements[PB_BGWX],  ent->ent->element.pBar->bgWidth.x );
+        update_inspector_element( &inspectorWindow->elements[PB_BGWY],  ent->ent->element.pBar->bgWidth.y );
+        update_inspector_element( &inspectorWindow->elements[PB_BGCR],  ent->ent->element.pBar->back->color.x );
+        update_inspector_element( &inspectorWindow->elements[PB_BGCG],  ent->ent->element.pBar->back->color.y );
+        update_inspector_element( &inspectorWindow->elements[PB_BGCB],  ent->ent->element.pBar->back->color.z );
+        update_inspector_element( &inspectorWindow->elements[PB_BGCA],  ent->ent->element.pBar->back->color.w );
+        update_inspector_element( &inspectorWindow->elements[PB_FGCR],  ent->ent->element.pBar->fore->color.x );
+        update_inspector_element( &inspectorWindow->elements[PB_FGCG],  ent->ent->element.pBar->fore->color.y );
+        update_inspector_element( &inspectorWindow->elements[PB_FGCB],  ent->ent->element.pBar->fore->color.z );
+        update_inspector_element( &inspectorWindow->elements[PB_FGCA],  ent->ent->element.pBar->fore->color.w );
         break;
 
     case GF3D_HUD_TYPE_BUTTON:
@@ -566,15 +588,15 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.button->bg->display->color.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.button->bg->display->color.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.button->bg->display->color.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.button->bg->display->color.w );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent.element.button->bg->textColor.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent.element.button->bg->textColor.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent.element.button->bg->textColor.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.button->bg->textColor.w );
-        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.button->bg->text );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent->element.button->bg->display->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent->element.button->bg->display->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent->element.button->bg->display->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent->element.button->bg->display->color.w );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent->element.button->bg->textColor.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent->element.button->bg->textColor.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent->element.button->bg->textColor.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent->element.button->bg->textColor.w );
+        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent->element.button->bg->text );
         break;
         
     case GF3D_HUD_TYPE_LABEL:
@@ -582,15 +604,15 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.label->display->color.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.label->display->color.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.label->display->color.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.label->display->color.w );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent.element.label->textColor.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent.element.label->textColor.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent.element.label->textColor.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.label->textColor.w );
-        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.label->text );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent->element.label->display->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent->element.label->display->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent->element.label->display->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent->element.label->display->color.w );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent->element.label->textColor.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent->element.label->textColor.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent->element.label->textColor.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent->element.label->textColor.w );
+        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent->element.label->text );
         break;
         
     case GF3D_HUD_TYPE_TEXT_INPUT:
@@ -598,15 +620,15 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.textInput->textDisplay->display->color.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.textInput->textDisplay->display->color.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.textInput->textDisplay->display->color.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.textInput->textDisplay->display->color.w );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent.element.textInput->textDisplay->textColor.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent.element.textInput->textDisplay->textColor.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent.element.textInput->textDisplay->textColor.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent.element.textInput->textDisplay->textColor.w );
-        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent.element.textInput->textDisplay->text );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent->element.textInput->textDisplay->display->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent->element.textInput->textDisplay->display->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent->element.textInput->textDisplay->display->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent->element.textInput->textDisplay->display->color.w );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCR], ent->ent->element.textInput->textDisplay->textColor.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCG], ent->ent->element.textInput->textDisplay->textColor.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCB], ent->ent->element.textInput->textDisplay->textColor.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_TCA], ent->ent->element.textInput->textDisplay->textColor.w );
+        update_inspector_element_char( &inspectorWindow->elements[BTN_TXT], ent->ent->element.textInput->textDisplay->text );
         break;
 
     case GF3D_HUD_TYPE_WINDOW:
@@ -614,12 +636,12 @@ void update_inspector_values( HudElement nameInput )
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_POSY ], ent->pos.y );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTX ], ent->ext.x );
         update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_EXTY ], ent->ext.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent.element.window->bg->color.x );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent.element.window->bg->color.y );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent.element.window->bg->color.z );
-        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent.element.window->bg->color.w );
-        update_inspector_element( &inspectorWindow->elements[WIN_CNT], ent->ent.element.window->count );
-        update_inspector_element_char( &inspectorWindow->elements[WIN_INF], ent->ent.name );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLR ], ent->ent->element.window->bg->color.x );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLG ], ent->ent->element.window->bg->color.y );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLB ], ent->ent->element.window->bg->color.z );
+        update_inspector_element( &inspectorWindow->elements[BTN_WIN].element.window->elements[ GE_COLA ], ent->ent->element.window->bg->color.w );
+        update_inspector_element( &inspectorWindow->elements[WIN_CNT], ent->ent->element.window->count );
+        update_inspector_element_char( &inspectorWindow->elements[WIN_INF], ent->ent->name );
         break;
 
     default:
@@ -645,7 +667,7 @@ void update_element_values( HudElement nameInput )
     ent = app_editor_entity_manager_get_selected();
     if(!ent) return;
 
-    e = &ent->ent;
+    e = ent->ent;
 
     switch(e->type)
     {
@@ -671,7 +693,7 @@ void update_element_values( HudElement nameInput )
 
         bgw.x = (float)atof(inspectorWindow->elements[ PB_BGWX ].element.textInput->textDisplay->text);
         bgw.y = (float)atof(inspectorWindow->elements[ PB_BGWY ].element.textInput->textDisplay->text);
-        vector2d_copy(ent->ent.element.pBar->bgWidth, bgw);
+        vector2d_copy(ent->ent->element.pBar->bgWidth, bgw);
 
         pos.x = (float)atof(inspectorWindow->elements[ PB_POSX ].element.textInput->textDisplay->text);
         pos.y = (float)atof(inspectorWindow->elements[ PB_POSY ].element.textInput->textDisplay->text);
@@ -769,7 +791,7 @@ void update_element_values( HudElement nameInput )
         vector4d_copy(e->element.window->bg->color, col);
 
         e->element.window->countActual = (float)atof(inspectorWindow->elements[ WIN_CNT ].element.textInput->textDisplay->text);
-        gfc_line_cpy(ent->ent.name, inspectorWindow->elements[WIN_INF].element.textInput->textDisplay->text);
+        gfc_line_cpy(ent->ent->name, inspectorWindow->elements[WIN_INF].element.textInput->textDisplay->text);
 
         break;
 
@@ -853,4 +875,9 @@ void save_file( Button *btn )
     sj_save(json, assetname);
     slog("file saved to %s", assetname);
     sj_free(json);
+}
+
+void start_game()
+{
+    execl("./application", "./application", NULL);
 }

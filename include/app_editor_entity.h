@@ -5,7 +5,7 @@
 
 typedef struct
 {
-    HudElement ent;
+    HudElement *ent;
     Vector2D pos;
     Vector2D ext;
     Window *parent;
