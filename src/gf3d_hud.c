@@ -292,6 +292,7 @@ Label *gf3d_hud_label_load(SJson *json)
     Label *label = NULL;
     Vector2D pos, ext;
     Vector4D color, textColor;
+    char buf[GFCLINELEN];
 
     SJson *obj = NULL;
     SJson *arr = NULL;
@@ -338,6 +339,15 @@ Label *gf3d_hud_label_load(SJson *json)
         obj = sj_object_get_value(json, "size");
         if(obj) sj_get_float_value(obj, &label->size);
         else label->size = 16.0f;
+    }
+
+    obj = sj_object_get_value(json, "texture");
+    if(obj)
+    {
+        snprintf(buf, GFCLINELEN, "%s", sj_get_string_value(obj));
+        slog("label texture %s", buf);
+        gf3d_gui_element_attach_texture(label->display, buf);
+        // gf3d_gui_element_attach_texture(label->textDisp, buf);
     }
 
     return label;
