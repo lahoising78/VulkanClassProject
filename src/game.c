@@ -41,6 +41,7 @@
 #endif
 
 float worldTime = 0.0f;
+float timeSinceStart = 0.0f;
 
 Stage stage;
 
@@ -274,6 +275,16 @@ int main(int argc,char *argv[])
         if(!game_paused) gf3d_entity_manager_update(); /* Update all entities */
         gf3d_gui_manager_update(events, mouse);
 
+        if(p1->entity && ent2)
+        {
+            if(p1->entity->health <= 0.0f || ent2->health <= 0.0f)
+            {
+                exit_from_fight(NULL);
+                p1->entity->health = p1->entity->healthmax;
+                ent2->health = ent2->healthmax;
+            }
+        }
+
         fps++;
         if ( gf3d_timer_get_ticks(&timer) >= 1.0f)
         {
@@ -368,7 +379,7 @@ int main(int argc,char *argv[])
 
         frame = gf3d_timer_get_ticks(&frameTimer);
         worldTime = frame;
-        
+        timeSinceStart += frame;
     }    
     
     SDL_JoystickClose( controller );
@@ -401,9 +412,7 @@ void set_stage_fighters(Stage *stage)
     if(!stage) return;
     in_game = 1;
     game_paused = 0;
-    pHud->active = pHud->visible = 1;
-
-    
+    pHud->active = pHud->visible = 1;    
 }
 
 void load_valle(Button *btn)
@@ -442,6 +451,7 @@ void exit_from_fight(Button *btn)
 {
     slog("why are you trying to quit? ;-;");
     pause_menu->visible = pause_menu->active = 0;
+    pHud->active = pHud->visible = 0;
     game_paused = 0;
     in_game = 0; 
     main_menu->active = main_menu->visible = 1;

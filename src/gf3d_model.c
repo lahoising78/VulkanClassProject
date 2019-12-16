@@ -234,11 +234,13 @@ void gf3d_model_update_basic_model_descriptor_set(Model *model,VkDescriptorSet d
     vkUpdateDescriptorSets(gf3d_model.device, 2, descriptorWrite, 0, NULL);
 }
 
+extern float timeSinceStart;
 void gf3d_model_update_uniform_buffer(Model *model,uint32_t currentImage,Matrix4 modelMat)
 {
     void* data;
     UniformBufferObject ubo;
     ubo = gf3d_vgraphics_get_uniform_buffer_object();
+    ubo.time = timeSinceStart;
     gfc_matrix_copy(ubo.model,modelMat);
     vkMapMemory(gf3d_model.device, model->uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
     
