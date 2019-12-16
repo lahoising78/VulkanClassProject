@@ -73,5 +73,16 @@ Stage app_stage_load(const char *filename)
 
 void app_stage_free(Stage *stage)
 {
-
+    int i;
+    for(i = 0; i < stage->count; i++)
+    {
+        gf3d_entity_free(stage->stageObjects[i]);
+    }
+    free(stage->stageObjects);
+    stage->stageObjects = NULL;
+    stage->count = 0;
+    gf3d_entity_free(stage->skybox);
+    stage->skybox = NULL;
+    gf3d_entity_free(stage->floor);
+    stage->floor = NULL;
 }

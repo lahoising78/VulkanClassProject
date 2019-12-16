@@ -26,6 +26,8 @@
 #include "gfc_color.h"
 #include "app_editor.h"
 
+#include <unistd.h>
+
 #define HEALTH_HEIGHT       0.025f
 #define HEALTH_DOWN_OFFSET  -0.385f
 
@@ -45,8 +47,10 @@ Stage stage;
 Gui *main_menu = NULL;
 Gui *stage_menu = NULL;
 Gui *pHud = NULL;
+Gui *pause_menu = NULL;
 int done = 0;
 uint8_t in_game = 0;
+uint8_t game_paused = 1;
 Player *p = NULL;
 
 void load_valle(Button *btn);
@@ -54,6 +58,8 @@ void load_chunin(Button *btn);
 void stage_menu_go_back(Button *btn);
 void start_game_button(Button *btn);
 void exit_game_button(Button *btn);
+void resume_game(Button *btn);
+void exit_from_fight(Button *btn);
 
 int main(int argc,char *argv[])
 {
@@ -73,14 +79,12 @@ int main(int argc,char *argv[])
     
     Player* p1 = NULL;
     Entity* ent2 = NULL;
-    // Entity* stage;
-    // Stage stage;
-
-    // Gui *main_menu = NULL;
-    // Gui *stage_menu = NULL;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
+    
+    uint8_t lctrl = 0;
+    uint8_t lshift = 0;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -142,6 +146,11 @@ int main(int argc,char *argv[])
     stage_menu->elements[4].element.button->on_click = stage_menu_go_back;
     stage_menu->active = 0;
     stage_menu->visible = 0;
+
+    pause_menu = gf3d_gui_load("pause_menu");
+    pause_menu->elements[3].element.button->on_click = exit_from_fight;
+    pause_menu->elements[4].element.button->on_click = resume_game;
+    pause_menu->active = pause_menu->visible = 0;
 
     /* Setup first player */
     p1 = app_player_new();
@@ -261,8 +270,8 @@ int main(int argc,char *argv[])
             // slog("key: %d", e.key.keysym.scancode);
         }
         
-        if(in_game) app_player_manager_update(events); /* Give input to all players */
-        gf3d_entity_manager_update(); /* Update all entities */
+        if(in_game && !game_paused) app_player_manager_update(events); /* Give input to all players */
+        if(!game_paused) gf3d_entity_manager_update(); /* Update all entities */
         gf3d_gui_manager_update(events, mouse);
 
         fps++;
@@ -275,7 +284,7 @@ int main(int argc,char *argv[])
 
 
         // gf3d_vgraphics_rotate_camera(worldTime);
-        if(in_game)
+        if(in_game && !game_paused)
         {
             // vector3d_slog(stage.fighters[0]->position);
             gf3d_camera_look_at_center( p1->entity->position, ent2->position );
@@ -305,6 +314,39 @@ int main(int argc,char *argv[])
         {
             gf3d_timer_start(&drawShapesDelay);
             drawShapes = !drawShapes; /* toggle drawing shapes */
+        }
+        if( in_game && !game_paused && events[SDL_SCANCODE_M].type == SDL_KEYDOWN )
+        {
+            game_paused = 1;
+            pause_menu->active = pause_menu->visible = 1;
+        }
+
+        switch (events[SDL_SCANCODE_LCTRL].type)
+        {
+        case SDL_KEYDOWN:
+            lctrl = 1;
+            break;
+        
+        case SDL_KEYUP:
+            lctrl = 0;
+            break;
+        }
+        
+        switch (events[SDL_SCANCODE_LSHIFT].type)
+        {
+        case SDL_KEYDOWN:
+            lshift = 1;
+            break;
+        
+        case SDL_KEYUP:
+            lshift = 0;
+            break;
+        }
+
+        if( lctrl && lshift && events[SDL_SCANCODE_E].type == SDL_KEYDOWN )
+        {
+            execl("./application", "./application", "-e", NULL);
+            done = 1;
         }
         // if(events[SDL_SCANCODE_TAB].type == SDL_KEYDOWN && (gf3d_timer_get_ticks(&drawShapesDelay) > 0.2 || !drawShapesDelay.started || drawShapesDelay.paused) )
         // {
@@ -358,7 +400,10 @@ void set_stage_fighters(Stage *stage)
 {
     if(!stage) return;
     in_game = 1;
+    game_paused = 0;
     pHud->active = pHud->visible = 1;
+
+    
 }
 
 void load_valle(Button *btn)
@@ -384,6 +429,23 @@ void stage_menu_go_back(Button *btn)
     slog("go back");
     main_menu->active = main_menu->visible = 1;
     stage_menu->active = stage_menu->visible = 0;
+}
+
+void resume_game(Button *btn)
+{
+    slog("yep, go back to playing");
+    pause_menu->visible = pause_menu->active = 0;
+    game_paused = 0;
+}
+
+void exit_from_fight(Button *btn)
+{
+    slog("why are you trying to quit? ;-;");
+    pause_menu->visible = pause_menu->active = 0;
+    game_paused = 0;
+    in_game = 0; 
+    main_menu->active = main_menu->visible = 1;
+    app_stage_free(&stage);
 }
 
 /*eol@eof*/
