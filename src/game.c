@@ -44,6 +44,7 @@ Stage stage;
 
 Gui *main_menu = NULL;
 Gui *stage_menu = NULL;
+Gui *pHud = NULL;
 int done = 0;
 uint8_t in_game = 0;
 Player *p = NULL;
@@ -134,15 +135,7 @@ int main(int argc,char *argv[])
     main_menu = gf3d_gui_load("main_menu");
     main_menu->elements[2].element.button->on_click = start_game_button;
     main_menu->elements[3].element.button->on_click = exit_game_button;
-    // main_menu = gf3d_gui_new(1, 0);
-    // main_menu->elements[0].type = GF3D_HUD_TYPE_GUI_ELEMENT;
-    // main_menu->elements[0].element.guiElement = gf3d_gui_element_create(
-    //     vector2d(0.0f, 0.0f),
-    //     vector2d(100.0f, 100.0f),
-    //     vector4d(255.0f, 255.0f, 255.0f, 255.0f)
-    // );
-    // gf3d_gui_element_attach_texture(main_menu->elements[0].element.guiElement, "images/bg_flat.png");
-    // main_menu->elements[0].visible = 1;
+    
     stage_menu = gf3d_gui_load("stage_menu");
     stage_menu->elements[2].element.button->on_click = load_valle;
     stage_menu->elements[3].element.button->on_click = load_chunin;
@@ -236,6 +229,17 @@ int main(int argc,char *argv[])
     p1->entity->enemy = ent2;
     stage.fighters[0] = p1->entity;
     stage.fighters[1] = ent2;
+
+    pHud = gf3d_gui_load("health_and_chakra");
+    pHud->elements[0].element.pBar->max = &ent2->healthmax;
+    pHud->elements[0].element.pBar->val = &ent2->health;
+    pHud->elements[1].element.pBar->max = &p1->entity->healthmax;
+    pHud->elements[1].element.pBar->val = &p1->entity->health;
+    pHud->elements[2].element.pBar->max = &p1->entity->chakraMax;
+    pHud->elements[2].element.pBar->val = &p1->entity->chakra;
+    pHud->elements[3].element.pBar->max = &ent2->chakraMax;
+    pHud->elements[3].element.pBar->val = &ent2->chakra;
+    pHud->active = pHud->visible = 0;
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
@@ -354,6 +358,7 @@ void set_stage_fighters(Stage *stage)
 {
     if(!stage) return;
     in_game = 1;
+    pHud->active = pHud->visible = 1;
 }
 
 void load_valle(Button *btn)
