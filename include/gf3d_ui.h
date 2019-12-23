@@ -11,6 +11,8 @@ typedef struct
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
+
+    uint8_t _inuse;
 } uiLayer;
 
 void gf3d_ui_manager_init(uint32_t count);

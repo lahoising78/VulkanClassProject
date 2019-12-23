@@ -136,7 +136,7 @@ int main(int argc,char *argv[])
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
-    gf3d_ui_manager_init(1024);
+    gf3d_ui_manager_init(8);
 
     /* Setup first player */
     // p1 = app_player_new();
@@ -227,6 +227,8 @@ int main(int argc,char *argv[])
     gfc_matrix_identity(test->modelMat);
     gfc_matrix_make_translation(test->modelMat, test->position);
     gf3d_model_scale(test->modelMat, test->scale);
+
+    // ui = gf3d_ui_new();
 
     // ent2->enemy = p1->entity;
     // p1->entity->enemy = ent2;
