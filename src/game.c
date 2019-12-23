@@ -21,6 +21,7 @@
 #include "gf3d_timer.h"
 #include "gf3d_shape.h"
 
+#include "gf3d_ui.h"
 #include "gf3d_gui.h"
 #include "gf3d_hud.h"
 #include "gfc_color.h"
@@ -84,6 +85,8 @@ int main(int argc,char *argv[])
     uint8_t lctrl = 0;
     uint8_t lshift = 0;
 
+    uiLayer *ui = NULL;
+
     /* controllers */
     SDL_Joystick *controller = NULL;
 
@@ -133,6 +136,7 @@ int main(int argc,char *argv[])
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
+    gf3d_ui_manager_init(1024);
 
     /* Setup first player */
     // p1 = app_player_new();
@@ -251,7 +255,7 @@ int main(int argc,char *argv[])
         
         if(in_game && !game_paused) app_player_manager_update(events); /* Give input to all players */
         if(!game_paused) gf3d_entity_manager_update(); /* Update all entities */
-        gf3d_gui_manager_update(events, mouse);
+        // gf3d_gui_manager_update(events, mouse);
 
         // if(p1->entity && ent2)
         // {
@@ -291,7 +295,7 @@ int main(int argc,char *argv[])
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
-                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
             
