@@ -45,10 +45,10 @@ float timeSinceStart = 0.0f;
 
 Stage stage;
 
-Gui *main_menu = NULL;
-Gui *stage_menu = NULL;
-Gui *pHud = NULL;
-Gui *pause_menu = NULL;
+// Gui *main_menu = NULL;
+// Gui *stage_menu = NULL;
+// Gui *pHud = NULL;
+// Gui *pause_menu = NULL;
 int done = 0;
 uint8_t in_game = 0;
 uint8_t game_paused = 1;
@@ -137,21 +137,21 @@ int main(int argc,char *argv[])
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
 
-    main_menu = gf3d_gui_load("main_menu");
-    main_menu->elements[2].element.button->on_click = start_game_button;
-    main_menu->elements[3].element.button->on_click = exit_game_button;
+    // main_menu = gf3d_gui_load("main_menu");
+    // main_menu->elements[2].element.button->on_click = start_game_button;
+    // main_menu->elements[3].element.button->on_click = exit_game_button;
     
-    stage_menu = gf3d_gui_load("stage_menu");
-    stage_menu->elements[2].element.button->on_click = load_valle;
-    stage_menu->elements[3].element.button->on_click = load_chunin;
-    stage_menu->elements[4].element.button->on_click = stage_menu_go_back;
-    stage_menu->active = 0;
-    stage_menu->visible = 0;
+    // stage_menu = gf3d_gui_load("stage_menu");
+    // stage_menu->elements[2].element.button->on_click = load_valle;
+    // stage_menu->elements[3].element.button->on_click = load_chunin;
+    // stage_menu->elements[4].element.button->on_click = stage_menu_go_back;
+    // stage_menu->active = 0;
+    // stage_menu->visible = 0;
 
-    pause_menu = gf3d_gui_load("pause_menu");
-    pause_menu->elements[3].element.button->on_click = exit_from_fight;
-    pause_menu->elements[4].element.button->on_click = resume_game;
-    pause_menu->active = pause_menu->visible = 0;
+    // pause_menu = gf3d_gui_load("pause_menu");
+    // pause_menu->elements[3].element.button->on_click = exit_from_fight;
+    // pause_menu->elements[4].element.button->on_click = resume_game;
+    // pause_menu->active = pause_menu->visible = 0;
 
     /* Setup first player */
     p1 = app_player_new();
@@ -329,7 +329,7 @@ int main(int argc,char *argv[])
         if( in_game && !game_paused && events[SDL_SCANCODE_M].type == SDL_KEYDOWN )
         {
             game_paused = 1;
-            pause_menu->active = pause_menu->visible = 1;
+            // pause_menu->active = pause_menu->visible = 1;
         }
 
         switch (events[SDL_SCANCODE_LCTRL].type)
@@ -395,10 +395,10 @@ int main(int argc,char *argv[])
 void start_game_button(Button *btn)
 {
     slog("hello from start game");
-    main_menu->visible = 0;
-    main_menu->active = 0;
-    stage_menu->visible = 1;
-    stage_menu->active = 1;
+    // main_menu->visible = 0;
+    // main_menu->active = 0;
+    // stage_menu->visible = 1;
+    // stage_menu->active = 1;
 }
 
 void exit_game_button(Button *btn)
@@ -419,8 +419,8 @@ void load_valle(Button *btn)
 {
     slog("hello from load valle");
     stage = app_stage_load("stage_final_valley");
-    stage_menu->visible = stage_menu->active = 0;
-    main_menu->active = main_menu->visible = 0;
+    // stage_menu->visible = stage_menu->active = 0;
+    // main_menu->active = main_menu->visible = 0;
     set_stage_fighters(&stage);
 }
 
@@ -428,33 +428,33 @@ void load_chunin(Button *btn)
 {
     slog("hello from load chunin");
     stage = app_stage_load("stage_chunin_exam");
-    main_menu->active = main_menu->visible = 0;
-    stage_menu->active = stage_menu->visible = 0;
+    // main_menu->active = main_menu->visible = 0;
+    // stage_menu->active = stage_menu->visible = 0;
     set_stage_fighters(&stage);
 }
 
 void stage_menu_go_back(Button *btn)
 {
     slog("go back");
-    main_menu->active = main_menu->visible = 1;
-    stage_menu->active = stage_menu->visible = 0;
+    // main_menu->active = main_menu->visible = 1;
+    // stage_menu->active = stage_menu->visible = 0;
 }
 
 void resume_game(Button *btn)
 {
     slog("yep, go back to playing");
-    pause_menu->visible = pause_menu->active = 0;
+    // pause_menu->visible = pause_menu->active = 0;
     game_paused = 0;
 }
 
 void exit_from_fight(Button *btn)
 {
     slog("why are you trying to quit? ;-;");
-    pause_menu->visible = pause_menu->active = 0;
+    // pause_menu->visible = pause_menu->active = 0;
     pHud->active = pHud->visible = 0;
     game_paused = 0;
     in_game = 0; 
-    main_menu->active = main_menu->visible = 1;
+    // main_menu->active = main_menu->visible = 1;
     app_stage_free(&stage);
 }
 
