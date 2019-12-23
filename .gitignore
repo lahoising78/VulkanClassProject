@@ -48,6 +48,9 @@
 #IDE Dump
 *.idea
 
+#shaders
+*.spv
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd

@@ -64,6 +64,8 @@ shaders:
 	glslc ../shaders/default.frag -o ../shaders/frag.spv
 	glslc ../shaders/default_gui.vert -o ../shaders/vert_gui.spv
 	glslc ../shaders/default_gui.frag -o ../shaders/frag_gui.spv
+	glslc ../shaders/shm.vert -o ../shaders/shm_vert.spv
+	glslc ../shaders/shm.frag -o ../shaders/shm_frag.spv
 
 #
 # Dependencies.
