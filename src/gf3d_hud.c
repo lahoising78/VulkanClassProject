@@ -33,10 +33,10 @@ void gf3d_hud_window_free(Window *window);
 void gf3d_hud_window_update(Window *window, SDL_Event *keys, SDL_Event *mouse);
 void gf3d_hud_window_draw(Window *window, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
-Vector2D gf3d_hud_element_get_position(HudElement e);
-void gf3d_hud_element_set_position(HudElement e, Vector2D pos);
+Vector2D gf3d_hud_element_get_position(HudElement *e);
+void gf3d_hud_element_set_position(HudElement *e, Vector2D pos);
 
-HudElement gf3d_hud_element_load_hud_file(SJson *json);
+void gf3d_hud_element_load_hud_file(HudElement *dst, SJson *json);
 
 /* ====PROGRESS BAR SPECIFIC==== */
 ProgressBar *gf3d_hud_progress_bar_create(float *max, float *val, Vector2D bgWidth)
@@ -590,18 +590,21 @@ void gf3d_hud_text_input_draw(TextInput *textInput, uint32_t bufferFrame, VkComm
 }
 
 /* ==========HUD GENERAL========== */
-HudElement gf3d_hud_element_load(SJson *json)
+void gf3d_hud_element_load(HudElement *dst, SJson *json)
 {
     SJson *obj = NULL;
 
-    HudElement e = {0};
+    HudElement *e = NULL;
     int type = GF3D_HUD_TYPE_NONE;
     int visible = 0;
+
+    if(!dst) return;
+    e = dst;
 
     obj = sj_object_get_value(json, "file");
     if(obj)
     {
-        return gf3d_hud_element_load_hud_file(obj);
+        gf3d_hud_element_load_hud_file(dst, obj);
     }
 
     obj = sj_object_get_value(json, "type");
@@ -609,64 +612,62 @@ HudElement gf3d_hud_element_load(SJson *json)
     obj = sj_object_get_value(json, "name");
     if(obj)
     {
-        gfc_line_cpy(e.name, sj_get_string_value(obj));
+        gfc_line_cpy(e->name, sj_get_string_value(obj));
     }
     else
     {
-        gfc_line_cpy(e.name, "Element");
+        gfc_line_cpy(e->name, "Element");
     }
 
     obj = sj_object_get_value(json, "visible");
     if(obj)
     {
         sj_get_integer_value(obj, &visible);
-        e.visible = visible;
+        e->visible = visible;
     }
     else
     {
-        e.visible = 1;
+        e->visible = 1;
     }
 
     switch (type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
-        e.type = GF3D_HUD_TYPE_GUI_ELEMENT;
-        e.element.guiElement = gf3d_gui_element_load(json);
+        e->type = GF3D_HUD_TYPE_GUI_ELEMENT;
+        e->element.guiElement = gf3d_gui_element_load(json);
         break;
     
     case GF3D_HUD_TYPE_PROGRESS_BAR:
-        e.type = GF3D_HUD_TYPE_PROGRESS_BAR;
-        e.element.pBar = gf3d_hud_progress_bar_load(json);
+        e->type = GF3D_HUD_TYPE_PROGRESS_BAR;
+        e->element.pBar = gf3d_hud_progress_bar_load(json);
         break;
 
     case GF3D_HUD_TYPE_BUTTON:
-        e.type = GF3D_HUD_TYPE_BUTTON;
-        e.element.button = gf3d_hud_button_load(json);
+        e->type = GF3D_HUD_TYPE_BUTTON;
+        e->element.button = gf3d_hud_button_load(json);
         break;
 
     case GF3D_HUD_TYPE_LABEL:
-        e.type = GF3D_HUD_TYPE_LABEL;
-        e.element.label = gf3d_hud_label_load(json);
+        e->type = GF3D_HUD_TYPE_LABEL;
+        e->element.label = gf3d_hud_label_load(json);
         break;
 
     case GF3D_HUD_TYPE_TEXT_INPUT:
-        e.type = GF3D_HUD_TYPE_TEXT_INPUT;
-        e.element.textInput = gf3d_hud_text_input_load(json);
+        e->type = GF3D_HUD_TYPE_TEXT_INPUT;
+        e->element.textInput = gf3d_hud_text_input_load(json);
         break;
 
     case GF3D_HUD_TYPE_WINDOW:
-        e.type = GF3D_HUD_TYPE_WINDOW;
-        e.element.window = gf3d_hud_window_load(json);
+        e->type = GF3D_HUD_TYPE_WINDOW;
+        e->element.window = gf3d_hud_window_load(json);
         break;
 
     default:
-        e.type = GF3D_HUD_TYPE_NONE;
-        e.element.guiElement = NULL;
-        sprintf(e.name, " ");
+        e->type = GF3D_HUD_TYPE_NONE;
+        e->element.guiElement = NULL;
+        sprintf(e->name, " ");
         break;
     }
-
-    return e;
 }
 
 SJson *gf3d_hud_element_to_json(HudElement *e)
@@ -728,25 +729,28 @@ SJson *gf3d_hud_element_to_json(HudElement *e)
     return obj;
 }
 
-HudElement gf3d_hud_element_load_hud_file(SJson *json)
+void gf3d_hud_element_load_hud_file(HudElement *dst, SJson *json)
 {
     int i;
     TextLine assetname;
     SJson *obj = NULL;
     SJson *arr = NULL;
 
-    HudElement window = {0};
-    HudElement e = {0};
+    HudElement *window = NULL;
+    HudElement *e = NULL;
+
+    if(!dst) return;
+    window = dst;
 
     char filename[GFCLINELEN];
 
     obj = sj_object_get_value(json, "window");
-    window = gf3d_hud_element_load(obj);
-    if(window.type != GF3D_HUD_TYPE_WINDOW) 
+    gf3d_hud_element_load(window, obj);
+    if(window->type != GF3D_HUD_TYPE_WINDOW) 
     {
-        gf3d_hud_element_free(&window);
-        memset(&window, 0, sizeof(HudElement));
-        return window;
+        gf3d_hud_element_free(window);
+        memset(window, 0, sizeof(HudElement));
+        return;
     }
 
     obj = sj_object_get_value(json, "filename");
@@ -757,30 +761,30 @@ HudElement gf3d_hud_element_load_hud_file(SJson *json)
     if( !json )
     {
         slog("file was not found");
-        gf3d_hud_element_free(&window);
-        memset(&window, 0, sizeof(HudElement));
-        return window;
+        gf3d_hud_element_free(window);
+        memset(window, 0, sizeof(HudElement));
+        return;
     }
     slog("opened hud file %s", assetname);
 
     arr = sj_object_get_value(json, "elements");
-    for(i = 0; i < window.element.window->count; i++)
+    for(i = 0; i < window->element.window->count; i++)
     {
         obj = sj_array_get_nth(arr, i);
         if(!obj) break;
+        e = &window->element.window->elements[i];
 
-        e = gf3d_hud_element_load(obj);
-        if(e.type == GF3D_HUD_TYPE_NONE || e.type == GF3D_HUD_TYPE_NUM) 
+        gf3d_hud_element_load(e, obj);
+        if(e->type == GF3D_HUD_TYPE_NONE || e->type == GF3D_HUD_TYPE_NUM) 
         {
-            gf3d_hud_element_free(&e);
+            gf3d_hud_element_free(e);
             continue;
         }
-        slog("-== type: %d ==-", e.type);
-        gf3d_hud_window_add_element(window.element.window, e);
+        slog("-== type: %d ==-", e->type);
+        gf3d_hud_window_add_element(window->element.window, e);
     }
 
     sj_free(json);
-    return window;
 }
 
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
@@ -894,73 +898,74 @@ void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse)
     }
 }
 
-Vector2D gf3d_hud_element_get_position(HudElement e)
+Vector2D gf3d_hud_element_get_position(HudElement *e)
 {
-    switch (e.type)
+    switch (e->type)
     {
-        case GF3D_HUD_TYPE_GUI_ELEMENT:     return e.element.guiElement->position; break;
-        case GF3D_HUD_TYPE_PROGRESS_BAR:    return e.element.pBar->back->position; break;
-        case GF3D_HUD_TYPE_BUTTON:          return e.element.button->bg->display->position; break;
-        case GF3D_HUD_TYPE_LABEL:           return e.element.label->display->position; break;
-        case GF3D_HUD_TYPE_TEXT_INPUT:      return e.element.textInput->textDisplay->display->position; break;
-        case GF3D_HUD_TYPE_WINDOW:          return e.element.window->bg->position; break;
+        case GF3D_HUD_TYPE_GUI_ELEMENT:     return e->element.guiElement->position; break;
+        case GF3D_HUD_TYPE_PROGRESS_BAR:    return e->element.pBar->back->position; break;
+        case GF3D_HUD_TYPE_BUTTON:          return e->element.button->bg->display->position; break;
+        case GF3D_HUD_TYPE_LABEL:           return e->element.label->display->position; break;
+        case GF3D_HUD_TYPE_TEXT_INPUT:      return e->element.textInput->textDisplay->display->position; break;
+        case GF3D_HUD_TYPE_WINDOW:          return e->element.window->bg->position; break;
         default: return vector2d(0.0, 0.0);
     }
 }
 
-void gf3d_hud_element_set_position(HudElement e, Vector2D pos)
+void gf3d_hud_element_set_position(HudElement *e, Vector2D pos)
 {
-    switch (e.type)
+    if(!e) return;
+    switch (e->type)
     {
         case GF3D_HUD_TYPE_GUI_ELEMENT:     
-            vector2d_copy(e.element.guiElement->position, pos); 
+            vector2d_copy(e->element.guiElement->position, pos); 
             break;
         case GF3D_HUD_TYPE_PROGRESS_BAR:    
-            vector2d_copy(e.element.pBar->back->position, pos); 
-            vector2d_add(e.element.pBar->fore->position, e.element.pBar->back->position, e.element.pBar->bgWidth);
+            vector2d_copy(e->element.pBar->back->position, pos); 
+            vector2d_add(e->element.pBar->fore->position, e->element.pBar->back->position, e->element.pBar->bgWidth);
             break;
         case GF3D_HUD_TYPE_BUTTON:          
-            vector2d_copy(e.element.button->bg->display->position, pos); 
-            vector2d_copy(e.element.button->bg->textDisp->position, pos);
+            vector2d_copy(e->element.button->bg->display->position, pos); 
+            vector2d_copy(e->element.button->bg->textDisp->position, pos);
             break;
         case GF3D_HUD_TYPE_LABEL:           
-            vector2d_copy(e.element.label->display->position, pos); 
-            vector2d_copy(e.element.label->textDisp->position, pos);
+            vector2d_copy(e->element.label->display->position, pos); 
+            vector2d_copy(e->element.label->textDisp->position, pos);
             break;
         case GF3D_HUD_TYPE_TEXT_INPUT:      
-            vector2d_copy(e.element.textInput->textDisplay->display->position, pos); 
-            vector2d_copy(e.element.textInput->textDisplay->textDisp->position, pos);
+            vector2d_copy(e->element.textInput->textDisplay->display->position, pos); 
+            vector2d_copy(e->element.textInput->textDisplay->textDisp->position, pos);
             break;
         case GF3D_HUD_TYPE_WINDOW:          
-            vector2d_copy(e.element.window->bg->position, pos); 
+            vector2d_copy(e->element.window->bg->position, pos); 
             break;
         default:                            break;
     }
 }
 
-void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
+void gf3d_hud_element_set_extents(HudElement *e, Vector2D ext)
 {
-    switch (e.type)
+    switch (e->type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
-        vector2d_copy(e.element.guiElement->extents, ext);
+        vector2d_copy(e->element.guiElement->extents, ext);
         break;
 
     case GF3D_HUD_TYPE_PROGRESS_BAR:
-        vector2d_copy(e.element.pBar->back->extents, ext);
-        e.element.pBar->fore->extents.y = ext.y - e.element.pBar->bgWidth.y * 2.0f;
+        vector2d_copy(e->element.pBar->back->extents, ext);
+        e->element.pBar->fore->extents.y = ext.y - e->element.pBar->bgWidth.y * 2.0f;
         break;
 
     case GF3D_HUD_TYPE_BUTTON:
-        vector2d_copy(e.element.button->bg->display->extents, ext);
+        vector2d_copy(e->element.button->bg->display->extents, ext);
         break;
 
     case GF3D_HUD_TYPE_LABEL:
-        vector2d_copy(e.element.label->display->extents, ext);
+        vector2d_copy(e->element.label->display->extents, ext);
         break;
 
     case GF3D_HUD_TYPE_TEXT_INPUT:
-        vector2d_copy(e.element.textInput->textDisplay->display->extents, ext);
+        vector2d_copy(e->element.textInput->textDisplay->display->extents, ext);
         break;
     
     default:
@@ -968,12 +973,12 @@ void gf3d_hud_element_set_extents(HudElement e, Vector2D ext)
     }
 }
 
-Vector2D gf3d_hud_element_get_extents(HudElement e)
+Vector2D gf3d_hud_element_get_extents(HudElement *e)
 {
-    switch(e.type)
+    switch(e->type)
     {
     case GF3D_HUD_TYPE_GUI_ELEMENT:
-        return e.element.guiElement->extents;
+        return e->element.guiElement->extents;
 
     default:
         return vector2d(0.0f, 0.0f);
@@ -1073,8 +1078,9 @@ Window *gf3d_hud_window_load(SJson *json)
         {
             break;
         }
-
-        gf3d_hud_window_add_element(window, gf3d_hud_element_load(obj));
+        
+        gf3d_hud_element_load(&window->elements[i], obj);
+        // gf3d_hud_window_add_element(window, );
     }
 
     return window;
@@ -1138,14 +1144,14 @@ void gf3d_hud_window_update(Window *window, SDL_Event *keys, SDL_Event *mouse)
 
     for(i = 0; i < window->count; i++)
     {
-        if(window->elements[i].type != GF3D_HUD_TYPE_NONE)
+        if(window->elements[i].type)
         {
-            vector2d_copy(pos, gf3d_hud_element_get_position(window->elements[i]));
+            vector2d_copy(pos, gf3d_hud_element_get_position(&window->elements[i]));
             vector2d_copy(window->elementPositions[i], pos );
             vector2d_add(pos, pos, window->bg->position);
-            gf3d_hud_element_set_position(window->elements[i], pos);
+            gf3d_hud_element_set_position(&window->elements[i], pos);
             gf3d_hud_element_update(&window->elements[i], keys, mouse);
-            gf3d_hud_element_set_position( window->elements[i], window->elementPositions[i] );
+            gf3d_hud_element_set_position( &window->elements[i], window->elementPositions[i] );
         }
     }
 }
@@ -1159,36 +1165,36 @@ void gf3d_hud_window_draw(Window *window, uint32_t bufferFrame, VkCommandBuffer 
 
     for(i = 0; i < window->count; i++)
     {
-        if(window->elements[i].type != GF3D_HUD_TYPE_NONE)
+        if(window->elements[i].type)
         {
             gf3d_hud_element_draw(&window->elements[i], bufferFrame, commandBuffer);
         }
     }
 }
 
-void gf3d_hud_window_add_element(Window *window, HudElement e)
+void gf3d_hud_window_add_element(Window *window, HudElement *e)
 {
     int i;
-    if(!e.type || !window) return;
+    if(!e->type || !window) return;
 
     for(i = 0; i < window->count; i++)
     {
-        if(window->elements[i].type) continue;
-        window->elements[i] = e;
+        if(window->elements[i].type != GF3D_HUD_TYPE_NONE) continue;
+        window->elements[i] = *e;
         window->countActual++;
         break;
     }
 }
 
-void gf3d_hud_window_remove_element(Window *window, HudElement e)
+void gf3d_hud_window_remove_element(Window *window, HudElement *e)
 {
     int i;
-    if(!e.type || !window) return;
+    if(!e->type || !window) return;
 
     for(i = 0; i < window->count; i++)
     {
         if(!window->elements[i].type) continue;
-        if( gfc_line_cmp(window->elements[i].name, e.name) == 0 )
+        if( gfc_line_cmp(window->elements[i].name, e->name) == 0 )
         {
             gf3d_hud_element_free(&window->elements[i]);
             memset(&window->elements[i], 0, sizeof(HudElement));

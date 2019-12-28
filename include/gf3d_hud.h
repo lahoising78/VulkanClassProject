@@ -90,17 +90,17 @@ typedef struct hud_element_t
     uint8_t visible;
 } HudElement;
 
-HudElement gf3d_hud_element_load(SJson *json);
+void gf3d_hud_element_load(HudElement *dst, SJson *json);
 SJson *gf3d_hud_element_to_json(HudElement *e);
 
 void gf3d_hud_element_draw(HudElement *e, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_hud_element_free(HudElement *e);
 void gf3d_hud_element_update(HudElement *e, SDL_Event *keys, SDL_Event *mouse);
 
-void gf3d_hud_element_set_position(HudElement e, Vector2D pos);
-Vector2D gf3d_hud_element_get_position(HudElement e);
-void gf3d_hud_element_set_extents(HudElement e, Vector2D ext);
-Vector2D gf3d_hud_element_get_extents(HudElement e);
+void gf3d_hud_element_set_position(HudElement *e, Vector2D pos);
+Vector2D gf3d_hud_element_get_position(HudElement *e);
+void gf3d_hud_element_set_extents(HudElement *e, Vector2D ext);
+Vector2D gf3d_hud_element_get_extents(HudElement *e);
 
 /* ===========HUD WINDOW========= */
 
@@ -115,8 +115,8 @@ typedef struct hud_window_t
 
 Window *gf3d_hud_window_create(uint32_t count, Vector2D pos, Vector2D ext, Vector4D color);
 HudElement *gf3d_hud_window_get_element_by_name(Window *window, const char *name);
-void gf3d_hud_window_add_element(Window *window, HudElement e);
-void gf3d_hud_window_remove_element(Window *window, HudElement e);
+void gf3d_hud_window_add_element(Window *window, HudElement *e);
+void gf3d_hud_window_remove_element(Window *window, HudElement *e);
 void gf3d_hud_window_remove_element_at_index(Window *window, uint32_t i);
 
 #endif

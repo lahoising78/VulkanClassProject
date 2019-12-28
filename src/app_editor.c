@@ -92,7 +92,7 @@ OnClickCallback on_clicks[32] = {add_editor_entity, save_file};
 void add_editor_entity(Button *btn)
 {
     EditorEntity *e = NULL;
-    HudElement lbl = {0};
+    HudElement *lbl = NULL;
     if(!centerWindow) return;
 
     e = app_editor_entity_create();
@@ -168,19 +168,20 @@ void add_editor_entity(Button *btn)
             break;
     }
     sprintf(e->ent->name, "element_%d", centerWindow->countActual);
-    gf3d_hud_window_add_element(centerWindow, *e->ent);
+    gf3d_hud_window_add_element(centerWindow, e->ent);
 
     if(!leftWindow) return;
 
-    lbl.type = GF3D_HUD_TYPE_LABEL;
-    lbl.element.label = gf3d_hud_label_create(
+    lbl = &leftWindow->elements[leftWindow->countActual];
+    lbl->type = GF3D_HUD_TYPE_LABEL;
+    lbl->element.label = gf3d_hud_label_create(
         vector2d(5.0f, leftWindow->countActual * 32.0f),
         vector2d(0.0f, 0.0f),
         vector4d(0.0f, 0.0f, 0.0f, 0.0f),
         vector4d(200.0f, 200.0f, 200.0f, 255.0f),
         e->ent->name
     );
-    lbl.visible = 1;
+    lbl->visible = 1;
     gf3d_hud_window_add_element(leftWindow, lbl);
 }
 
@@ -805,9 +806,9 @@ void update_element_values( HudElement nameInput )
         gfc_line_cpy(e->name, nameInput.element.textInput->textDisplay->text);
     }
     
-    gf3d_hud_element_set_extents(*e, ext);
+    gf3d_hud_element_set_extents(e, ext);
     app_editor_entity_fix_pos(ent);
-    gf3d_hud_element_set_position(*e, ent->pos);
+    gf3d_hud_element_set_position(e, ent->pos);
 }
 
 void removed_editor_entity(char *name)

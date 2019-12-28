@@ -47,7 +47,7 @@ Stage stage;
 
 // Gui *main_menu = NULL;
 // Gui *stage_menu = NULL;
-// Gui *pHud = NULL;
+Gui *pHud = NULL;
 // Gui *pause_menu = NULL;
 int done = 0;
 uint8_t in_game = 0;
@@ -249,7 +249,7 @@ int main(int argc,char *argv[])
     pHud->elements[2].element.pBar->val = &p1->entity->chakra;
     pHud->elements[3].element.pBar->max = &ent2->chakraMax;
     pHud->elements[3].element.pBar->val = &ent2->chakra;
-    pHud->active = pHud->visible = 0;
+    // pHud->active = pHud->visible = 0;
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();

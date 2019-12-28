@@ -241,10 +241,11 @@ Gui *gf3d_gui_load(char *filename)
     for(i = 0; i < elementCount; i++)
     {
         obj = sj_array_get_nth(arr, i);
-        e = gf3d_hud_element_load(obj);
-        if(e.type == GF3D_HUD_TYPE_NONE)
-            break;
-        gf3d_hud_add_element(gui, e);
+        gf3d_hud_element_load(&gui->elements[i], obj);
+        // e = gf3d_hud_element_load(obj);
+        // if(e.type == GF3D_HUD_TYPE_NONE)
+        //     break;
+        // gf3d_hud_add_element(gui, e);
     }
 
     sj_free(json);
