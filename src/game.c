@@ -85,7 +85,8 @@ int main(int argc,char *argv[])
     uint8_t lctrl = 0;
     uint8_t lshift = 0;
 
-    uiLayer *ui = NULL;
+    uiLayer *layer = NULL;
+    uiComponent *ui = NULL;
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -228,7 +229,12 @@ int main(int argc,char *argv[])
     gfc_matrix_make_translation(test->modelMat, test->position);
     gf3d_model_scale(test->modelMat, test->scale);
 
-    // ui = gf3d_ui_new();
+    layer = gf3d_ui_new();
+    slog("layer: inuse %d, active %d, visible %d, comp count %d", (int)layer->_inuse, (int)layer->active, (int)layer->visible, (int)layer->count);
+    ui =  gf3d_ui_get_component(layer);
+    gf3d_ui_component_attach_texture_from_file(ui, "bg_flat");
+    slog("comp: inuse %d, active %d, visible %d, texture %s", (int)ui->_inuse, (int)ui->active, (int)ui->visible, ui->texture->filename);
+    // gf3d_ui_component_free(ui);
 
     // ent2->enemy = p1->entity;
     // p1->entity->enemy = ent2;
@@ -297,6 +303,7 @@ int main(int argc,char *argv[])
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
+                gf3d_ui_manager_draw(bufferFrame, commandBuffer);
                 // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
