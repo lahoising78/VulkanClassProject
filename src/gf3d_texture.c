@@ -234,6 +234,8 @@ Texture *gf3d_texture_load(char *filename)
     gfc_line_cpy(tex->filename,filename);
 
     imageSize = surface->w * surface->h * 4;
+    tex->w = surface->w;
+    tex->h = surface->h;
     
     gf3d_vgraphics_create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
     
@@ -326,6 +328,8 @@ Texture *gf3d_texture_from_surface(Texture *tex, SDL_Surface *surface)
     
     // slog("image size");
     imageSize = surface->w * surface->h * 4;
+    tex->w = surface->w;
+    tex->h = surface->h;
 
     // slog("create stage buffer");
     gf3d_vgraphics_create_buffer(

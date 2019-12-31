@@ -222,7 +222,7 @@ int main(int argc,char *argv[])
     gf3d_model_load("shuriken", "shuriken");
 
     test = gf3d_entity_new();
-    test->position = vector3d(0.0f, 0.0f, 0.0f);
+    test->position = vector3d(0.0f, -10.0f, 0.0f);
     test->scale = vector3d(1, 1, 1);
     test->model = gf3d_model_load("dino", "dino");
     gfc_matrix_identity(test->modelMat);
