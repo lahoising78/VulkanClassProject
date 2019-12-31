@@ -25,7 +25,7 @@
 #include "gf3d_hud.h"
 #include "gfc_color.h"
 #include "app_editor.h"
-#include "gf3d_ui.h"
+#include "gf3d_ui_layer.h"
 
 #include <unistd.h>
 
@@ -83,6 +83,7 @@ int main(int argc,char *argv[])
     // Entity* ent2 = NULL;
     Entity* test = NULL;
     UILayer *layer = NULL;
+    UI *ui = NULL;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -265,6 +266,10 @@ int main(int argc,char *argv[])
     // pHud->active = pHud->visible = 0;
 
     layer = gf3d_ui_layer_new();
+    ui = gf3d_ui_layer_get_ui(layer);
+    ui->position = vector2d(100.0f, 100.0f);
+    vector2d_copy(ui->extents, ui->position);
+    ui->color = vector4d(255, 0, 0, 255);
 
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
