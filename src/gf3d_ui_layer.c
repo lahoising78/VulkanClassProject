@@ -42,7 +42,7 @@ static UIManager ui_manager = {0};
 
 void gf3d_ui_manager_init_layers();
 
-void gf3d_ui_render(UILayer *layer, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+void gf3d_ui_layer_render(UILayer *layer, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 void gf3d_ui_free_list(UILayer *layer);
 
 void gf3d_ui_manager_close()
@@ -246,7 +246,7 @@ void gf3d_ui_manger_render(uint32_t bufferFrame, VkCommandBuffer commandBuffer)
         layer = &ui_manager.layer_list[i];
         if(!layer->_inuse || !layer->visible) continue;
 
-        gf3d_ui_render(layer, bufferFrame, commandBuffer);
+        gf3d_ui_layer_render(layer, bufferFrame, commandBuffer);
     }
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gf3d_vgraphics_get_graphics_pipeline()->pipeline);
@@ -345,13 +345,34 @@ void gf3d_ui_update_descriptor_set(UILayer *layer, const VkDescriptorSet *descri
     vkUpdateDescriptorSets(ui_manager.device, 1, descriptorWrite, 0, NULL);
 }
 
-void gf3d_ui_render(UILayer *layer, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
+void gf3d_ui_render_ui_elements(UILayer *layer)
+{
+    int i;
+    UI *ui = NULL;
+    if(!layer) return;
+
+    gf3d_texture_free(layer->texture);
+
+    for(i = 0; i < layer->count; i++)
+    {
+        ui = &layer->uiList[i];
+        if(!ui->_inuse || !ui->visible) continue;
+
+        gf3d_ui_render(ui, layer->renderer);
+    }
+
+    layer->texture = gf3d_texture_from_surface(NULL, layer->surface);
+}
+
+void gf3d_ui_layer_render(UILayer *layer, uint32_t bufferFrame, VkCommandBuffer commandBuffer)
 {
     VkBuffer vertexBuffers[] = {layer->vertexBuffer};
     VkDeviceSize offsets[] = {0};
     const VkDescriptorSet *descriptorSet = gf3d_pipeline_get_descriptor_set(ui_manager.pipe, bufferFrame);
 
     if(!layer) return;
+
+    gf3d_ui_render_ui_elements(layer);
 
     gf3d_ui_update_descriptor_set(layer, descriptorSet);
 

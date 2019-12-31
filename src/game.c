@@ -267,8 +267,7 @@ int main(int argc,char *argv[])
 
     layer = gf3d_ui_layer_new();
     ui = gf3d_ui_layer_get_ui(layer);
-    ui->position = vector2d(100.0f, 100.0f);
-    vector2d_copy(ui->extents, ui->position);
+    ui->rect.x = ui->rect.y = ui->rect.w = ui->rect.h = 100;
     ui->color = vector4d(255, 0, 0, 255);
 
     gf3d_timer_start(&timer);

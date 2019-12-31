@@ -2,11 +2,11 @@
 #define _GF3D_UI_H_
 
 #include "gfc_vector.h"
+#include <SDL2/SDL.h>
 
 typedef struct
 {
-    Vector2D                        position;
-    Vector2D                        extents;
+    SDL_Rect                        rect;
     Vector4D                        color;
 
     uint8_t                         active;
@@ -16,5 +16,6 @@ typedef struct
 } UI;
 
 void gf3d_ui_free(UI *ui);
+void gf3d_ui_render(UI *ui, SDL_Renderer *renderer);
 
 #endif
