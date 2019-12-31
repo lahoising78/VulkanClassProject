@@ -25,6 +25,7 @@
 #include "gf3d_hud.h"
 #include "gfc_color.h"
 #include "app_editor.h"
+#include "gf3d_ui.h"
 
 #include <unistd.h>
 
@@ -81,6 +82,7 @@ int main(int argc,char *argv[])
     // Player* p1 = NULL;
     // Entity* ent2 = NULL;
     Entity* test = NULL;
+    UILayer *layer = NULL;
 
     float frame = 0.0f;
     Timer frameTimer = gf3d_timer_new();
@@ -137,6 +139,7 @@ int main(int argc,char *argv[])
     gf3d_entity_manager_init( entity_max );
     app_player_manager_init( player_max );
     gf3d_animation_manager_all_init(8);
+    gf3d_ui_manager_init(8);
 
     // main_menu = gf3d_gui_load("main_menu");
     // main_menu->elements[2].element.button->on_click = start_game_button;
@@ -261,6 +264,8 @@ int main(int argc,char *argv[])
     // pHud->elements[3].element.pBar->val = &ent2->chakra;
     // pHud->active = pHud->visible = 0;
 
+    layer = gf3d_ui_layer_new();
+
     gf3d_timer_start(&timer);
     gf3d_animation_manager_timer_start();
     
@@ -283,7 +288,7 @@ int main(int argc,char *argv[])
         
         if(in_game && !game_paused) app_player_manager_update(events); /* Give input to all players */
         if(!game_paused) gf3d_entity_manager_update(); /* Update all entities */
-        gf3d_gui_manager_update(events, mouse);
+        // gf3d_gui_manager_update(events, mouse);
 
         // if(p1->entity && ent2)
         // {
@@ -323,7 +328,7 @@ int main(int argc,char *argv[])
                 {
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
-                gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
             
