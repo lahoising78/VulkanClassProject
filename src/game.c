@@ -329,6 +329,7 @@ int main(int argc,char *argv[])
                     gf3d_entity_manager_draw_collision_boxes(bufferFrame, commandBuffer);
                 }
                 // gf3d_gui_manager_draw(bufferFrame, commandBuffer);
+                gf3d_ui_manger_render(bufferFrame, commandBuffer);
 
             gf3d_command_rendering_end(commandBuffer);
             

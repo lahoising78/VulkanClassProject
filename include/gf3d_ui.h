@@ -11,6 +11,11 @@ typedef struct
     SDL_Renderer            *renderer;
     Texture                 *texture;
 
+    VkBuffer                stagingBuffer;
+    VkDeviceMemory          stagingBufferMemory;
+    VkBuffer                vertexBuffer;
+    VkDeviceMemory          vertexBufferMemory;
+
     uint32_t                count;
 
     uint8_t                 active;
@@ -19,6 +24,7 @@ typedef struct
 } UILayer;
 
 void gf3d_ui_manager_init(uint32_t count);
+void gf3d_ui_manger_render(uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 UILayer *gf3d_ui_layer_new();
 void gf3d_ui_layer_free(UILayer *layer);
