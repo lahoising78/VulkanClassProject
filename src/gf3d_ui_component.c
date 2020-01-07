@@ -9,6 +9,7 @@ typedef struct
     uint32_t fcount;
     VkBuffer faceBuffer;
     VkDeviceMemory faceBufferMemory;
+    UniformBufferObject *ubo;
     VkDevice device;
 } uiComponentManager;
 
@@ -81,6 +82,7 @@ void gf3d_ui_component_manager_init()
     VkDeviceMemory stagingBufferMemory;
 
     Face faces[bufferSize / sizeof(Face)];
+    int i,j;
 
     gf3d_ui_component_manager.fcount = bufferSize / sizeof(Face);
     faces[0].verts[0] = 0;
@@ -106,6 +108,29 @@ void gf3d_ui_component_manager_init()
     vkDestroyBuffer(device, stagingBuffer, NULL);
     vkFreeMemory(device, stagingBufferMemory, NULL);
 
+    gf3d_ui_component_manager.ubo = (UniformBufferObject*)malloc(sizeof(UniformBufferObject));
+    if(gf3d_ui_component_manager.ubo)
+    {
+        slog("ui system set up ubo");
+
+        gfc_matrix_identity(gf3d_ui_component_manager.ubo->proj);
+        gfc_matrix_perspective(
+            gf3d_ui_component_manager.ubo->proj,
+            45 * GFC_DEGTORAD,
+            1200.0f/700.0f,
+            0.1f,
+            500
+        );
+
+        gfc_matrix_identity(gf3d_ui_component_manager.ubo->view);
+        gfc_matrix_view(
+            gf3d_ui_component_manager.ubo->view,
+            vector3d( 0, -1,  0),
+            vector3d( 0,  0,  0),
+            vector3d( 0,  0, -1)
+        );
+    }
+
     atexit(gf3d_ui_component_manager_close);
 }
 
@@ -119,10 +144,10 @@ void gf3d_ui_component_init( uiComponent *ui )
     ui->visible = 1;
     ui->active = 1;
     gfc_matrix_identity(ui->mat);
-    gfc_matrix_make_translation(ui->mat, vector3d(-ui->position.x, 0, -1 - ui->position.y));
-    ui->mat[0][0] = 1;
-    ui->mat[1][1] = 0;
-    ui->mat[2][2] = 1;
+    gfc_matrix_make_translation(ui->mat, vector3d(ui->position.x, 0,ui->position.y));
+    ui->mat[0][0] = 100.0f/1200.0f;
+    ui->mat[1][1] = 1;
+    ui->mat[2][2] = 100.0f/700.0f;
 
     gf3d_vgraphics_create_buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ui->uniformBuffer, &ui->uniformBufferMemory);
 }
@@ -166,13 +191,14 @@ extern float timeSinceStart;
 void gf3d_ui_update_uniform_buffer(uiComponent *ui)
 {
     void* data;
-    UniformBufferObject ubo;
-    ubo = gf3d_vgraphics_get_uniform_buffer_object();
-    ubo.time = timeSinceStart;
-    gfc_matrix_copy(ubo.model,ui->mat);
+    UniformBufferObject *ubo;
+    // ubo = gf3d_vgraphics_get_uniform_buffer_object();
+    ubo = gf3d_ui_component_manager.ubo;
+    ubo->time = timeSinceStart;
+    gfc_matrix_copy(ubo->model,ui->mat);
     vkMapMemory(gf3d_ui_component_manager.device, ui->uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &data);
     
-        memcpy(data, &ubo, sizeof(UniformBufferObject));
+        memcpy(data, ubo, sizeof(UniformBufferObject));
 
     vkUnmapMemory(gf3d_ui_component_manager.device, ui->uniformBufferMemory);
 }
