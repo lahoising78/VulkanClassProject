@@ -46,6 +46,8 @@ void gf3d_gui_manager_attach_pipe(Pipeline *pipe)
     gf3d_gui.pipe = pipe;
 }
 
+// void gf3d_gui_layer_draw(GuiLayer *gui, uint32_t bufferFrame, VkCommandBuffer commandBuffer);
+
 void gf3d_gui_manager_close()
 {
     int i;

@@ -4,6 +4,7 @@
 #include "gf3d_texture.h"
 #include "gf3d_vgraphics.h"
 #include "gf3d_swapchain.h"
+// #include <stdlib.h>
 
 typedef struct
 {
