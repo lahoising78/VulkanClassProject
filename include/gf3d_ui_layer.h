@@ -15,5 +15,6 @@ typedef struct
 } UILayer;
 
 void gf3d_ui_manager_init(uint32_t count);
+void gf3d_ui_manager_draw(uint32_t bufferFrame, VkCommandBuffer commandBuffer);
 
 #endif
