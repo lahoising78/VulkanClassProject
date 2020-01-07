@@ -24,6 +24,11 @@ void main()
     float cosTheta = dot( fragNormal,lightVector );
     vec4 baseColor = texture(texSampler, fragTexCoord);
 
-    outColor = baseColor + baseColor * cosTheta;
-    outColor.w = baseColor.w;
+    baseColor += baseColor * cosTheta;
+    // outColor.w = baseColor.w;
+
+    // vec4 mCol = mix(baseColor, baseColor * 0.5, hatching);
+    // vec4 mCol = mix(vec4(1,0.9,0.8,1), vec4(1,0.9,0.8,1) * 0.5, hatching);
+
+    outColor = (baseColor + baseColor * cosTheta);
 }

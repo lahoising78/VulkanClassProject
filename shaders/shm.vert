@@ -23,6 +23,7 @@ layout(location = 2) out float time;
 void main()
 {
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position.x += 2.0 * cos(gl_Position.y + ubo.time * 40.0);
     fragNormal = inNormal;
     fragTexCoord =  inTexCoord;
     time = ubo.time;
