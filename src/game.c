@@ -233,6 +233,7 @@ int main(int argc,char *argv[])
     slog("layer: inuse %d, active %d, visible %d, comp count %d", (int)layer->_inuse, (int)layer->active, (int)layer->visible, (int)layer->count);
     ui =  gf3d_ui_get_component(layer);
     gf3d_ui_component_attach_texture_from_file(ui, "bg_flat");
+    if(ui->texture) slog("w: %d, h: %d", (int)ui->texture->w, (int)ui->texture->h);
     slog("comp: inuse %d, active %d, visible %d, texture %s", (int)ui->_inuse, (int)ui->active, (int)ui->visible, ui->texture->filename);
     // gf3d_ui_component_free(ui);
 

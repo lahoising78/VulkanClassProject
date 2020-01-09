@@ -26,24 +26,24 @@ void gf3d_ui_component_create_vertex_buffer(uiComponent *ui)
 
     Vertex vertices[4] = {
         {
-            {-1,  0,  1},
+            {-1,  0, 1},
             {0, -1, 0},
-            {0, 0}
+            {0, 1}
         },
         {
-            { 1,  0,  1},
-            {0, -1, 0},
-            {1, 0}
-        },
-        {
-            { 1,  0, -1},
+            { 1,  0, 1},
             {0, -1, 0},
             {1, 1}
         },
         {
+            { 1,  0, -1},
+            {0, -1, 0},
+            {1, 0}
+        },
+        {
             {-1,  0, -1},
             {0, -1, 0},
-            {0, 1}
+            {0, 0}
         }
     };
 
@@ -116,10 +116,11 @@ void gf3d_ui_component_manager_init()
         gfc_matrix_identity(gf3d_ui_component_manager.ubo->proj);
         gfc_matrix_perspective(
             gf3d_ui_component_manager.ubo->proj,
-            45 * GFC_DEGTORAD,
+            atanf(700.0f/2.0f),
+            // 45 * GFC_DEGTORAD,
             1200.0f/700.0f,
             0.1f,
-            500
+            1.1
         );
 
         gfc_matrix_identity(gf3d_ui_component_manager.ubo->view);
@@ -127,7 +128,7 @@ void gf3d_ui_component_manager_init()
             gf3d_ui_component_manager.ubo->view,
             vector3d( 0, -1,  0),
             vector3d( 0,  0,  0),
-            vector3d( 0,  0, -1)
+            vector3d( 0,  0, 1)
         );
     }
 
@@ -143,11 +144,12 @@ void gf3d_ui_component_init( uiComponent *ui )
     ui->_inuse = 1;
     ui->visible = 1;
     ui->active = 1;
+    ui->position.x = 00.0f;
     gfc_matrix_identity(ui->mat);
     gfc_matrix_make_translation(ui->mat, vector3d(ui->position.x, 0,ui->position.y));
-    ui->mat[0][0] = 100.0f/1200.0f;
-    ui->mat[1][1] = 1;
-    ui->mat[2][2] = 100.0f/700.0f;
+    ui->mat[0][0] = 1.0f;
+    ui->mat[1][1] = 1.0f;
+    ui->mat[2][2] = 1.0f;
 
     gf3d_vgraphics_create_buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ui->uniformBuffer, &ui->uniformBufferMemory);
 }
@@ -196,6 +198,8 @@ void gf3d_ui_update_uniform_buffer(uiComponent *ui)
     ubo = gf3d_ui_component_manager.ubo;
     ubo->time = timeSinceStart;
     gfc_matrix_copy(ubo->model,ui->mat);
+    ubo->model[0][0] *= ui->texture->w / 700.0f;
+    ubo->model[2][2] *= ui->texture->h / 700.0f;
     vkMapMemory(gf3d_ui_component_manager.device, ui->uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &data);
     
         memcpy(data, ubo, sizeof(UniformBufferObject));
