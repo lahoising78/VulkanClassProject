@@ -87,6 +87,8 @@ int main(int argc,char *argv[])
 
     uiLayer *layer = NULL;
     uiComponent *ui = NULL;
+    uiComponent *pic = NULL;
+    // uiComponent *ui[1024];
 
     /* controllers */
     SDL_Joystick *controller = NULL;
@@ -231,10 +233,23 @@ int main(int argc,char *argv[])
 
     layer = gf3d_ui_new();
     slog("layer: inuse %d, active %d, visible %d, comp count %d", (int)layer->_inuse, (int)layer->active, (int)layer->visible, (int)layer->count);
+
     ui =  gf3d_ui_get_component(layer);
     gf3d_ui_component_attach_texture_from_file(ui, "bg_flat");
     if(ui->texture) slog("w: %d, h: %d", (int)ui->texture->w, (int)ui->texture->h);
     slog("comp: inuse %d, active %d, visible %d, texture %s", (int)ui->_inuse, (int)ui->active, (int)ui->visible, ui->texture->filename);
+
+    pic = gf3d_ui_get_component(layer);
+    gf3d_ui_component_attach_texture_from_file(pic, "naruto");
+    if(pic->texture) slog("w: %d, h: %d", (int)pic->texture->w, (int)pic->texture->h);
+
+    // for(a = 0; a < layer->count; a++)
+    // {
+    //     ui[a] = gf3d_ui_get_component(layer);
+    //     if(!ui[a]) continue;
+    //     gf3d_ui_component_attach_texture_from_file(ui[a], "bg_flat");
+    //     if(ui[a]->texture) slog("w: %d, h: %d", (int)ui[a]->texture->w, (int)ui[a]->texture->h);
+    // }
     // gf3d_ui_component_free(ui);
 
     // ent2->enemy = p1->entity;

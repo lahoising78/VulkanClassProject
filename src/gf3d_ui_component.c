@@ -9,6 +9,7 @@ typedef struct
     uint32_t fcount;
     VkBuffer faceBuffer;
     VkDeviceMemory faceBufferMemory;
+    Vector2D ext;
     UniformBufferObject *ubo;
     VkDevice device;
 } uiComponentManager;
@@ -77,6 +78,7 @@ void gf3d_ui_component_manager_init()
     void* data;
     VkDevice device = gf3d_vgraphics_get_default_logical_device();
     VkDeviceSize bufferSize = sizeof(Face) * 2;
+    VkExtent2D ext = gf3d_vgraphics_get_view_extent();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -108,6 +110,9 @@ void gf3d_ui_component_manager_init()
     vkDestroyBuffer(device, stagingBuffer, NULL);
     vkFreeMemory(device, stagingBufferMemory, NULL);
 
+    gf3d_ui_component_manager.ext.x = (float)ext.width;
+    gf3d_ui_component_manager.ext.y = (float)ext.height;
+
     gf3d_ui_component_manager.ubo = (UniformBufferObject*)malloc(sizeof(UniformBufferObject));
     if(gf3d_ui_component_manager.ubo)
     {
@@ -116,9 +121,9 @@ void gf3d_ui_component_manager_init()
         gfc_matrix_identity(gf3d_ui_component_manager.ubo->proj);
         gfc_matrix_perspective(
             gf3d_ui_component_manager.ubo->proj,
-            atanf(700.0f/2.0f),
+            atanf(gf3d_ui_component_manager.ext.y/2.0f),
             // 45 * GFC_DEGTORAD,
-            1200.0f/700.0f,
+            gf3d_ui_component_manager.ext.x/gf3d_ui_component_manager.ext.y,
             0.1f,
             1.1
         );
@@ -144,7 +149,6 @@ void gf3d_ui_component_init( uiComponent *ui )
     ui->_inuse = 1;
     ui->visible = 1;
     ui->active = 1;
-    ui->position.x = 00.0f;
     gfc_matrix_identity(ui->mat);
     gfc_matrix_make_translation(ui->mat, vector3d(ui->position.x, 0,ui->position.y));
     ui->mat[0][0] = 1.0f;
@@ -198,8 +202,8 @@ void gf3d_ui_update_uniform_buffer(uiComponent *ui)
     ubo = gf3d_ui_component_manager.ubo;
     ubo->time = timeSinceStart;
     gfc_matrix_copy(ubo->model,ui->mat);
-    ubo->model[0][0] *= ui->texture->w / 700.0f;
-    ubo->model[2][2] *= ui->texture->h / 700.0f;
+    ubo->model[0][0] *= ui->texture->w / gf3d_ui_component_manager.ext.y;
+    ubo->model[2][2] *= ui->texture->h / gf3d_ui_component_manager.ext.y;
     vkMapMemory(gf3d_ui_component_manager.device, ui->uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &data);
     
         memcpy(data, ubo, sizeof(UniformBufferObject));

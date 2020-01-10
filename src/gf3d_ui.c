@@ -120,7 +120,7 @@ uiComponent *gf3d_ui_get_component(uiLayer *layer)
     uiComponent *ui = NULL;
     if(!layer || !layer->components) return NULL;
 
-    for(i = 0; i < layer->count; i++)
+    for(i = layer->count - 1; i >= 0; i--)
     {
         ui = &layer->components[i];
         if(ui->_inuse) continue;
