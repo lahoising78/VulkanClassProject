@@ -41,4 +41,6 @@ void gf3d_texture_surface_update(TextureUI *tex, SDL_Surface *tex_surface);
 
 void gf3d_texture_ui_free(TextureUI *tex);
 
+void gf3d_texture_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
 #endif

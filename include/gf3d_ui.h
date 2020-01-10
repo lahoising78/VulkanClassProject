@@ -20,6 +20,7 @@ typedef struct
 /* UI MANAGER FUNCTIONS */
 
 void gf3d_ui_manager_init(uint32_t count);
+void gf3d_ui_manager_update();
 void gf3d_ui_manager_draw( uint32_t bufferFrame, VkCommandBuffer commandBuffer );
 
 /* UI LAYER FUNCTIONS */

@@ -7,8 +7,12 @@ typedef struct
 {
     uint32_t vcount;
     uint32_t fcount;
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
     VkBuffer faceBuffer;
     VkDeviceMemory faceBufferMemory;
+    
     Vector2D ext;
     UniformBufferObject *ubo;
     VkDevice device;
@@ -69,6 +73,8 @@ void gf3d_ui_component_create_vertex_buffer(uiComponent *ui)
 void gf3d_ui_component_manager_close()
 {
     VkDevice device = gf3d_vgraphics_get_default_logical_device();
+    vkDestroyBuffer(device, gf3d_ui_component_manager.stagingBuffer, NULL);
+    vkFreeMemory(device, gf3d_ui_component_manager.stagingBufferMemory, NULL);
     vkDestroyBuffer(device, gf3d_ui_component_manager.faceBuffer, NULL);
     vkFreeMemory(device, gf3d_ui_component_manager.faceBufferMemory, NULL);
 }
@@ -158,6 +164,57 @@ void gf3d_ui_component_init( uiComponent *ui )
     gf3d_vgraphics_create_buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ui->uniformBuffer, &ui->uniformBufferMemory);
 }
 
+void gf3d_ui_component_update( uiComponent *ui )
+{
+    static uiComponent *first = NULL;
+    static int updated = 0;
+    void *data;
+    VkDeviceSize imageSize;
+    
+    SDL_Rect rect = {0};
+
+    if(!ui) return;
+    if(first && ui != first) return;
+    if(updated > 2) return;
+
+    // updated++;
+    first = ui;
+
+    slog("updating the first");
+
+    if(!ui->surface) ui->surface = SDL_CreateRGBSurface(
+        0,
+        gf3d_ui_component_manager.ext.x, gf3d_ui_component_manager.ext.y,
+        32,
+        rmask, gmask, bmask, amask
+    );
+
+    if(!ui->renderer) ui->renderer = SDL_CreateSoftwareRenderer(ui->surface);
+
+    rect.w = rect.h = rect.y = 100;
+    rect.x = updated * 200;
+
+    imageSize = ui->surface->w * ui->surface->h * 4;
+
+    if(updated == 0)
+    {
+        gf3d_vgraphics_create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &gf3d_ui_component_manager.stagingBuffer, &gf3d_ui_component_manager.stagingBufferMemory);
+    }
+
+    SDL_LockSurface(ui->surface);
+        SDL_SetRenderDrawColor(ui->renderer, 255, 0, 0, 255);
+        SDL_RenderFillRect(ui->renderer, &rect);
+
+        vkMapMemory(gf3d_ui_component_manager.device, gf3d_ui_component_manager.stagingBufferMemory, 0, imageSize, 0, &data);
+            memcpy(data, ui->surface->pixels, imageSize);
+        vkUnmapMemory(gf3d_ui_component_manager.device, gf3d_ui_component_manager.stagingBufferMemory);
+    SDL_UnlockSurface(ui->surface);
+
+    gf3d_swapchain_transition_image_layout(ui->texture->textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    gf3d_texture_copy_buffer_to_image(gf3d_ui_component_manager.stagingBuffer, ui->texture->textureImage, ui->texture->w, ui->texture->h);
+    gf3d_swapchain_transition_image_layout(ui->texture->textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
 void gf3d_ui_component_free( uiComponent *ui )
 {
     VkDevice device = gf3d_vgraphics_get_default_logical_device();
@@ -171,6 +228,9 @@ void gf3d_ui_component_free( uiComponent *ui )
     vkFreeMemory(device, ui->vertexBufferMemory, NULL); 
     vkDestroyBuffer(device, ui->uniformBuffer, NULL);
     vkFreeMemory(device, ui->uniformBufferMemory, NULL); 
+
+    SDL_DestroyRenderer(ui->renderer);
+    SDL_FreeSurface(ui->surface);
 
     memset(ui, 0, sizeof(uiComponent));
 }

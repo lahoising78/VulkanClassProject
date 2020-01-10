@@ -239,9 +239,9 @@ int main(int argc,char *argv[])
     if(ui->texture) slog("w: %d, h: %d", (int)ui->texture->w, (int)ui->texture->h);
     slog("comp: inuse %d, active %d, visible %d, texture %s", (int)ui->_inuse, (int)ui->active, (int)ui->visible, ui->texture->filename);
 
-    pic = gf3d_ui_get_component(layer);
-    gf3d_ui_component_attach_texture_from_file(pic, "naruto");
-    if(pic->texture) slog("w: %d, h: %d", (int)pic->texture->w, (int)pic->texture->h);
+    // pic = gf3d_ui_get_component(layer);
+    // gf3d_ui_component_attach_texture_from_file(pic, "naruto");
+    // if(pic->texture) slog("w: %d, h: %d", (int)pic->texture->w, (int)pic->texture->h);
 
     // for(a = 0; a < layer->count; a++)
     // {
@@ -279,6 +279,7 @@ int main(int argc,char *argv[])
         
         if(in_game && !game_paused) app_player_manager_update(events); /* Give input to all players */
         if(!game_paused) gf3d_entity_manager_update(); /* Update all entities */
+        gf3d_ui_manager_update();
         // gf3d_gui_manager_update(events, mouse);
 
         // if(p1->entity && ent2)

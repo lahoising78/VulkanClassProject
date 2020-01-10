@@ -30,6 +30,7 @@ typedef struct
 static uiManager gf3d_ui_manager = {0};
 
 void gf3d_ui_draw( uiLayer *layer, uint32_t bufferFrame, VkCommandBuffer commandBuffer );
+void gf3d_ui_update(uiLayer *layer);
 
 void gf3d_ui_manager_close()
 {
@@ -72,6 +73,20 @@ void gf3d_ui_manager_init(uint32_t count)
     gf3d_ui_component_manager_init();
 }
 
+void gf3d_ui_manager_update()
+{
+    int i;
+    uiLayer *layer = NULL;
+
+    for(i = 0; i < gf3d_ui_manager.count; i++)
+    {
+        layer = &gf3d_ui_manager.layer_list[i];
+        if(!layer->_inuse || !layer->active) continue;
+
+        gf3d_ui_update(layer);
+    }
+}
+
 void gf3d_ui_manager_draw( uint32_t bufferFrame, VkCommandBuffer commandBuffer )
 {
     int i;
@@ -112,6 +127,22 @@ uiLayer *gf3d_ui_new()
     }
 
     return NULL;
+}
+
+void gf3d_ui_update( uiLayer *layer )
+{
+    int i;
+    uiComponent *ui = NULL;
+    
+    if(!layer) return;
+
+    for(i = 0; i < layer->count; i++)
+    {
+        ui = &layer->components[i];
+        if(!ui->_inuse || !ui->active) continue;
+
+        gf3d_ui_component_update(ui);
+    }
 }
 
 uiComponent *gf3d_ui_get_component(uiLayer *layer)
